@@ -1,0 +1,10 @@
+pnpm-lock.yaml
+node_modules
+.turbo
+
+apps/convex-app/node_modules
+apps/convex-app/.turbo
+
+packages/convex-upload-helpers/dist
+packages/convex-upload-helpers/node_modules
+packages/convex-upload-helpers/.turbo

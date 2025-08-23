@@ -1,0 +1,23 @@
+{
+  "name": "convex-upload-helpers",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "check-types": "turbo check-types",
+    "lint-staged": "lint-staged",
+    "prepare": "husky",
+    "release": "bash scripts/release.sh"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,json}": [
+      "prettier --write ."
+    ]
+  },
+  "packageManager": "pnpm@10.14.0",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.5",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6"
+  }
+}
