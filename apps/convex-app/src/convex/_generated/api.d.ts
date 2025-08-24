@@ -12,10 +12,10 @@ import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-} from 'convex/server'
-import type * as functions_files from '../functions/files.js'
-import type * as http from '../http.js'
-import type * as tables_users from '../tables/users.js'
+} from "convex/server";
+import type * as functions_files from "../functions/files.js";
+import type * as http from "../http.js";
+import type * as tables_users from "../tables/users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -26,15 +26,15 @@ import type * as tables_users from '../tables/users.js'
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  'functions/files': typeof functions_files
-  http: typeof http
-  'tables/users': typeof tables_users
-}>
+  "functions/files": typeof functions_files;
+  http: typeof http;
+  "tables/users": typeof tables_users;
+}>;
 export declare const api: FilterApi<
   typeof fullApi,
-  FunctionReference<any, 'public'>
->
+  FunctionReference<any, "public">
+>;
 export declare const internal: FilterApi<
   typeof fullApi,
-  FunctionReference<any, 'internal'>
->
+  FunctionReference<any, "internal">
+>;

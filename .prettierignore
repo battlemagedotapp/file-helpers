@@ -3,6 +3,7 @@ node_modules
 .turbo
 
 apps/convex-app/node_modules
+apps/convex-app/src/convex
 apps/convex-app/.turbo
 
 packages/convex-upload-helpers/dist
