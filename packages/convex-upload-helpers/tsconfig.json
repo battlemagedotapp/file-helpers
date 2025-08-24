@@ -15,7 +15,6 @@
     "target": "ESNext",
     "verbatimModuleSyntax": true,
 
-    /* shadcn ui */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

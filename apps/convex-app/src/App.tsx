@@ -1,10 +1,10 @@
 import {} from '@battlemagedotapp/convex-upload-helpers'
-import './App.css'
+import { ModeToggleComponent } from './components/ModeToggleComponent'
 
 function App() {
   return (
     <>
-      <div className="text-3xl font-bold underline">Hello World</div>
+      <ModeToggleComponent />
     </>
   )
 }

@@ -1,5 +1,5 @@
 {
-  "name": "convex-upload-helpers",
+  "name": "file-helpers",
   "private": true,
   "scripts": {
     "dev": "turbo dev",
