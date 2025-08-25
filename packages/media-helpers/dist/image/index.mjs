@@ -1,5 +1,344 @@
 import "../chunk-PMJAV4JJ.mjs";
 
+// src/components/ui/button.tsx
+import { Slot } from "@radix-ui/react-slot";
+import { cva } from "class-variance-authority";
+import "react";
+
+// src/lib/utils.ts
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
+// src/components/ui/button.tsx
+import { jsx } from "react/jsx-runtime";
+var buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline"
+      },
+      size: {
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-9"
+      }
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default"
+    }
+  }
+);
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}) {
+  const Comp = asChild ? Slot : "button";
+  return /* @__PURE__ */ jsx(
+    Comp,
+    {
+      "data-slot": "button",
+      className: cn(buttonVariants({ variant, size, className })),
+      ...props
+    }
+  );
+}
+
+// src/image/view/ImageViewProviderContext.tsx
+import { createContext, useContext } from "react";
+var defaultTransform = (storageId) => storageId;
+var ImageViewContext = createContext({
+  transformImageUrlFn: defaultTransform
+});
+var useImageView = () => useContext(ImageViewContext);
+var ImageViewProviderContext_default = ImageViewContext;
+
+// src/image/view/ImageView.tsx
+import { Ellipsis, X } from "lucide-react";
+import { useState } from "react";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { jsx as jsx2, jsxs } from "react/jsx-runtime";
+function ImageView({
+  src,
+  alt,
+  canExpand = true,
+  className,
+  externalImageUrlFn
+}) {
+  const [status, setStatus] = useState(
+    "loading"
+  );
+  const [imgClassNames, setImgClassNames] = useState({
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  });
+  const [isOpen, setIsOpen] = useState(false);
+  const { transformImageUrlFn } = useImageView();
+  const imageSrc = externalImageUrlFn ? externalImageUrlFn(src) : transformImageUrlFn(src);
+  return /* @__PURE__ */ jsxs("div", { className: cn("w-full h-full relative select-none", className), children: [
+    /* @__PURE__ */ jsx2(
+      "img",
+      {
+        src: imageSrc,
+        alt,
+        style: imgClassNames,
+        className: canExpand ? "hover:cursor-pointer" : "",
+        onClick: () => {
+          if (canExpand && status === "loaded") setIsOpen(true);
+        },
+        onLoad: () => {
+          setStatus("loaded");
+          setImgClassNames({
+            width: "100%",
+            height: "100%",
+            objectFit: "cover"
+          });
+        },
+        onError: () => {
+          setStatus("error");
+          setImgClassNames({
+            width: "0",
+            height: "0",
+            objectFit: "cover"
+          });
+        }
+      }
+    ),
+    status === "loading" && /* @__PURE__ */ jsx2("div", { className: "absolute inset-0 flex items-center justify-center", children: /* @__PURE__ */ jsx2(Ellipsis, { className: "h-4 w-4 animate-pulse" }) }),
+    status === "error" && /* @__PURE__ */ jsx2("div", { className: "absolute inset-0 flex items-center justify-center", children: /* @__PURE__ */ jsx2(X, { className: "h-4 w-4" }) }),
+    isOpen && status === "loaded" && /* @__PURE__ */ jsx2(
+      "div",
+      {
+        className: "fixed inset-0  backdrop-blur-2xl z-50 flex items-center justify-center",
+        onClick: () => setIsOpen(false),
+        children: /* @__PURE__ */ jsx2(
+          TransformWrapper,
+          {
+            wheel: { step: 0.5 },
+            pinch: { disabled: false },
+            doubleClick: { disabled: true },
+            children: /* @__PURE__ */ jsx2(
+              TransformComponent,
+              {
+                wrapperStyle: { width: "100%", height: "100%" },
+                children: /* @__PURE__ */ jsxs(
+                  "div",
+                  {
+                    className: "relative max-w-full max-h-full p-4",
+                    onClick: (e) => e.stopPropagation(),
+                    children: [
+                      /* @__PURE__ */ jsx2(
+                        Button,
+                        {
+                          type: "button",
+                          variant: "secondary",
+                          size: "icon",
+                          className: "cursor-pointer absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground",
+                          onClick: () => setIsOpen(false),
+                          children: /* @__PURE__ */ jsx2(X, { className: "h-4 w-4" })
+                        }
+                      ),
+                      /* @__PURE__ */ jsx2(
+                        "img",
+                        {
+                          src: imageSrc,
+                          alt,
+                          className: "max-w-[90vw] max-h-[90vh] object-contain"
+                        }
+                      )
+                    ]
+                  }
+                )
+              }
+            )
+          }
+        )
+      }
+    )
+  ] });
+}
+
+// src/image/uploader/multiple-image/MultiImageCropUploader.tsx
+import { useFileUpload } from "@battlemagedotapp/convex-upload-helpers";
+import { ImagePlus, LoaderCircle, Trash } from "lucide-react";
+import { useRef as useRef2, useState as useState3 } from "react";
+import { toast } from "sonner";
+
+// src/components/ui/alert-dialog.tsx
+import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
+import "react";
+import { jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
+function AlertDialog({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(AlertDialogPrimitive.Root, { "data-slot": "alert-dialog", ...props });
+}
+function AlertDialogTrigger({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(AlertDialogPrimitive.Trigger, { "data-slot": "alert-dialog-trigger", ...props });
+}
+function AlertDialogPortal({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(AlertDialogPrimitive.Portal, { "data-slot": "alert-dialog-portal", ...props });
+}
+function AlertDialogOverlay({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Overlay,
+    {
+      "data-slot": "alert-dialog-overlay",
+      className: cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className
+      ),
+      ...props
+    }
+  );
+}
+function AlertDialogContent({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxs2(AlertDialogPortal, { children: [
+    /* @__PURE__ */ jsx3(AlertDialogOverlay, {}),
+    /* @__PURE__ */ jsx3(
+      AlertDialogPrimitive.Content,
+      {
+        "data-slot": "alert-dialog-content",
+        className: cn(
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          className
+        ),
+        ...props
+      }
+    )
+  ] });
+}
+function AlertDialogHeader({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    "div",
+    {
+      "data-slot": "alert-dialog-header",
+      className: cn("flex flex-col gap-2 text-center sm:text-left", className),
+      ...props
+    }
+  );
+}
+function AlertDialogFooter({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    "div",
+    {
+      "data-slot": "alert-dialog-footer",
+      className: cn(
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        className
+      ),
+      ...props
+    }
+  );
+}
+function AlertDialogTitle({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Title,
+    {
+      "data-slot": "alert-dialog-title",
+      className: cn("text-lg font-semibold", className),
+      ...props
+    }
+  );
+}
+function AlertDialogDescription({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Description,
+    {
+      "data-slot": "alert-dialog-description",
+      className: cn("text-muted-foreground text-sm", className),
+      ...props
+    }
+  );
+}
+function AlertDialogAction({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Action,
+    {
+      className: cn(buttonVariants(), className),
+      ...props
+    }
+  );
+}
+function AlertDialogCancel({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Cancel,
+    {
+      className: cn(buttonVariants({ variant: "outline" }), className),
+      ...props
+    }
+  );
+}
+
+// src/image/uploader/ConfirmAlertDialog.tsx
+import "react";
+import { jsx as jsx4, jsxs as jsxs3 } from "react/jsx-runtime";
+function ConfirmAlertDialog({
+  title = "Are you sure?",
+  description = "This action cannot be undone.",
+  trigger,
+  onConfirm,
+  confirmLabel = "Continue",
+  cancelLabel = "Cancel"
+}) {
+  return /* @__PURE__ */ jsxs3(AlertDialog, { children: [
+    trigger ? /* @__PURE__ */ jsx4(AlertDialogTrigger, { children: trigger }) : null,
+    /* @__PURE__ */ jsxs3(AlertDialogContent, { children: [
+      /* @__PURE__ */ jsxs3(AlertDialogHeader, { children: [
+        /* @__PURE__ */ jsx4(AlertDialogTitle, { children: title }),
+        /* @__PURE__ */ jsx4(AlertDialogDescription, { children: description })
+      ] }),
+      /* @__PURE__ */ jsxs3(AlertDialogFooter, { children: [
+        /* @__PURE__ */ jsx4(AlertDialogCancel, { children: cancelLabel }),
+        /* @__PURE__ */ jsx4(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
+      ] })
+    ] })
+  ] });
+}
+var ConfirmAlertDialog_default = ConfirmAlertDialog;
+
 // src/image/uploader/imageProcessingUtils.ts
 import imageCompression from "browser-image-compression";
 import "react-image-crop";
@@ -143,83 +482,26 @@ async function processImages(processedImages, compressionOptions) {
   return processedFiles;
 }
 
-// src/components/ui/button.tsx
-import { Slot } from "@radix-ui/react-slot";
-import { cva } from "class-variance-authority";
-import "react";
-
-// src/lib/utils.ts
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
-
-// src/components/ui/button.tsx
-import { jsx } from "react/jsx-runtime";
-var buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline"
-      },
-      size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9"
-      }
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default"
-    }
-  }
-);
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}) {
-  const Comp = asChild ? Slot : "button";
-  return /* @__PURE__ */ jsx(
-    Comp,
-    {
-      "data-slot": "button",
-      className: cn(buttonVariants({ variant, size, className })),
-      ...props
-    }
-  );
-}
-
 // src/components/ui/dialog.tsx
 import "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
-import { jsx as jsx2, jsxs } from "react/jsx-runtime";
+import { jsx as jsx5, jsxs as jsxs4 } from "react/jsx-runtime";
 function Dialog({
   ...props
 }) {
-  return /* @__PURE__ */ jsx2(DialogPrimitive.Root, { "data-slot": "dialog", ...props });
+  return /* @__PURE__ */ jsx5(DialogPrimitive.Root, { "data-slot": "dialog", ...props });
 }
 function DialogPortal({
   ...props
 }) {
-  return /* @__PURE__ */ jsx2(DialogPrimitive.Portal, { "data-slot": "dialog-portal", ...props });
+  return /* @__PURE__ */ jsx5(DialogPrimitive.Portal, { "data-slot": "dialog-portal", ...props });
 }
 function DialogOverlay({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx2(
+  return /* @__PURE__ */ jsx5(
     DialogPrimitive.Overlay,
     {
       "data-slot": "dialog-overlay",
@@ -237,9 +519,9 @@ function DialogContent({
   showCloseButton = true,
   ...props
 }) {
-  return /* @__PURE__ */ jsxs(DialogPortal, { "data-slot": "dialog-portal", children: [
-    /* @__PURE__ */ jsx2(DialogOverlay, {}),
-    /* @__PURE__ */ jsxs(
+  return /* @__PURE__ */ jsxs4(DialogPortal, { "data-slot": "dialog-portal", children: [
+    /* @__PURE__ */ jsx5(DialogOverlay, {}),
+    /* @__PURE__ */ jsxs4(
       DialogPrimitive.Content,
       {
         "data-slot": "dialog-content",
@@ -250,14 +532,14 @@ function DialogContent({
         ...props,
         children: [
           children,
-          showCloseButton && /* @__PURE__ */ jsxs(
+          showCloseButton && /* @__PURE__ */ jsxs4(
             DialogPrimitive.Close,
             {
               "data-slot": "dialog-close",
               className: "ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
               children: [
-                /* @__PURE__ */ jsx2(XIcon, {}),
-                /* @__PURE__ */ jsx2("span", { className: "sr-only", children: "Close" })
+                /* @__PURE__ */ jsx5(XIcon, {}),
+                /* @__PURE__ */ jsx5("span", { className: "sr-only", children: "Close" })
               ]
             }
           )
@@ -267,7 +549,7 @@ function DialogContent({
   ] });
 }
 function DialogHeader({ className, ...props }) {
-  return /* @__PURE__ */ jsx2(
+  return /* @__PURE__ */ jsx5(
     "div",
     {
       "data-slot": "dialog-header",
@@ -277,7 +559,7 @@ function DialogHeader({ className, ...props }) {
   );
 }
 function DialogFooter({ className, ...props }) {
-  return /* @__PURE__ */ jsx2(
+  return /* @__PURE__ */ jsx5(
     "div",
     {
       "data-slot": "dialog-footer",
@@ -293,7 +575,7 @@ function DialogTitle({
   className,
   ...props
 }) {
-  return /* @__PURE__ */ jsx2(
+  return /* @__PURE__ */ jsx5(
     DialogPrimitive.Title,
     {
       "data-slot": "dialog-title",
@@ -304,23 +586,23 @@ function DialogTitle({
 }
 
 // src/image/uploader/multiple-image/ImageCropDialog.tsx
-import { RotateCw, Upload, X } from "lucide-react";
-import React3, { useCallback, useRef, useState } from "react";
+import { RotateCw, Upload, X as X2 } from "lucide-react";
+import React5, { useCallback, useRef, useState as useState2 } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
+import { jsx as jsx6, jsxs as jsxs5 } from "react/jsx-runtime";
 function ImageCropDialog({
   open,
   onOpenChange,
   files,
   onUpload
 }) {
-  const [images, setImages] = useState([]);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [crops, setCrops] = useState([]);
-  const [rotations, setRotations] = useState([]);
+  const [images, setImages] = useState2([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState2(0);
+  const [crops, setCrops] = useState2([]);
+  const [rotations, setRotations] = useState2([]);
   const imgRefs = useRef([]);
-  React3.useEffect(() => {
+  React5.useEffect(() => {
     if (files.length > 0) {
       const newImages = files.map((file, index) => ({
         id: `img-${index}`,
@@ -335,7 +617,7 @@ function ImageCropDialog({
       imgRefs.current = new Array(files.length).fill(null);
     }
   }, [files]);
-  React3.useEffect(() => {
+  React5.useEffect(() => {
     return () => {
       images.forEach((image) => {
         URL.revokeObjectURL(image.url);
@@ -393,10 +675,10 @@ function ImageCropDialog({
   const selectedCrop = crops[selectedImageIndex];
   const selectedRotation = rotations[selectedImageIndex];
   if (images.length === 0) return null;
-  return /* @__PURE__ */ jsx3(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs2(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
-    /* @__PURE__ */ jsx3(DialogHeader, { children: /* @__PURE__ */ jsx3(DialogTitle, { children: "Edit Images" }) }),
-    /* @__PURE__ */ jsxs2("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden select-none", children: [
-      /* @__PURE__ */ jsx3("div", { className: "shrink-0 flex flex-row gap-2 h-24 overflow-x-auto pb-2", children: images.map((image, index) => /* @__PURE__ */ jsxs2(
+  return /* @__PURE__ */ jsx6(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs5(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
+    /* @__PURE__ */ jsx6(DialogHeader, { children: /* @__PURE__ */ jsx6(DialogTitle, { children: "Edit Images" }) }),
+    /* @__PURE__ */ jsxs5("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden select-none", children: [
+      /* @__PURE__ */ jsx6("div", { className: "shrink-0 flex flex-row gap-2 h-24 overflow-x-auto pb-2", children: images.map((image, index) => /* @__PURE__ */ jsxs5(
         "div",
         {
           className: cn(
@@ -405,7 +687,7 @@ function ImageCropDialog({
           ),
           onClick: () => setSelectedImageIndex(index),
           children: [
-            /* @__PURE__ */ jsx3(
+            /* @__PURE__ */ jsx6(
               "img",
               {
                 src: image.url,
@@ -416,7 +698,7 @@ function ImageCropDialog({
                 }
               }
             ),
-            /* @__PURE__ */ jsx3(
+            /* @__PURE__ */ jsx6(
               Button,
               {
                 type: "button",
@@ -427,23 +709,23 @@ function ImageCropDialog({
                   e.stopPropagation();
                   handleRemoveImage(index);
                 },
-                children: /* @__PURE__ */ jsx3(X, { className: "h-3 w-3" })
+                children: /* @__PURE__ */ jsx6(X2, { className: "h-3 w-3" })
               }
             )
           ]
         },
         image.id
       )) }),
-      /* @__PURE__ */ jsxs2("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden", children: [
-        /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-between", children: [
-          /* @__PURE__ */ jsxs2("h3", { className: "text-sm font-medium", children: [
+      /* @__PURE__ */ jsxs5("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden", children: [
+        /* @__PURE__ */ jsxs5("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ jsxs5("h3", { className: "text-sm font-medium", children: [
             "Image ",
             selectedImageIndex + 1,
             " of ",
             images.length
           ] }),
-          /* @__PURE__ */ jsxs2("div", { className: "flex gap-2", children: [
-            /* @__PURE__ */ jsx3(
+          /* @__PURE__ */ jsxs5("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ jsx6(
               Button,
               {
                 type: "button",
@@ -454,7 +736,7 @@ function ImageCropDialog({
                 children: "Unselect"
               }
             ),
-            /* @__PURE__ */ jsxs2(
+            /* @__PURE__ */ jsxs5(
               Button,
               {
                 type: "button",
@@ -462,14 +744,14 @@ function ImageCropDialog({
                 size: "sm",
                 onClick: () => handleRotate(selectedImageIndex),
                 children: [
-                  /* @__PURE__ */ jsx3(RotateCw, { className: "h-4 w-4" }),
+                  /* @__PURE__ */ jsx6(RotateCw, { className: "h-4 w-4" }),
                   "Rotate"
                 ]
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ jsx3("div", { className: "flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg", children: selectedImage && /* @__PURE__ */ jsx3(
+        /* @__PURE__ */ jsx6("div", { className: "flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg", children: selectedImage && /* @__PURE__ */ jsx6(
           ReactCrop,
           {
             crop: selectedCrop,
@@ -478,7 +760,7 @@ function ImageCropDialog({
             minWidth: 50,
             minHeight: 50,
             keepSelection: true,
-            children: /* @__PURE__ */ jsx3(
+            children: /* @__PURE__ */ jsx6(
               "img",
               {
                 ref: (el) => {
@@ -496,8 +778,8 @@ function ImageCropDialog({
         ) })
       ] })
     ] }),
-    /* @__PURE__ */ jsxs2(DialogFooter, { children: [
-      /* @__PURE__ */ jsx3(
+    /* @__PURE__ */ jsxs5(DialogFooter, { children: [
+      /* @__PURE__ */ jsx6(
         Button,
         {
           type: "button",
@@ -506,14 +788,14 @@ function ImageCropDialog({
           children: "Cancel"
         }
       ),
-      /* @__PURE__ */ jsxs2(
+      /* @__PURE__ */ jsxs5(
         Button,
         {
           type: "button",
           onClick: handleUpload,
           disabled: images.length === 0,
           children: [
-            /* @__PURE__ */ jsx3(Upload, { className: "h-4 w-4" }),
+            /* @__PURE__ */ jsx6(Upload, { className: "h-4 w-4" }),
             "Upload All (",
             images.length,
             ")"
@@ -523,288 +805,6 @@ function ImageCropDialog({
     ] })
   ] }) });
 }
-
-// src/image/view/ImageViewProviderContext.tsx
-import { createContext, useContext } from "react";
-var defaultTransform = (storageId) => storageId;
-var ImageViewContext = createContext({
-  transformImageUrlFn: defaultTransform
-});
-var useImageView = () => useContext(ImageViewContext);
-var ImageViewProviderContext_default = ImageViewContext;
-
-// src/image/view/ImageView.tsx
-import { Ellipsis, X as X2 } from "lucide-react";
-import { useState as useState2 } from "react";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
-import { jsx as jsx4, jsxs as jsxs3 } from "react/jsx-runtime";
-function ImageView({
-  src,
-  alt,
-  canExpand = true,
-  className,
-  externalImageUrlFn
-}) {
-  const [status, setStatus] = useState2(
-    "loading"
-  );
-  const [imgClassNames, setImgClassNames] = useState2({
-    width: "100%",
-    height: "100%",
-    objectFit: "cover"
-  });
-  const [isOpen, setIsOpen] = useState2(false);
-  const { transformImageUrlFn } = useImageView();
-  const imageSrc = externalImageUrlFn ? externalImageUrlFn(src) : transformImageUrlFn(src);
-  return /* @__PURE__ */ jsxs3("div", { className: cn("w-full h-full relative select-none", className), children: [
-    /* @__PURE__ */ jsx4(
-      "img",
-      {
-        src: imageSrc,
-        alt,
-        style: imgClassNames,
-        className: canExpand ? "hover:cursor-pointer" : "",
-        onClick: () => {
-          if (canExpand && status === "loaded") setIsOpen(true);
-        },
-        onLoad: () => {
-          setStatus("loaded");
-          setImgClassNames({
-            width: "100%",
-            height: "100%",
-            objectFit: "cover"
-          });
-        },
-        onError: () => {
-          setStatus("error");
-          setImgClassNames({
-            width: "0",
-            height: "0",
-            objectFit: "cover"
-          });
-        }
-      }
-    ),
-    status === "loading" && /* @__PURE__ */ jsx4("div", { className: "absolute inset-0 flex items-center justify-center", children: /* @__PURE__ */ jsx4(Ellipsis, { className: "h-4 w-4 animate-pulse" }) }),
-    status === "error" && /* @__PURE__ */ jsx4("div", { className: "absolute inset-0 flex items-center justify-center", children: /* @__PURE__ */ jsx4(X2, { className: "h-4 w-4" }) }),
-    isOpen && status === "loaded" && /* @__PURE__ */ jsx4(
-      "div",
-      {
-        className: "fixed inset-0  backdrop-blur-2xl z-50 flex items-center justify-center",
-        onClick: () => setIsOpen(false),
-        children: /* @__PURE__ */ jsx4(
-          TransformWrapper,
-          {
-            wheel: { step: 0.5 },
-            pinch: { disabled: false },
-            doubleClick: { disabled: true },
-            children: /* @__PURE__ */ jsx4(
-              TransformComponent,
-              {
-                wrapperStyle: { width: "100%", height: "100%" },
-                children: /* @__PURE__ */ jsxs3(
-                  "div",
-                  {
-                    className: "relative max-w-full max-h-full p-4",
-                    onClick: (e) => e.stopPropagation(),
-                    children: [
-                      /* @__PURE__ */ jsx4(
-                        Button,
-                        {
-                          type: "button",
-                          variant: "secondary",
-                          size: "icon",
-                          className: "cursor-pointer absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground",
-                          onClick: () => setIsOpen(false),
-                          children: /* @__PURE__ */ jsx4(X2, { className: "h-4 w-4" })
-                        }
-                      ),
-                      /* @__PURE__ */ jsx4(
-                        "img",
-                        {
-                          src: imageSrc,
-                          alt,
-                          className: "max-w-[90vw] max-h-[90vh] object-contain"
-                        }
-                      )
-                    ]
-                  }
-                )
-              }
-            )
-          }
-        )
-      }
-    )
-  ] });
-}
-
-// src/image/uploader/multiple-image/MultiImageCropUploader.tsx
-import { useFileUpload } from "@battlemagedotapp/convex-upload-helpers";
-import { ImagePlus, LoaderCircle, Trash } from "lucide-react";
-import { useRef as useRef2, useState as useState3 } from "react";
-import { toast } from "sonner";
-
-// src/components/ui/alert-dialog.tsx
-import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
-import "react";
-import { jsx as jsx5, jsxs as jsxs4 } from "react/jsx-runtime";
-function AlertDialog({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(AlertDialogPrimitive.Root, { "data-slot": "alert-dialog", ...props });
-}
-function AlertDialogTrigger({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(AlertDialogPrimitive.Trigger, { "data-slot": "alert-dialog-trigger", ...props });
-}
-function AlertDialogPortal({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(AlertDialogPrimitive.Portal, { "data-slot": "alert-dialog-portal", ...props });
-}
-function AlertDialogOverlay({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(
-    AlertDialogPrimitive.Overlay,
-    {
-      "data-slot": "alert-dialog-overlay",
-      className: cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function AlertDialogContent({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxs4(AlertDialogPortal, { children: [
-    /* @__PURE__ */ jsx5(AlertDialogOverlay, {}),
-    /* @__PURE__ */ jsx5(
-      AlertDialogPrimitive.Content,
-      {
-        "data-slot": "alert-dialog-content",
-        className: cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
-          className
-        ),
-        ...props
-      }
-    )
-  ] });
-}
-function AlertDialogHeader({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(
-    "div",
-    {
-      "data-slot": "alert-dialog-header",
-      className: cn("flex flex-col gap-2 text-center sm:text-left", className),
-      ...props
-    }
-  );
-}
-function AlertDialogFooter({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(
-    "div",
-    {
-      "data-slot": "alert-dialog-footer",
-      className: cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function AlertDialogTitle({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(
-    AlertDialogPrimitive.Title,
-    {
-      "data-slot": "alert-dialog-title",
-      className: cn("text-lg font-semibold", className),
-      ...props
-    }
-  );
-}
-function AlertDialogDescription({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(
-    AlertDialogPrimitive.Description,
-    {
-      "data-slot": "alert-dialog-description",
-      className: cn("text-muted-foreground text-sm", className),
-      ...props
-    }
-  );
-}
-function AlertDialogAction({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(
-    AlertDialogPrimitive.Action,
-    {
-      className: cn(buttonVariants(), className),
-      ...props
-    }
-  );
-}
-function AlertDialogCancel({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx5(
-    AlertDialogPrimitive.Cancel,
-    {
-      className: cn(buttonVariants({ variant: "outline" }), className),
-      ...props
-    }
-  );
-}
-
-// src/image/uploader/ConfirmAlertDialog.tsx
-import "react";
-import { jsx as jsx6, jsxs as jsxs5 } from "react/jsx-runtime";
-function ConfirmAlertDialog({
-  title = "Are you sure?",
-  description = "This action cannot be undone.",
-  trigger,
-  onConfirm,
-  confirmLabel = "Continue",
-  cancelLabel = "Cancel"
-}) {
-  return /* @__PURE__ */ jsxs5(AlertDialog, { children: [
-    trigger ? /* @__PURE__ */ jsx6(AlertDialogTrigger, { children: trigger }) : null,
-    /* @__PURE__ */ jsxs5(AlertDialogContent, { children: [
-      /* @__PURE__ */ jsxs5(AlertDialogHeader, { children: [
-        /* @__PURE__ */ jsx6(AlertDialogTitle, { children: title }),
-        /* @__PURE__ */ jsx6(AlertDialogDescription, { children: description })
-      ] }),
-      /* @__PURE__ */ jsxs5(AlertDialogFooter, { children: [
-        /* @__PURE__ */ jsx6(AlertDialogCancel, { children: cancelLabel }),
-        /* @__PURE__ */ jsx6(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
-      ] })
-    ] })
-  ] });
-}
-var ConfirmAlertDialog_default = ConfirmAlertDialog;
 
 // src/image/uploader/multiple-image/MultiImageCropUploader.tsx
 import { Fragment, jsx as jsx7, jsxs as jsxs6 } from "react/jsx-runtime";
@@ -855,14 +855,23 @@ function MultiImageCropUploader({
           (img) => !isImageTypeSupported(img.file.type)
         );
         if (unsupportedImages.length > 0) {
-          const unsupportedTypes = [...new Set(unsupportedImages.map((img) => img.file.type))];
-          toast.error(`Some image types are not supported for compression: ${unsupportedTypes.join(", ")}`);
+          const unsupportedTypes = [
+            ...new Set(unsupportedImages.map((img) => img.file.type))
+          ];
+          toast.error(
+            `Some image types are not supported for compression: ${unsupportedTypes.join(", ")}`
+          );
           return;
         }
       }
-      const processedFiles = await processImages(processedImages, compressionOptions);
+      const processedFiles = await processImages(
+        processedImages,
+        compressionOptions
+      );
       if (compressionOptions) {
-        toast.success(`Successfully compressed ${processedFiles.length} image(s)`);
+        toast.success(
+          `Successfully compressed ${processedFiles.length} image(s)`
+        );
       }
       for (const file of processedFiles) {
         const storageId = await uploadFile(file);
@@ -870,7 +879,9 @@ function MultiImageCropUploader({
       }
     } catch (error) {
       console.error("Error processing images:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to process images");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to process images"
+      );
     } finally {
       setIsUploading(false);
     }
@@ -1086,6 +1097,12 @@ function MultiImageUploader({
   );
 }
 
+// src/image/uploader/single-image/SingleImageCropUploader.tsx
+import { useFileUpload as useFileUpload2 } from "@battlemagedotapp/convex-upload-helpers";
+import { ImagePlus as ImagePlus3, LoaderCircle as LoaderCircle3, Trash as Trash3 } from "lucide-react";
+import { useRef as useRef4, useState as useState5 } from "react";
+import { toast as toast2 } from "sonner";
+
 // src/image/uploader/single-image/SingleImageCropDialog.tsx
 import { RotateCw as RotateCw2, Upload as Upload2 } from "lucide-react";
 import React6, { useCallback as useCallback2, useRef as useRef3, useState as useState4 } from "react";
@@ -1206,10 +1223,6 @@ function SingleImageCropDialog({
 }
 
 // src/image/uploader/single-image/SingleImageCropUploader.tsx
-import { useFileUpload as useFileUpload2 } from "@battlemagedotapp/convex-upload-helpers";
-import { ImagePlus as ImagePlus3, LoaderCircle as LoaderCircle3, Trash as Trash3 } from "lucide-react";
-import { useRef as useRef4, useState as useState5 } from "react";
-import { toast as toast2 } from "sonner";
 import { Fragment as Fragment2, jsx as jsx10, jsxs as jsxs9 } from "react/jsx-runtime";
 function SingleImageCropUploader({
   file,
@@ -1246,7 +1259,9 @@ function SingleImageCropUploader({
     try {
       setIsUploading(true);
       if (compressionOptions && !isImageTypeSupported(processedImage.file.type)) {
-        toast2.error(`Image type ${processedImage.file.type} is not supported for compression`);
+        toast2.error(
+          `Image type ${processedImage.file.type} is not supported for compression`
+        );
         return;
       }
       const processedFile = await processImage(
@@ -1262,7 +1277,9 @@ function SingleImageCropUploader({
       setFile(storageId);
     } catch (error) {
       console.error("Error processing image:", error);
-      toast2.error(error instanceof Error ? error.message : "Failed to process image");
+      toast2.error(
+        error instanceof Error ? error.message : "Failed to process image"
+      );
     } finally {
       setIsUploading(false);
     }
@@ -1437,18 +1454,11 @@ function ImageViewProvider({
   return /* @__PURE__ */ jsx12(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
 }
 export {
-  ImageCropDialog,
   ImageView,
   ImageViewProvider,
   MultiImageCropUploader,
   MultiImageUploader,
-  SingleImageCropDialog,
   SingleImageCropUploader,
-  SingleImageUploader,
-  compressImage,
-  isImageTypeSupported,
-  processImage,
-  processImages,
-  useImageView
+  SingleImageUploader
 };
 //# sourceMappingURL=index.mjs.map
