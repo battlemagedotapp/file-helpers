@@ -243,7 +243,7 @@ function SingleFileUploaderHeadless({
   });
   const handleFileDelete = async () => {
     if (!file) return;
-    await deleteFile({ storageId: file.value });
+    await deleteFile({ storageId: file });
     removeFile();
   };
   const handleFileChange = async (event) => {
@@ -253,7 +253,7 @@ function SingleFileUploaderHeadless({
     setIsUploading(true);
     try {
       const storageId = await uploadFile(pickedFile);
-      setFile({ value: storageId });
+      setFile(storageId);
     } finally {
       setIsUploading(false);
     }

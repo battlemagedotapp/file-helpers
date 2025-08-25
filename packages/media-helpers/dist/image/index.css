@@ -266,6 +266,9 @@
   .inline-flex {
     display: inline-flex;
   }
+  .aspect-square {
+    aspect-ratio: 1 / 1;
+  }
   .size-9 {
     width: calc(var(--spacing) * 9);
     height: calc(var(--spacing) * 9);
@@ -282,8 +285,8 @@
   .h-10 {
     height: calc(var(--spacing) * 10);
   }
-  .h-48 {
-    height: calc(var(--spacing) * 48);
+  .h-64 {
+    height: calc(var(--spacing) * 64);
   }
   .h-full {
     height: 100%;
@@ -296,9 +299,6 @@
   }
   .w-4 {
     width: calc(var(--spacing) * 4);
-  }
-  .w-56 {
-    width: calc(var(--spacing) * 56);
   }
   .w-fit {
     width: fit-content;
@@ -496,6 +496,10 @@
   .outline-none {
     --tw-outline-style: none;
     outline-style: none;
+  }
+  .select-none {
+    -webkit-user-select: none;
+    user-select: none;
   }
   .hover\:cursor-pointer {
     &:hover {
@@ -826,6 +830,24 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+  }
+  .show-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    -ms-overflow-style: auto;
+  }
+  .show-scrollbar::-webkit-scrollbar {
+    height: 12px;
+    background: var(--scrollbar-track);
+  }
+  .show-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  .show-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 6px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
   }
 }
 @property --tw-translate-x { syntax: "*"; inherits: false; initial-value: 0; }

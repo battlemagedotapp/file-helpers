@@ -36,10 +36,7 @@ declare function MultipleFileUploaderHeadless({ fileFields, appendFile, removeFi
 
 type SingleFileUploaderHeadlessRenderProps = {
     isUploading: boolean;
-    file?: {
-        id: string;
-        value: string;
-    } | null;
+    file?: string | null;
     handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
     handleFileDelete: () => Promise<void>;
     triggerFileSelect: () => void;
@@ -47,13 +44,8 @@ type SingleFileUploaderHeadlessRenderProps = {
     hasFile: boolean;
 };
 type SingleFileUploaderHeadlessProps = {
-    file?: {
-        id: string;
-        value: string;
-    } | null;
-    setFile: (f: {
-        value: string;
-    }) => void;
+    file?: string | null;
+    setFile: (f: string) => void;
     removeFile: () => void;
     maxSizeInMB?: number;
     allowedTypes?: string[];

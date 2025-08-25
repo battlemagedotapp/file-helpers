@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react'
 
 type SingleFileUploaderHeadlessRenderProps = {
   isUploading: boolean
-  file?: { id: string; value: string } | null
+  file?: string | null
   handleFileChange: (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => Promise<void>
@@ -15,8 +15,8 @@ type SingleFileUploaderHeadlessRenderProps = {
 }
 
 type SingleFileUploaderHeadlessProps = {
-  file?: { id: string; value: string } | null
-  setFile: (f: { value: string }) => void
+  file?: string | null
+  setFile: (f: string) => void
   removeFile: () => void
   maxSizeInMB?: number
   allowedTypes?: string[]
@@ -47,7 +47,7 @@ export function SingleFileUploaderHeadless({
 
   const handleFileDelete = async () => {
     if (!file) return
-    await deleteFile({ storageId: file.value as Id<'_storage'> })
+    await deleteFile({ storageId: file as Id<'_storage'> })
     removeFile()
   }
 
@@ -62,7 +62,7 @@ export function SingleFileUploaderHeadless({
     setIsUploading(true)
     try {
       const storageId = await uploadFile(pickedFile)
-      setFile({ value: storageId })
+      setFile(storageId)
     } finally {
       setIsUploading(false)
     }

@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { useImageView } from '@/image/view/ImageViewProviderContext'
+import { cn } from '@/lib/utils'
 import { Ellipsis, X } from 'lucide-react'
 import { useState } from 'react'
 
@@ -7,9 +8,15 @@ type ImageViewProps = {
   src: string
   alt: string
   canExpand?: boolean
+  className?: string
 }
 
-export function ImageView({ src, alt, canExpand = true }: ImageViewProps) {
+export function ImageView({
+  src,
+  alt,
+  canExpand = true,
+  className,
+}: ImageViewProps) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(
     'loading',
   )
@@ -23,7 +30,7 @@ export function ImageView({ src, alt, canExpand = true }: ImageViewProps) {
   const imageSrc = transformImageUrlFn ? transformImageUrlFn(src) : src
   console.log(imageSrc)
   return (
-    <div className="w-full h-full relative">
+    <div className={cn('w-full h-full relative select-none', className)}>
       <img
         src={imageSrc}
         alt={alt}

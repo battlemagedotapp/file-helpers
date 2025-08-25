@@ -116,4 +116,28 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Allow showing scrollbar when element has .show-scrollbar */
+  .show-scrollbar {
+    scrollbar-width: thin; /* Firefox: 'auto' or 'thin' */
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track); /* Firefox */
+    -ms-overflow-style: auto; /* Internet Explorer 10+ */
+  }
+
+  /* WebKit browsers */
+  .show-scrollbar::-webkit-scrollbar {
+    height: 12px;
+    background: var(--scrollbar-track);
+  }
+
+  .show-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  .show-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 6px;
+    border: 3px solid transparent; /* creates padding around thumb */
+    background-clip: padding-box;
+  }
 }

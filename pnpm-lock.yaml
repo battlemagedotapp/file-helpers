@@ -270,7 +270,7 @@ importers:
     dependencies:
       '@battlemagedotapp/convex-upload-helpers':
         specifier: github:battlemagedotapp/file-helpers#release-convex-upload-helpers
-        version: https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/6b88d690145c11413497748d2a86c0efdcd896ee(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        version: https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/196d225c4fc481a0c8174dff5173712852972bb5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.1.7(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -439,8 +439,8 @@ packages:
     resolution: {integrity: sha512-ruv7Ae4J5dUYULmeXw1gmb7rYRz57OWCPM57pHojnLq/3Z1CK2lNSLTCVjxVk1F/TZHwOZZrOWi0ur95BbLxNQ==}
     engines: {node: '>=6.9.0'}
 
-  '@battlemagedotapp/convex-upload-helpers@https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/6b88d690145c11413497748d2a86c0efdcd896ee':
-    resolution: {tarball: https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/6b88d690145c11413497748d2a86c0efdcd896ee}
+  '@battlemagedotapp/convex-upload-helpers@https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/196d225c4fc481a0c8174dff5173712852972bb5':
+    resolution: {tarball: https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/196d225c4fc481a0c8174dff5173712852972bb5}
     version: 1.0.0
     peerDependencies:
       react: ^19.1.1
@@ -3410,7 +3410,7 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@battlemagedotapp/convex-upload-helpers@https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/6b88d690145c11413497748d2a86c0efdcd896ee(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@battlemagedotapp/convex-upload-helpers@https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/196d225c4fc481a0c8174dff5173712852972bb5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       convex: 1.26.1(react@19.1.1)
       react: 19.1.1

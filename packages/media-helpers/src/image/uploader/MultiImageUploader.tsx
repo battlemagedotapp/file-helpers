@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { ImageView } from '@/image/view/ImageView'
+import { cn } from '@/lib/utils'
 import { MultipleFileUploaderHeadless } from '@battlemagedotapp/convex-upload-helpers'
 import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'
 import ConfirmAlertDialog from './ConfirmAlertDialog'
@@ -13,6 +14,8 @@ type MultiImageUploaderProps = {
   allowedTypes: string[]
   successMessage: string
   errorMessage: string
+  previewImageListClassName?: string
+  previewImageItemClassName?: string
 }
 
 export function MultiImageUploader({
@@ -24,6 +27,8 @@ export function MultiImageUploader({
   allowedTypes,
   successMessage,
   errorMessage,
+  previewImageListClassName,
+  previewImageItemClassName,
 }: MultiImageUploaderProps) {
   return (
     <MultipleFileUploaderHeadless
@@ -56,15 +61,25 @@ export function MultiImageUploader({
             Maximum {maxFiles} images allowed
           </p>
           {imageFields.length > 0 && (
-            <div className="flex flex-row flex-nowrap w-full h-48 overflow-x-scroll show-scrollbar">
+            <div
+              className={cn(
+                'flex flex-row flex-nowrap h-64 overflow-x-scroll show-scrollbar',
+                previewImageListClassName,
+              )}
+            >
               {imageFields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="shrink-0 w-56 h-full relative p-4"
+                  className="shrink-0 h-full relative aspect-square p-4"
                 >
-                  <div className="rounded-lg overflow-hidden w-full h-full">
-                    <ImageView src={field.value} alt={`Image ${index + 1}`} />
-                  </div>
+                  <ImageView
+                    src={field.value}
+                    alt={`Image ${index + 1}`}
+                    className={cn(
+                      'rounded-lg overflow-hidden',
+                      previewImageItemClassName,
+                    )}
+                  />
                   <div className="absolute top-2 right-2">
                     <ConfirmAlertDialog
                       trigger={

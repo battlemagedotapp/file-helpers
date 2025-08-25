@@ -70,7 +70,7 @@ var ImageViewProviderContext_default = ImageViewContext;
 import { Ellipsis, X } from "lucide-react";
 import { useState } from "react";
 import { jsx as jsx2, jsxs } from "react/jsx-runtime";
-function ImageView({ src, alt, canExpand = true }) {
+function ImageView({ src, alt, canExpand = true, className }) {
   const [status, setStatus] = useState(
     "loading"
   );
@@ -83,7 +83,7 @@ function ImageView({ src, alt, canExpand = true }) {
   const { transformImageUrlFn } = useImageView();
   const imageSrc = transformImageUrlFn ? transformImageUrlFn(src) : src;
   console.log(imageSrc);
-  return /* @__PURE__ */ jsxs("div", { className: "w-full h-full relative", children: [
+  return /* @__PURE__ */ jsxs("div", { className: cn("w-full h-full relative select-none", className), children: [
     /* @__PURE__ */ jsx2(
       "img",
       {
@@ -327,7 +327,9 @@ function MultiImageUploader({
   maxSizeInMB,
   allowedTypes,
   successMessage,
-  errorMessage
+  errorMessage,
+  previewImageListClassName,
+  previewImageItemClassName
 }) {
   return /* @__PURE__ */ jsx5(
     MultipleFileUploaderHeadless,
@@ -360,12 +362,12 @@ function MultiImageUploader({
           maxFiles,
           " images allowed"
         ] }),
-        imageFields.length > 0 && /* @__PURE__ */ jsx5("div", { className: "flex flex-row flex-nowrap w-full h-48 overflow-x-scroll show-scrollbar", children: imageFields.map((field, index) => /* @__PURE__ */ jsxs4(
+        imageFields.length > 0 && /* @__PURE__ */ jsx5("div", { className: cn("flex flex-row flex-nowrap h-64 overflow-x-scroll show-scrollbar", previewImageListClassName), children: imageFields.map((field, index) => /* @__PURE__ */ jsxs4(
           "div",
           {
-            className: "shrink-0 w-56 h-full relative p-4",
+            className: "shrink-0 h-full relative aspect-square p-4",
             children: [
-              /* @__PURE__ */ jsx5("div", { className: "rounded-lg overflow-hidden w-full h-full", children: /* @__PURE__ */ jsx5(ImageView, { src: field.value, alt: `Image ${index + 1}` }) }),
+              /* @__PURE__ */ jsx5(ImageView, { src: field.value, alt: `Image ${index + 1}`, className: cn("rounded-lg overflow-hidden", previewImageItemClassName) }),
               /* @__PURE__ */ jsx5("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx5(
                 ConfirmAlertDialog_default,
                 {
@@ -395,20 +397,89 @@ function MultiImageUploader({
   );
 }
 
+// src/image/uploader/SingleImageUploader.tsx
+import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
+import { ImagePlus as ImagePlus2, LoaderCircle as LoaderCircle2, Trash as Trash2 } from "lucide-react";
+import { jsx as jsx6, jsxs as jsxs5 } from "react/jsx-runtime";
+function SingleImageUploader({
+  file,
+  setFile,
+  removeFile,
+  maxSizeInMB,
+  allowedTypes = [],
+  successMessage = "File uploaded successfully!",
+  errorMessage = "Failed to upload file",
+  className,
+  imageClassName
+}) {
+  return /* @__PURE__ */ jsx6(
+    SingleFileUploaderHeadless,
+    {
+      file,
+      setFile,
+      removeFile,
+      maxSizeInMB,
+      allowedTypes,
+      successMessage,
+      errorMessage,
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs5("div", { className: cn("relative", className), children: [
+        !hasFile && /* @__PURE__ */ jsxs5(
+          Button,
+          {
+            disabled: isUploading,
+            variant: "default",
+            size: "default",
+            className: "w-fit",
+            onClick: triggerFileSelect,
+            children: [
+              isUploading ? /* @__PURE__ */ jsx6(LoaderCircle2, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx6(ImagePlus2, { className: "h-4 w-4" }),
+              isUploading ? "Uploading..." : "Add image"
+            ]
+          }
+        ),
+        file && /* @__PURE__ */ jsxs5("div", { className: "relative", children: [
+          /* @__PURE__ */ jsx6(ImageView, { src: file, alt: "Uploaded image", className: cn("rounded-lg overflow-hidden", imageClassName) }),
+          /* @__PURE__ */ jsx6("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx6(
+            ConfirmAlertDialog_default,
+            {
+              trigger: /* @__PURE__ */ jsx6(
+                Button,
+                {
+                  type: "button",
+                  variant: "secondary",
+                  size: "icon",
+                  className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
+                  children: /* @__PURE__ */ jsx6(Trash2, { className: "h-4 w-4" })
+                }
+              ),
+              title: "Delete image",
+              description: "Are you sure you want to delete this image? This action cannot be undone.",
+              confirmLabel: "Delete",
+              cancelLabel: "Cancel",
+              onConfirm: handleFileDelete
+            }
+          ) })
+        ] })
+      ] })
+    }
+  );
+}
+
 // src/image/view/ImageViewProvider.tsx
 import "react";
-import { jsx as jsx6 } from "react/jsx-runtime";
+import { jsx as jsx7 } from "react/jsx-runtime";
 function ImageViewProvider({
   transformImageUrlFn,
   children
 }) {
   const fn = transformImageUrlFn ?? ((id) => id);
-  return /* @__PURE__ */ jsx6(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
+  return /* @__PURE__ */ jsx7(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
 }
 export {
   ImageView,
   ImageViewProvider,
   MultiImageUploader,
+  SingleImageUploader,
   useImageView
 };
 //# sourceMappingURL=index.mjs.map
