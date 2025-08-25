@@ -1,5 +1,6 @@
 import {
-  MultiImageUploader as MultiImageUploaderHelper,
+  MultiImageCropUploader,
+  MultiImageUploader,
   SingleImageUploader,
 } from '@battlemagedotapp/media-helpers/image'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,7 +19,7 @@ const formSchema = z.object({
   imageB: z.string().min(1, 'Please select an image'),
 })
 
-export function MultiImageUploader() {
+export function ImageForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -45,7 +46,17 @@ export function MultiImageUploader() {
 
   return (
     <Form {...form}>
-      <MultiImageUploaderHelper
+      <MultiImageCropUploader
+        imageFields={imageFields}
+        appendImage={appendImage}
+        removeImage={removeImage}
+        maxFiles={10}
+        maxSizeInMB={10}
+        allowedTypes={['image/jpeg', 'image/png', 'image/webp']}
+        successMessage="Image uploaded successfully!"
+        errorMessage="Failed to upload image"
+      />
+      <MultiImageUploader
         imageFields={imageFields}
         appendImage={appendImage}
         removeImage={removeImage}

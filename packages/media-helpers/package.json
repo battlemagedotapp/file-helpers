@@ -55,8 +55,10 @@
   "dependencies": {
     "@battlemagedotapp/convex-upload-helpers": "github:battlemagedotapp/file-helpers#release-convex-upload-helpers",
     "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-dialog": "^1.1.15",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "react-image-crop": "^11.0.10",
     "react-zoom-pan-pinch": "^3.7.0",
     "tailwind-merge": "^3.3.1"
   }

@@ -1,5 +1,9 @@
 import '../styles.css'
 
+export { ImageCropDialog } from './uploader/ImageCropDialog'
+export { processImage, processImages } from './uploader/imageProcessingUtils'
+export type { ProcessedImageData } from './uploader/imageProcessingUtils'
+export { MultiImageCropUploader } from './uploader/MultiImageCropUploader'
 export { MultiImageUploader } from './uploader/MultiImageUploader'
 export { SingleImageUploader } from './uploader/SingleImageUploader'
 export { ImageView } from './view/ImageView'

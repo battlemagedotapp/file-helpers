@@ -1,5 +1,47 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import { Crop } from 'react-image-crop';
 import react from 'react';
+
+interface ImageCropDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    files: File[];
+    onUpload: (processedImages: {
+        id: string;
+        file: File;
+        crop?: Crop;
+        rotation: number;
+    }[]) => void;
+}
+declare function ImageCropDialog({ open, onOpenChange, files, onUpload, }: ImageCropDialogProps): react_jsx_runtime.JSX.Element | null;
+
+interface ProcessedImageData {
+    id: string;
+    file: File;
+    crop?: Crop;
+    rotation: number;
+}
+declare function processImage(file: File, crop?: Crop, rotation?: number): Promise<File>;
+declare function processImages(processedImages: ProcessedImageData[]): Promise<File[]>;
+
+type MultiImageCropUploaderProps = {
+    imageFields: {
+        id: string;
+        value: string;
+    }[];
+    appendImage: (f: {
+        value: string;
+    }) => void;
+    removeImage: (index: number) => void;
+    maxFiles: number;
+    maxSizeInMB: number;
+    allowedTypes: string[];
+    successMessage: string;
+    errorMessage: string;
+    previewImageListClassName?: string;
+    previewImageItemClassName?: string;
+};
+declare function MultiImageCropUploader({ imageFields, appendImage, removeImage, maxFiles, maxSizeInMB, allowedTypes, successMessage, errorMessage, previewImageListClassName, previewImageItemClassName, }: MultiImageCropUploaderProps): react_jsx_runtime.JSX.Element;
 
 type MultiImageUploaderProps = {
     imageFields: {
@@ -53,4 +95,4 @@ type ImageViewProviderProps = {
 };
 declare function ImageViewProvider({ transformImageUrlFn, children, }: ImageViewProviderProps): react_jsx_runtime.JSX.Element;
 
-export { ImageView, ImageViewProvider, MultiImageUploader, SingleImageUploader, type TransformImageUrlFn, useImageView };
+export { ImageCropDialog, ImageView, ImageViewProvider, MultiImageCropUploader, MultiImageUploader, type ProcessedImageData, SingleImageUploader, type TransformImageUrlFn, processImage, processImages, useImageView };
