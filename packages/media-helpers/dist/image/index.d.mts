@@ -4,8 +4,9 @@ import react from 'react';
 type ImageViewProps = {
     src: string;
     alt: string;
+    canExpand?: boolean;
 };
-declare function ImageView({ src, alt }: ImageViewProps): react_jsx_runtime.JSX.Element;
+declare function ImageView({ src, alt, canExpand }: ImageViewProps): react_jsx_runtime.JSX.Element;
 
 type TransformImageUrlFn = (storageId: string) => string;
 declare const useImageView: () => {

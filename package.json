@@ -6,7 +6,8 @@
     "check-types": "turbo check-types",
     "lint-staged": "lint-staged",
     "prepare": "husky",
-    "release": "bash scripts/release.sh"
+    "release-convex-upload-helpers": "bash scripts/release-convex-upload-helpers.sh",
+    "release-media-helpers": "bash scripts/release-media-helpers.sh"
   },
   "lint-staged": {
     "**/*.{ts,tsx,json}": [

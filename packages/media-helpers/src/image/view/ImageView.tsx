@@ -1,13 +1,15 @@
+import { Button } from '@/components/ui/button'
+import { useImageView } from '@/image/view/ImageViewProviderContext'
 import { Ellipsis, X } from 'lucide-react'
 import { useState } from 'react'
-import { useImageView } from './ImageViewProviderContext'
 
 type ImageViewProps = {
   src: string
   alt: string
+  canExpand?: boolean
 }
 
-export function ImageView({ src, alt }: ImageViewProps) {
+export function ImageView({ src, alt, canExpand = true }: ImageViewProps) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(
     'loading',
   )
@@ -16,14 +18,20 @@ export function ImageView({ src, alt }: ImageViewProps) {
     height: '100%',
     objectFit: 'cover',
   })
+  const [isOpen, setIsOpen] = useState<boolean>(false)
   const { transformImageUrlFn } = useImageView()
   const imageSrc = transformImageUrlFn ? transformImageUrlFn(src) : src
+  console.log(imageSrc)
   return (
     <div className="w-full h-full relative">
       <img
         src={imageSrc}
         alt={alt}
         style={imgClassNames}
+        className={canExpand ? 'hover:cursor-pointer' : ''}
+        onClick={() => {
+          if (canExpand && status === 'loaded') setIsOpen(true)
+        }}
         onLoad={() => {
           setStatus('loaded')
           setImgClassNames({
@@ -49,6 +57,33 @@ export function ImageView({ src, alt }: ImageViewProps) {
       {status === 'error' && (
         <div className="absolute inset-0 flex items-center justify-center">
           <X className="h-4 w-4" />
+        </div>
+      )}
+
+      {isOpen && status === 'loaded' && (
+        <div
+          className="fixed inset-0  border backdrop-blur-2xl z-50 flex items-center justify-center"
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            className="relative max-w-full max-h-full p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="cursor-pointer absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <img
+              src={imageSrc}
+              alt={alt}
+              className="max-w-[100vw] max-h-[90vh] object-contain"
+            />
+          </div>
         </div>
       )}
     </div>

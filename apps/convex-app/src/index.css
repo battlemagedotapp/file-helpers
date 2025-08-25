@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '@battlemagedotapp/media-helpers/styles';
 
 @custom-variant dark (&:is(.dark *));
 

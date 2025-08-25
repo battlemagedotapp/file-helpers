@@ -7,5 +7,11 @@ export default defineConfig({
   minify: false,
   sourcemap: true,
   format: ['esm'],
-  external: ['react', 'react-dom'],
+  external: [
+    'react',
+    'react-dom',
+    'lucide-react',
+    'react-hook-form',
+    '@radix-ui/react-slot',
+  ],
 })

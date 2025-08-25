@@ -1,6 +1,7 @@
+import ImageViewContext, {
+  type TransformImageUrlFn,
+} from '@/image/view/ImageViewProviderContext'
 import React from 'react'
-import type { TransformImageUrlFn } from './ImageViewProviderContext'
-import ImageViewContext from './ImageViewProviderContext'
 
 type ImageViewProviderProps = {
   transformImageUrlFn?: TransformImageUrlFn

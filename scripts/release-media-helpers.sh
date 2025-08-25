@@ -2,8 +2,8 @@
 
 set -e
 
-LIB_PATH="packages/convex-upload-helpers"
-RELEASE_BRANCH="release"
+LIB_PATH="packages/media-helpers"
+RELEASE_BRANCH="release-media-helpers"
 
 echo "Starting release process for '$LIB_PATH' to branch '$RELEASE_BRANCH'..."
 
@@ -16,7 +16,7 @@ fi
 
 echo "Building the library..."
 pnpm install
-pnpm turbo build --filter=@battlemagedotapp/convex-upload-helpers
+pnpm turbo build --filter=@battlemagedotapp/media-helpers
 
 VERSION=$(node -p "require('./${LIB_PATH}/package.json').version")
 COMMIT_MESSAGE="release: version ${VERSION}"
@@ -43,4 +43,4 @@ git push "$ORIGIN_URL" HEAD:"$RELEASE_BRANCH" --force
 cd ..
 rm -rf "$BUILD_DIR"
 echo "Successfully published to branch '$RELEASE_BRANCH'!"
-echo "You can now install it using: pnpm install github:battlemagedotapp/convex-upload-helpers#$RELEASE_BRANCH"
+echo "You can now install it using: pnpm install github:battlemagedotapp/file-helpers#$RELEASE_BRANCH"
