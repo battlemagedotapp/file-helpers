@@ -57,6 +57,11 @@ export function ImageForm() {
         allowedTypes={['image/jpeg', 'image/png', 'image/webp']}
         successMessage="Image uploaded successfully!"
         errorMessage="Failed to upload image"
+        compressionOptions={{
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        }}
       />
       <MultiImageUploader
         imageFields={imageFields}
@@ -87,6 +92,11 @@ export function ImageForm() {
         successMessage="Image uploaded successfully!"
         errorMessage="Failed to upload image"
         imageClassName="w-64 h-64 rounded-lg"
+        compressionOptions={{
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        }}
       />
       <Button className="w-fit" onClick={form.handleSubmit(handleFormSubmit)}>
         Submit

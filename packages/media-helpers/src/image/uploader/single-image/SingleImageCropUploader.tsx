@@ -4,8 +4,13 @@ import { cn } from '@/lib/utils'
 import { useFileUpload } from '@battlemagedotapp/convex-upload-helpers'
 import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { toast } from 'sonner'
 import ConfirmAlertDialog from '../ConfirmAlertDialog'
-import { processImage } from '../imageProcessingUtils'
+import {
+  isImageTypeSupported,
+  processImage,
+  type CompressionOptions,
+} from '../imageProcessingUtils'
 import { SingleImageCropDialog } from './SingleImageCropDialog'
 
 type SingleImageCropUploaderProps = {
@@ -18,6 +23,7 @@ type SingleImageCropUploaderProps = {
   errorMessage?: string
   className?: string
   imageClassName?: string
+  compressionOptions?: CompressionOptions
 }
 
 export function SingleImageCropUploader({
@@ -30,6 +36,7 @@ export function SingleImageCropUploader({
   errorMessage = 'Failed to upload file',
   className,
   imageClassName,
+  compressionOptions,
 }: SingleImageCropUploaderProps) {
   const [cropDialogOpen, setCropDialogOpen] = useState(false)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
@@ -65,16 +72,37 @@ export function SingleImageCropUploader({
   }) => {
     try {
       setIsUploading(true)
+
+      // Check if compression is needed and validate image type
+      if (
+        compressionOptions &&
+        !isImageTypeSupported(processedImage.file.type)
+      ) {
+        toast.error(
+          `Image type ${processedImage.file.type} is not supported for compression`,
+        )
+        return
+      }
+
       const processedFile = await processImage(
         processedImage.file,
         processedImage.crop,
         processedImage.rotation,
+        compressionOptions,
       )
+
+      // Show compression success message if compression was applied
+      if (compressionOptions) {
+        toast.success('Image compressed successfully')
+      }
 
       const storageId = await uploadFile(processedFile)
       setFile(storageId)
     } catch (error) {
       console.error('Error processing image:', error)
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to process image',
+      )
     } finally {
       setIsUploading(false)
     }

@@ -1,3 +1,4 @@
+import imageCompression from 'browser-image-compression'
 import { type Crop } from 'react-image-crop'
 
 export interface ProcessedImageData {
@@ -7,10 +8,58 @@ export interface ProcessedImageData {
   rotation: number
 }
 
+export interface CompressionOptions {
+  maxSizeMB: number
+  maxWidthOrHeight: number
+  useWebWorker?: boolean
+  onProgress?: (progress: number) => void
+  preserveExif?: boolean
+  signal?: AbortSignal
+  maxIteration?: number
+  exifOrientation?: number
+  fileType?: string
+  initialQuality?: number
+  alwaysKeepResolution?: boolean
+}
+
+// Supported image types for browser-image-compression
+const SUPPORTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/bmp',
+]
+
+export function isImageTypeSupported(fileType: string): boolean {
+  return SUPPORTED_IMAGE_TYPES.includes(fileType.toLowerCase())
+}
+
+export async function compressImage(
+  file: File,
+  options: CompressionOptions,
+): Promise<File> {
+  if (!isImageTypeSupported(file.type)) {
+    throw new Error(
+      `Image type ${file.type} is not supported for compression. Supported types: ${SUPPORTED_IMAGE_TYPES.join(', ')}`,
+    )
+  }
+
+  try {
+    const compressedFile = await imageCompression(file, options)
+    return compressedFile
+  } catch (error) {
+    throw new Error(
+      `Failed to compress image: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
+  }
+}
+
 export function processImage(
   file: File,
   crop?: Crop,
   rotation: number = 0,
+  compressionOptions?: CompressionOptions,
 ): Promise<File> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -64,12 +113,26 @@ export function processImage(
           )
 
           cropCanvas.toBlob(
-            (blob) => {
+            async (blob) => {
               if (blob) {
-                const processedFile = new File([blob], file.name, {
+                let processedFile = new File([blob], file.name, {
                   type: file.type,
                   lastModified: Date.now(),
                 })
+
+                // Apply compression if options are provided
+                if (compressionOptions) {
+                  try {
+                    processedFile = await compressImage(
+                      processedFile,
+                      compressionOptions,
+                    )
+                  } catch (error) {
+                    reject(error)
+                    return
+                  }
+                }
+
                 resolve(processedFile)
               } else {
                 reject(new Error('Failed to create blob'))
@@ -80,12 +143,25 @@ export function processImage(
           )
         } else {
           canvas.toBlob(
-            (blob) => {
+            async (blob) => {
               if (blob) {
-                const processedFile = new File([blob], file.name, {
+                let processedFile = new File([blob], file.name, {
                   type: file.type,
                   lastModified: Date.now(),
                 })
+
+                if (compressionOptions) {
+                  try {
+                    processedFile = await compressImage(
+                      processedFile,
+                      compressionOptions,
+                    )
+                  } catch (error) {
+                    reject(error)
+                    return
+                  }
+                }
+
                 resolve(processedFile)
               } else {
                 reject(new Error('Failed to create blob'))
@@ -110,10 +186,11 @@ export function processImage(
 
 export async function processImages(
   processedImages: ProcessedImageData[],
+  compressionOptions?: CompressionOptions,
 ): Promise<File[]> {
   const processedFiles = await Promise.all(
     processedImages.map(({ file, crop, rotation }) =>
-      processImage(file, crop, rotation),
+      processImage(file, crop, rotation, compressionOptions),
     ),
   )
   return processedFiles

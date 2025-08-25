@@ -8,8 +8,23 @@ interface ProcessedImageData {
     crop?: Crop;
     rotation: number;
 }
-declare function processImage(file: File, crop?: Crop, rotation?: number): Promise<File>;
-declare function processImages(processedImages: ProcessedImageData[]): Promise<File[]>;
+interface CompressionOptions {
+    maxSizeMB: number;
+    maxWidthOrHeight: number;
+    useWebWorker?: boolean;
+    onProgress?: (progress: number) => void;
+    preserveExif?: boolean;
+    signal?: AbortSignal;
+    maxIteration?: number;
+    exifOrientation?: number;
+    fileType?: string;
+    initialQuality?: number;
+    alwaysKeepResolution?: boolean;
+}
+declare function isImageTypeSupported(fileType: string): boolean;
+declare function compressImage(file: File, options: CompressionOptions): Promise<File>;
+declare function processImage(file: File, crop?: Crop, rotation?: number, compressionOptions?: CompressionOptions): Promise<File>;
+declare function processImages(processedImages: ProcessedImageData[], compressionOptions?: CompressionOptions): Promise<File[]>;
 
 interface ImageCropDialogProps {
     open: boolean;
@@ -40,8 +55,9 @@ type MultiImageCropUploaderProps = {
     errorMessage: string;
     previewImageListClassName?: string;
     previewImageItemClassName?: string;
+    compressionOptions?: CompressionOptions;
 };
-declare function MultiImageCropUploader({ imageFields, appendImage, removeImage, maxFiles, maxSizeInMB, allowedTypes, successMessage, errorMessage, previewImageListClassName, previewImageItemClassName, }: MultiImageCropUploaderProps): react_jsx_runtime.JSX.Element;
+declare function MultiImageCropUploader({ imageFields, appendImage, removeImage, maxFiles, maxSizeInMB, allowedTypes, successMessage, errorMessage, previewImageListClassName, previewImageItemClassName, compressionOptions, }: MultiImageCropUploaderProps): react_jsx_runtime.JSX.Element;
 
 type MultiImageUploaderProps = {
     imageFields: {
@@ -85,8 +101,9 @@ type SingleImageCropUploaderProps = {
     errorMessage?: string;
     className?: string;
     imageClassName?: string;
+    compressionOptions?: CompressionOptions;
 };
-declare function SingleImageCropUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, imageClassName, }: SingleImageCropUploaderProps): react_jsx_runtime.JSX.Element;
+declare function SingleImageCropUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, imageClassName, compressionOptions, }: SingleImageCropUploaderProps): react_jsx_runtime.JSX.Element;
 
 type SingleImageUploaderProps = {
     file?: string | null;
@@ -121,4 +138,4 @@ type ImageViewProviderProps = {
 };
 declare function ImageViewProvider({ transformImageUrlFn, children, }: ImageViewProviderProps): react_jsx_runtime.JSX.Element;
 
-export { ImageCropDialog, ImageView, ImageViewProvider, MultiImageCropUploader, MultiImageUploader, type ProcessedImageData, SingleImageCropDialog, SingleImageCropUploader, SingleImageUploader, type TransformImageUrlFn, processImage, processImages, useImageView };
+export { type CompressionOptions, ImageCropDialog, ImageView, ImageViewProvider, MultiImageCropUploader, MultiImageUploader, type ProcessedImageData, SingleImageCropDialog, SingleImageCropUploader, SingleImageUploader, type TransformImageUrlFn, compressImage, isImageTypeSupported, processImage, processImages, useImageView };

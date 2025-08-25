@@ -1,7 +1,15 @@
 import '../styles.css'
 
-export { processImage, processImages } from './uploader/imageProcessingUtils'
-export type { ProcessedImageData } from './uploader/imageProcessingUtils'
+export {
+  compressImage,
+  isImageTypeSupported,
+  processImage,
+  processImages,
+} from './uploader/imageProcessingUtils'
+export type {
+  CompressionOptions,
+  ProcessedImageData,
+} from './uploader/imageProcessingUtils'
 export { ImageCropDialog } from './uploader/multiple-image/ImageCropDialog'
 export { MultiImageCropUploader } from './uploader/multiple-image/MultiImageCropUploader'
 export { MultiImageUploader } from './uploader/multiple-image/MultiImageUploader'

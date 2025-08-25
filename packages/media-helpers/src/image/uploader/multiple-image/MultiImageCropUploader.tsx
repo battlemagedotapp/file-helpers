@@ -4,8 +4,14 @@ import { cn } from '@/lib/utils'
 import { useFileUpload } from '@battlemagedotapp/convex-upload-helpers'
 import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { toast } from 'sonner'
 import ConfirmAlertDialog from '../ConfirmAlertDialog'
-import { processImages, type ProcessedImageData } from '../imageProcessingUtils'
+import {
+  isImageTypeSupported,
+  processImages,
+  type CompressionOptions,
+  type ProcessedImageData,
+} from '../imageProcessingUtils'
 import { ImageCropDialog } from './ImageCropDialog'
 
 type MultiImageCropUploaderProps = {
@@ -19,6 +25,7 @@ type MultiImageCropUploaderProps = {
   errorMessage: string
   previewImageListClassName?: string
   previewImageItemClassName?: string
+  compressionOptions?: CompressionOptions
 }
 
 export function MultiImageCropUploader({
@@ -32,6 +39,7 @@ export function MultiImageCropUploader({
   errorMessage,
   previewImageListClassName,
   previewImageItemClassName,
+  compressionOptions,
 }: MultiImageCropUploaderProps) {
   const [cropDialogOpen, setCropDialogOpen] = useState(false)
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -72,7 +80,35 @@ export function MultiImageCropUploader({
   ) => {
     try {
       setIsUploading(true)
-      const processedFiles = await processImages(processedImages)
+
+      // Check if compression is needed and validate image types
+      if (compressionOptions) {
+        const unsupportedImages = processedImages.filter(
+          (img) => !isImageTypeSupported(img.file.type),
+        )
+
+        if (unsupportedImages.length > 0) {
+          const unsupportedTypes = [
+            ...new Set(unsupportedImages.map((img) => img.file.type)),
+          ]
+          toast.error(
+            `Some image types are not supported for compression: ${unsupportedTypes.join(', ')}`,
+          )
+          return
+        }
+      }
+
+      const processedFiles = await processImages(
+        processedImages,
+        compressionOptions,
+      )
+
+      // Show compression success message if compression was applied
+      if (compressionOptions) {
+        toast.success(
+          `Successfully compressed ${processedFiles.length} image(s)`,
+        )
+      }
 
       for (const file of processedFiles) {
         const storageId = await uploadFile(file)
@@ -80,6 +116,9 @@ export function MultiImageCropUploader({
       }
     } catch (error) {
       console.error('Error processing images:', error)
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to process images',
+      )
     } finally {
       setIsUploading(false)
     }

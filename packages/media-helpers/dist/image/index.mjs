@@ -1,8 +1,34 @@
 import "../chunk-PMJAV4JJ.mjs";
 
 // src/image/uploader/imageProcessingUtils.ts
+import imageCompression from "browser-image-compression";
 import "react-image-crop";
-function processImage(file, crop, rotation = 0) {
+var SUPPORTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/bmp"
+];
+function isImageTypeSupported(fileType) {
+  return SUPPORTED_IMAGE_TYPES.includes(fileType.toLowerCase());
+}
+async function compressImage(file, options) {
+  if (!isImageTypeSupported(file.type)) {
+    throw new Error(
+      `Image type ${file.type} is not supported for compression. Supported types: ${SUPPORTED_IMAGE_TYPES.join(", ")}`
+    );
+  }
+  try {
+    const compressedFile = await imageCompression(file, options);
+    return compressedFile;
+  } catch (error) {
+    throw new Error(
+      `Failed to compress image: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+}
+function processImage(file, crop, rotation = 0, compressionOptions) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -45,12 +71,23 @@ function processImage(file, crop, rotation = 0) {
             cropHeight
           );
           cropCanvas.toBlob(
-            (blob) => {
+            async (blob) => {
               if (blob) {
-                const processedFile = new File([blob], file.name, {
+                let processedFile = new File([blob], file.name, {
                   type: file.type,
                   lastModified: Date.now()
                 });
+                if (compressionOptions) {
+                  try {
+                    processedFile = await compressImage(
+                      processedFile,
+                      compressionOptions
+                    );
+                  } catch (error) {
+                    reject(error);
+                    return;
+                  }
+                }
                 resolve(processedFile);
               } else {
                 reject(new Error("Failed to create blob"));
@@ -61,12 +98,23 @@ function processImage(file, crop, rotation = 0) {
           );
         } else {
           canvas.toBlob(
-            (blob) => {
+            async (blob) => {
               if (blob) {
-                const processedFile = new File([blob], file.name, {
+                let processedFile = new File([blob], file.name, {
                   type: file.type,
                   lastModified: Date.now()
                 });
+                if (compressionOptions) {
+                  try {
+                    processedFile = await compressImage(
+                      processedFile,
+                      compressionOptions
+                    );
+                  } catch (error) {
+                    reject(error);
+                    return;
+                  }
+                }
                 resolve(processedFile);
               } else {
                 reject(new Error("Failed to create blob"));
@@ -86,10 +134,10 @@ function processImage(file, crop, rotation = 0) {
     img.src = URL.createObjectURL(file);
   });
 }
-async function processImages(processedImages) {
+async function processImages(processedImages, compressionOptions) {
   const processedFiles = await Promise.all(
     processedImages.map(
-      ({ file, crop, rotation }) => processImage(file, crop, rotation)
+      ({ file, crop, rotation }) => processImage(file, crop, rotation, compressionOptions)
     )
   );
   return processedFiles;
@@ -595,6 +643,7 @@ function ImageView({
 import { useFileUpload } from "@battlemagedotapp/convex-upload-helpers";
 import { ImagePlus, LoaderCircle, Trash } from "lucide-react";
 import { useRef as useRef2, useState as useState3 } from "react";
+import { toast } from "sonner";
 
 // src/components/ui/alert-dialog.tsx
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
@@ -769,7 +818,8 @@ function MultiImageCropUploader({
   successMessage,
   errorMessage,
   previewImageListClassName,
-  previewImageItemClassName
+  previewImageItemClassName,
+  compressionOptions
 }) {
   const [cropDialogOpen, setCropDialogOpen] = useState3(false);
   const [pendingFiles, setPendingFiles] = useState3([]);
@@ -800,13 +850,27 @@ function MultiImageCropUploader({
   const handleCropDialogUpload = async (processedImages) => {
     try {
       setIsUploading(true);
-      const processedFiles = await processImages(processedImages);
+      if (compressionOptions) {
+        const unsupportedImages = processedImages.filter(
+          (img) => !isImageTypeSupported(img.file.type)
+        );
+        if (unsupportedImages.length > 0) {
+          const unsupportedTypes = [...new Set(unsupportedImages.map((img) => img.file.type))];
+          toast.error(`Some image types are not supported for compression: ${unsupportedTypes.join(", ")}`);
+          return;
+        }
+      }
+      const processedFiles = await processImages(processedImages, compressionOptions);
+      if (compressionOptions) {
+        toast.success(`Successfully compressed ${processedFiles.length} image(s)`);
+      }
       for (const file of processedFiles) {
         const storageId = await uploadFile(file);
         appendImage({ value: storageId });
       }
     } catch (error) {
       console.error("Error processing images:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to process images");
     } finally {
       setIsUploading(false);
     }
@@ -1145,6 +1209,7 @@ function SingleImageCropDialog({
 import { useFileUpload as useFileUpload2 } from "@battlemagedotapp/convex-upload-helpers";
 import { ImagePlus as ImagePlus3, LoaderCircle as LoaderCircle3, Trash as Trash3 } from "lucide-react";
 import { useRef as useRef4, useState as useState5 } from "react";
+import { toast as toast2 } from "sonner";
 import { Fragment as Fragment2, jsx as jsx10, jsxs as jsxs9 } from "react/jsx-runtime";
 function SingleImageCropUploader({
   file,
@@ -1155,7 +1220,8 @@ function SingleImageCropUploader({
   successMessage = "File uploaded successfully!",
   errorMessage = "Failed to upload file",
   className,
-  imageClassName
+  imageClassName,
+  compressionOptions
 }) {
   const [cropDialogOpen, setCropDialogOpen] = useState5(false);
   const [pendingFile, setPendingFile] = useState5(null);
@@ -1179,15 +1245,24 @@ function SingleImageCropUploader({
   const handleCropDialogUpload = async (processedImage) => {
     try {
       setIsUploading(true);
+      if (compressionOptions && !isImageTypeSupported(processedImage.file.type)) {
+        toast2.error(`Image type ${processedImage.file.type} is not supported for compression`);
+        return;
+      }
       const processedFile = await processImage(
         processedImage.file,
         processedImage.crop,
-        processedImage.rotation
+        processedImage.rotation,
+        compressionOptions
       );
+      if (compressionOptions) {
+        toast2.success("Image compressed successfully");
+      }
       const storageId = await uploadFile(processedFile);
       setFile(storageId);
     } catch (error) {
       console.error("Error processing image:", error);
+      toast2.error(error instanceof Error ? error.message : "Failed to process image");
     } finally {
       setIsUploading(false);
     }
@@ -1370,6 +1445,8 @@ export {
   SingleImageCropDialog,
   SingleImageCropUploader,
   SingleImageUploader,
+  compressImage,
+  isImageTypeSupported,
   processImage,
   processImages,
   useImageView
