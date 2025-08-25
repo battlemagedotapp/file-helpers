@@ -1,27 +1,21 @@
-import * as react_jsx_runtime from 'react/jsx-runtime'
-import react from 'react'
+import * as react_jsx_runtime from 'react/jsx-runtime';
+import react from 'react';
 
 type ImageViewProps = {
-  src: string
-  alt: string
-}
-declare function ImageView({
-  src,
-  alt,
-}: ImageViewProps): react_jsx_runtime.JSX.Element
+    src: string;
+    alt: string;
+};
+declare function ImageView({ src, alt }: ImageViewProps): react_jsx_runtime.JSX.Element;
 
-type TransformImageUrlFn = (storageId: string) => string
+type TransformImageUrlFn = (storageId: string) => string;
 declare const useImageView: () => {
-  transformImageUrlFn: TransformImageUrlFn
-}
+    transformImageUrlFn: TransformImageUrlFn;
+};
 
 type ImageViewProviderProps = {
-  transformImageUrlFn?: TransformImageUrlFn
-  children: react.ReactNode
-}
-declare function ImageViewProvider({
-  transformImageUrlFn,
-  children,
-}: ImageViewProviderProps): react_jsx_runtime.JSX.Element
+    transformImageUrlFn?: TransformImageUrlFn;
+    children: react.ReactNode;
+};
+declare function ImageViewProvider({ transformImageUrlFn, children, }: ImageViewProviderProps): react_jsx_runtime.JSX.Element;
 
-export { ImageView, ImageViewProvider, type TransformImageUrlFn, useImageView }
+export { ImageView, ImageViewProvider, type TransformImageUrlFn, useImageView };

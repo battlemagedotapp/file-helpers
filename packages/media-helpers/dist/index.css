@@ -4,11 +4,22 @@
   :root,
   :host {
     --font-sans:
-      ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-      'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+      ui-sans-serif,
+      system-ui,
+      sans-serif,
+      "Apple Color Emoji",
+      "Segoe UI Emoji",
+      "Segoe UI Symbol",
+      "Noto Color Emoji";
     --font-mono:
-      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-      'Courier New', monospace;
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace;
     --spacing: 0.25rem;
     --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --default-font-family: var(--font-sans);
@@ -31,16 +42,7 @@
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
     tab-size: 4;
-    font-family: var(
-      --default-font-family,
-      ui-sans-serif,
-      system-ui,
-      sans-serif,
-      'Apple Color Emoji',
-      'Segoe UI Emoji',
-      'Segoe UI Symbol',
-      'Noto Color Emoji'
-    );
+    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
     font-feature-settings: var(--default-font-feature-settings, normal);
     font-variation-settings: var(--default-font-variation-settings, normal);
     -webkit-tap-highlight-color: transparent;
@@ -76,22 +78,9 @@
   kbd,
   samp,
   pre {
-    font-family: var(
-      --default-mono-font-family,
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      'Liberation Mono',
-      'Courier New',
-      monospace
-    );
+    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
     font-feature-settings: var(--default-mono-font-feature-settings, normal);
-    font-variation-settings: var(
-      --default-mono-font-variation-settings,
-      normal
-    );
+    font-variation-settings: var(--default-mono-font-variation-settings, normal);
     font-size: 1em;
   }
   small {
@@ -172,8 +161,7 @@
   ::placeholder {
     opacity: 1;
   }
-  @supports (not (-webkit-appearance: -apple-pay-button)) or
-    (contain-intrinsic-size: 1px) {
+  @supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
     ::placeholder {
       color: currentcolor;
       @supports (color: color-mix(in lab, red, red)) {
@@ -215,7 +203,7 @@
     box-shadow: none;
   }
   button,
-  input:where([type='button'], [type='reset'], [type='submit']),
+  input:where([type=button], [type=reset], [type=submit]),
   ::file-selector-button {
     appearance: button;
   }
@@ -223,7 +211,7 @@
   ::-webkit-outer-spin-button {
     height: auto;
   }
-  [hidden]:where(:not([hidden='until-found'])) {
+  [hidden]:where(:not([hidden=until-found])) {
     display: none !important;
   }
 }
@@ -240,17 +228,11 @@
   .flex {
     display: flex;
   }
-  .h-0 {
-    height: calc(var(--spacing) * 0);
-  }
   .h-4 {
     height: calc(var(--spacing) * 4);
   }
   .h-full {
     height: 100%;
-  }
-  .w-0 {
-    width: calc(var(--spacing) * 0);
   }
   .w-4 {
     width: calc(var(--spacing) * 4);
@@ -266,9 +248,6 @@
   }
   .justify-center {
     justify-content: center;
-  }
-  .object-cover {
-    object-fit: cover;
   }
 }
 @keyframes pulse {

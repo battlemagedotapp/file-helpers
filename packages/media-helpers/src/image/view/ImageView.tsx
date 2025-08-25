@@ -11,9 +11,11 @@ export function ImageView({ src, alt }: ImageViewProps) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(
     'loading',
   )
-  const [imgClassNames, setImgClassNames] = useState<string>(
-    'w-full h-full object-cover',
-  )
+  const [imgClassNames, setImgClassNames] = useState<object>({
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  })
   const { transformImageUrlFn } = useImageView()
   const imageSrc = transformImageUrlFn ? transformImageUrlFn(src) : src
   return (
@@ -21,14 +23,22 @@ export function ImageView({ src, alt }: ImageViewProps) {
       <img
         src={imageSrc}
         alt={alt}
-        className={imgClassNames}
+        style={imgClassNames}
         onLoad={() => {
           setStatus('loaded')
-          setImgClassNames('w-full h-full object-cover')
+          setImgClassNames({
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          })
         }}
         onError={() => {
           setStatus('error')
-          setImgClassNames('w-0 h-0')
+          setImgClassNames({
+            width: '0',
+            height: '0',
+            objectFit: 'cover',
+          })
         }}
       />
       {status === 'loading' && (
