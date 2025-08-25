@@ -119,20 +119,34 @@ function ImageView({ src, alt, canExpand = true }) {
       {
         className: "fixed inset-0  border backdrop-blur-2xl z-50 flex items-center justify-center",
         onClick: () => setIsOpen(false),
-        children: /* @__PURE__ */ jsxs("div", { className: "relative max-w-full max-h-full p-4", onClick: (e) => e.stopPropagation(), children: [
-          /* @__PURE__ */ jsx2(
-            Button,
-            {
-              type: "button",
-              variant: "secondary",
-              size: "icon",
-              className: "cursor-pointer absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground",
-              onClick: () => setIsOpen(false),
-              children: /* @__PURE__ */ jsx2(X, { className: "h-4 w-4" })
-            }
-          ),
-          /* @__PURE__ */ jsx2("img", { src: imageSrc, alt, className: "max-w-[100vw] max-h-[90vh] object-contain" })
-        ] })
+        children: /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: "relative max-w-full max-h-full p-4",
+            onClick: (e) => e.stopPropagation(),
+            children: [
+              /* @__PURE__ */ jsx2(
+                Button,
+                {
+                  type: "button",
+                  variant: "secondary",
+                  size: "icon",
+                  className: "cursor-pointer absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground",
+                  onClick: () => setIsOpen(false),
+                  children: /* @__PURE__ */ jsx2(X, { className: "h-4 w-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx2(
+                "img",
+                {
+                  src: imageSrc,
+                  alt,
+                  className: "max-w-[100vw] max-h-[90vh] object-contain"
+                }
+              )
+            ]
+          }
+        )
       }
     )
   ] });

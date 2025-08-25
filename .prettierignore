@@ -9,3 +9,7 @@ apps/convex-app/.turbo
 packages/convex-upload-helpers/dist
 packages/convex-upload-helpers/node_modules
 packages/convex-upload-helpers/.turbo
+
+packages/media-helpers/dist
+packages/media-helpers/node_modules
+packages/media-helpers/.turbo
