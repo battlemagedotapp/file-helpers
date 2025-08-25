@@ -38,9 +38,32 @@ async function handleGetImage(ctx, request) {
     return new Response("Internal server error", { status: 500 });
   }
 }
+async function handleGetAudio(ctx, request) {
+  const { searchParams } = new URL(request.url);
+  const storageId = searchParams.get("storageId");
+  if (!storageId) {
+    return new Response("Storage ID is required", { status: 400 });
+  }
+  try {
+    const blob = await ctx.storage.get(storageId);
+    if (blob === null) {
+      return new Response("Audio not found", { status: 404 });
+    }
+    return new Response(blob, {
+      headers: {
+        "Content-Type": blob.type || "audio/mpeg",
+        "Cache-Control": "public, max-age=31536000"
+      }
+    });
+  } catch (error) {
+    console.error("Error serving audio:", error);
+    return new Response("Internal server error", { status: 500 });
+  }
+}
 export {
   filesTable,
   filesTableFields,
+  handleGetAudio,
   handleGetImage
 };
 //# sourceMappingURL=index.mjs.map

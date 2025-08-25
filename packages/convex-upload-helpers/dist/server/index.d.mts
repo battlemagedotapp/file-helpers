@@ -28,5 +28,6 @@ declare function filesTable(fields?: Record<string, GenericValidator>): convex_s
 }, {}, {}>;
 
 declare function handleGetImage(ctx: GenericActionCtx<any>, request: Request): Promise<Response>;
+declare function handleGetAudio(ctx: GenericActionCtx<any>, request: Request): Promise<Response>;
 
-export { filesTable, filesTableFields, handleGetImage };
+export { filesTable, filesTableFields, handleGetAudio, handleGetImage };

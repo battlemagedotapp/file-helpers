@@ -1,2 +1,2 @@
 export { filesTable, filesTableFields } from './filesTable'
-export { handleGetImage } from './http'
+export { handleGetAudio, handleGetImage } from './http'
