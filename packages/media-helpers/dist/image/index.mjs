@@ -69,8 +69,15 @@ var ImageViewProviderContext_default = ImageViewContext;
 // src/image/view/ImageView.tsx
 import { Ellipsis, X } from "lucide-react";
 import { useState } from "react";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { jsx as jsx2, jsxs } from "react/jsx-runtime";
-function ImageView({ src, alt, canExpand = true, className }) {
+function ImageView({
+  src,
+  alt,
+  canExpand = true,
+  className,
+  externalImageUrlFn
+}) {
   const [status, setStatus] = useState(
     "loading"
   );
@@ -81,8 +88,7 @@ function ImageView({ src, alt, canExpand = true, className }) {
   });
   const [isOpen, setIsOpen] = useState(false);
   const { transformImageUrlFn } = useImageView();
-  const imageSrc = transformImageUrlFn ? transformImageUrlFn(src) : src;
-  console.log(imageSrc);
+  const imageSrc = externalImageUrlFn ? externalImageUrlFn(src) : transformImageUrlFn(src);
   return /* @__PURE__ */ jsxs("div", { className: cn("w-full h-full relative select-none", className), children: [
     /* @__PURE__ */ jsx2(
       "img",
@@ -117,34 +123,42 @@ function ImageView({ src, alt, canExpand = true, className }) {
     isOpen && status === "loaded" && /* @__PURE__ */ jsx2(
       "div",
       {
-        className: "fixed inset-0  border backdrop-blur-2xl z-50 flex items-center justify-center",
+        className: "fixed inset-0  backdrop-blur-2xl z-50 flex items-center justify-center",
         onClick: () => setIsOpen(false),
-        children: /* @__PURE__ */ jsxs(
-          "div",
+        children: /* @__PURE__ */ jsx2(
+          TransformWrapper,
           {
-            className: "relative max-w-full max-h-full p-4",
-            onClick: (e) => e.stopPropagation(),
-            children: [
-              /* @__PURE__ */ jsx2(
-                Button,
-                {
-                  type: "button",
-                  variant: "secondary",
-                  size: "icon",
-                  className: "cursor-pointer absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground",
-                  onClick: () => setIsOpen(false),
-                  children: /* @__PURE__ */ jsx2(X, { className: "h-4 w-4" })
-                }
-              ),
-              /* @__PURE__ */ jsx2(
-                "img",
-                {
-                  src: imageSrc,
-                  alt,
-                  className: "max-w-[90vw] max-h-[90vh] object-contain"
-                }
-              )
-            ]
+            wheel: { step: 0.5 },
+            pinch: { disabled: false },
+            doubleClick: { disabled: true },
+            children: /* @__PURE__ */ jsx2(TransformComponent, { wrapperStyle: { width: "100%", height: "100%" }, children: /* @__PURE__ */ jsxs(
+              "div",
+              {
+                className: "relative max-w-full max-h-full p-4",
+                onClick: (e) => e.stopPropagation(),
+                children: [
+                  /* @__PURE__ */ jsx2(
+                    Button,
+                    {
+                      type: "button",
+                      variant: "secondary",
+                      size: "icon",
+                      className: "cursor-pointer absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground",
+                      onClick: () => setIsOpen(false),
+                      children: /* @__PURE__ */ jsx2(X, { className: "h-4 w-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsx2(
+                    "img",
+                    {
+                      src: imageSrc,
+                      alt,
+                      className: "max-w-[90vw] max-h-[90vh] object-contain"
+                    }
+                  )
+                ]
+              }
+            ) })
           }
         )
       }
@@ -362,36 +376,55 @@ function MultiImageUploader({
           maxFiles,
           " images allowed"
         ] }),
-        imageFields.length > 0 && /* @__PURE__ */ jsx5("div", { className: cn("flex flex-row flex-nowrap h-64 overflow-x-scroll show-scrollbar", previewImageListClassName), children: imageFields.map((field, index) => /* @__PURE__ */ jsxs4(
+        imageFields.length > 0 && /* @__PURE__ */ jsx5(
           "div",
           {
-            className: "shrink-0 h-full relative aspect-square p-4",
-            children: [
-              /* @__PURE__ */ jsx5(ImageView, { src: field.value, alt: `Image ${index + 1}`, className: cn("rounded-lg overflow-hidden", previewImageItemClassName) }),
-              /* @__PURE__ */ jsx5("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx5(
-                ConfirmAlertDialog_default,
-                {
-                  trigger: /* @__PURE__ */ jsx5(
-                    Button,
+            className: cn(
+              "flex flex-row flex-nowrap h-64 overflow-x-scroll show-scrollbar",
+              previewImageListClassName
+            ),
+            children: imageFields.map((field, index) => /* @__PURE__ */ jsxs4(
+              "div",
+              {
+                className: "shrink-0 h-full relative aspect-square p-4",
+                children: [
+                  /* @__PURE__ */ jsx5(
+                    ImageView,
                     {
-                      type: "button",
-                      variant: "secondary",
-                      size: "icon",
-                      className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                      children: /* @__PURE__ */ jsx5(Trash, { className: "h-4 w-4" })
+                      src: field.value,
+                      alt: `Image ${index + 1}`,
+                      className: cn(
+                        "rounded-lg overflow-hidden",
+                        previewImageItemClassName
+                      )
                     }
                   ),
-                  title: "Delete image",
-                  description: "Are you sure you want to delete this image? This action cannot be undone.",
-                  confirmLabel: "Delete",
-                  cancelLabel: "Cancel",
-                  onConfirm: () => handleFileDelete(index)
-                }
-              ) })
-            ]
-          },
-          field.id
-        )) })
+                  /* @__PURE__ */ jsx5("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx5(
+                    ConfirmAlertDialog_default,
+                    {
+                      trigger: /* @__PURE__ */ jsx5(
+                        Button,
+                        {
+                          type: "button",
+                          variant: "secondary",
+                          size: "icon",
+                          className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
+                          children: /* @__PURE__ */ jsx5(Trash, { className: "h-4 w-4" })
+                        }
+                      ),
+                      title: "Delete image",
+                      description: "Are you sure you want to delete this image? This action cannot be undone.",
+                      confirmLabel: "Delete",
+                      cancelLabel: "Cancel",
+                      onConfirm: () => handleFileDelete(index)
+                    }
+                  ) })
+                ]
+              },
+              field.id
+            ))
+          }
+        )
       ] })
     }
   );
@@ -438,7 +471,14 @@ function SingleImageUploader({
           }
         ),
         file && /* @__PURE__ */ jsxs5("div", { className: "relative", children: [
-          /* @__PURE__ */ jsx6(ImageView, { src: file, alt: "Uploaded image", className: cn("rounded-lg overflow-hidden", imageClassName) }),
+          /* @__PURE__ */ jsx6(
+            ImageView,
+            {
+              src: file,
+              alt: "Uploaded image",
+              className: cn("rounded-lg overflow-hidden", imageClassName)
+            }
+          ),
           /* @__PURE__ */ jsx6("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx6(
             ConfirmAlertDialog_default,
             {

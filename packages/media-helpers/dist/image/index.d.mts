@@ -38,8 +38,9 @@ type ImageViewProps = {
     alt: string;
     canExpand?: boolean;
     className?: string;
+    externalImageUrlFn?: (url: string) => string;
 };
-declare function ImageView({ src, alt, canExpand, className }: ImageViewProps): react_jsx_runtime.JSX.Element;
+declare function ImageView({ src, alt, canExpand, className, externalImageUrlFn, }: ImageViewProps): react_jsx_runtime.JSX.Element;
 
 type TransformImageUrlFn = (storageId: string) => string;
 declare const useImageView: () => {
