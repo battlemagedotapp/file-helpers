@@ -81,7 +81,7 @@ export function ImageView({ src, alt, canExpand = true }: ImageViewProps) {
             <img
               src={imageSrc}
               alt={alt}
-              className="max-w-[100vw] max-h-[90vh] object-contain"
+              className="max-w-[90vw] max-h-[90vh] object-contain"
             />
           </div>
         </div>

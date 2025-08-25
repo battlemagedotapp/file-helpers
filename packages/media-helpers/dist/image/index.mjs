@@ -141,7 +141,7 @@ function ImageView({ src, alt, canExpand = true }) {
                 {
                   src: imageSrc,
                   alt,
-                  className: "max-w-[100vw] max-h-[90vh] object-contain"
+                  className: "max-w-[90vw] max-h-[90vh] object-contain"
                 }
               )
             ]
@@ -152,19 +152,263 @@ function ImageView({ src, alt, canExpand = true }) {
   ] });
 }
 
+// src/image/uploader/MultiImageUploader.tsx
+import { MultipleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
+import { ImagePlus, LoaderCircle, Trash } from "lucide-react";
+
+// src/components/ui/alert-dialog.tsx
+import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
+import "react";
+import { jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
+function AlertDialog({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(AlertDialogPrimitive.Root, { "data-slot": "alert-dialog", ...props });
+}
+function AlertDialogTrigger({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(AlertDialogPrimitive.Trigger, { "data-slot": "alert-dialog-trigger", ...props });
+}
+function AlertDialogPortal({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(AlertDialogPrimitive.Portal, { "data-slot": "alert-dialog-portal", ...props });
+}
+function AlertDialogOverlay({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Overlay,
+    {
+      "data-slot": "alert-dialog-overlay",
+      className: cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className
+      ),
+      ...props
+    }
+  );
+}
+function AlertDialogContent({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxs2(AlertDialogPortal, { children: [
+    /* @__PURE__ */ jsx3(AlertDialogOverlay, {}),
+    /* @__PURE__ */ jsx3(
+      AlertDialogPrimitive.Content,
+      {
+        "data-slot": "alert-dialog-content",
+        className: cn(
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          className
+        ),
+        ...props
+      }
+    )
+  ] });
+}
+function AlertDialogHeader({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    "div",
+    {
+      "data-slot": "alert-dialog-header",
+      className: cn("flex flex-col gap-2 text-center sm:text-left", className),
+      ...props
+    }
+  );
+}
+function AlertDialogFooter({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    "div",
+    {
+      "data-slot": "alert-dialog-footer",
+      className: cn(
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        className
+      ),
+      ...props
+    }
+  );
+}
+function AlertDialogTitle({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Title,
+    {
+      "data-slot": "alert-dialog-title",
+      className: cn("text-lg font-semibold", className),
+      ...props
+    }
+  );
+}
+function AlertDialogDescription({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Description,
+    {
+      "data-slot": "alert-dialog-description",
+      className: cn("text-muted-foreground text-sm", className),
+      ...props
+    }
+  );
+}
+function AlertDialogAction({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Action,
+    {
+      className: cn(buttonVariants(), className),
+      ...props
+    }
+  );
+}
+function AlertDialogCancel({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx3(
+    AlertDialogPrimitive.Cancel,
+    {
+      className: cn(buttonVariants({ variant: "outline" }), className),
+      ...props
+    }
+  );
+}
+
+// src/image/uploader/ConfirmAlertDialog.tsx
+import "react";
+import { jsx as jsx4, jsxs as jsxs3 } from "react/jsx-runtime";
+function ConfirmAlertDialog({
+  title = "Are you sure?",
+  description = "This action cannot be undone.",
+  trigger,
+  onConfirm,
+  confirmLabel = "Continue",
+  cancelLabel = "Cancel"
+}) {
+  return /* @__PURE__ */ jsxs3(AlertDialog, { children: [
+    trigger ? /* @__PURE__ */ jsx4(AlertDialogTrigger, { children: trigger }) : null,
+    /* @__PURE__ */ jsxs3(AlertDialogContent, { children: [
+      /* @__PURE__ */ jsxs3(AlertDialogHeader, { children: [
+        /* @__PURE__ */ jsx4(AlertDialogTitle, { children: title }),
+        /* @__PURE__ */ jsx4(AlertDialogDescription, { children: description })
+      ] }),
+      /* @__PURE__ */ jsxs3(AlertDialogFooter, { children: [
+        /* @__PURE__ */ jsx4(AlertDialogCancel, { children: cancelLabel }),
+        /* @__PURE__ */ jsx4(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
+      ] })
+    ] })
+  ] });
+}
+var ConfirmAlertDialog_default = ConfirmAlertDialog;
+
+// src/image/uploader/MultiImageUploader.tsx
+import { jsx as jsx5, jsxs as jsxs4 } from "react/jsx-runtime";
+function MultiImageUploader({
+  imageFields,
+  appendImage,
+  removeImage,
+  maxFiles,
+  maxSizeInMB,
+  allowedTypes,
+  successMessage,
+  errorMessage
+}) {
+  return /* @__PURE__ */ jsx5(
+    MultipleFileUploaderHeadless,
+    {
+      fileFields: imageFields,
+      appendFile: appendImage,
+      removeFile: removeImage,
+      maxFiles,
+      maxSizeInMB,
+      allowedTypes,
+      successMessage,
+      errorMessage,
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, canAddMore }) => /* @__PURE__ */ jsxs4("div", { className: "flex flex-col gap-2", children: [
+        /* @__PURE__ */ jsxs4(
+          Button,
+          {
+            disabled: isUploading || !canAddMore,
+            variant: "default",
+            size: "default",
+            className: "w-fit",
+            onClick: triggerFileSelect,
+            children: [
+              isUploading ? /* @__PURE__ */ jsx5(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx5(ImagePlus, { className: "h-4 w-4" }),
+              isUploading ? "Uploading..." : "Add image(s)"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxs4("p", { className: "text-sm text-muted-foreground", children: [
+          "Maximum ",
+          maxFiles,
+          " images allowed"
+        ] }),
+        imageFields.length > 0 && /* @__PURE__ */ jsx5("div", { className: "flex flex-row flex-nowrap w-full h-48 overflow-x-scroll show-scrollbar", children: imageFields.map((field, index) => /* @__PURE__ */ jsxs4(
+          "div",
+          {
+            className: "shrink-0 w-56 h-full relative p-4",
+            children: [
+              /* @__PURE__ */ jsx5("div", { className: "rounded-lg overflow-hidden w-full h-full", children: /* @__PURE__ */ jsx5(ImageView, { src: field.value, alt: `Image ${index + 1}` }) }),
+              /* @__PURE__ */ jsx5("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx5(
+                ConfirmAlertDialog_default,
+                {
+                  trigger: /* @__PURE__ */ jsx5(
+                    Button,
+                    {
+                      type: "button",
+                      variant: "secondary",
+                      size: "icon",
+                      className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
+                      children: /* @__PURE__ */ jsx5(Trash, { className: "h-4 w-4" })
+                    }
+                  ),
+                  title: "Delete image",
+                  description: "Are you sure you want to delete this image? This action cannot be undone.",
+                  confirmLabel: "Delete",
+                  cancelLabel: "Cancel",
+                  onConfirm: () => handleFileDelete(index)
+                }
+              ) })
+            ]
+          },
+          field.id
+        )) })
+      ] })
+    }
+  );
+}
+
 // src/image/view/ImageViewProvider.tsx
 import "react";
-import { jsx as jsx3 } from "react/jsx-runtime";
+import { jsx as jsx6 } from "react/jsx-runtime";
 function ImageViewProvider({
   transformImageUrlFn,
   children
 }) {
   const fn = transformImageUrlFn ?? ((id) => id);
-  return /* @__PURE__ */ jsx3(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
+  return /* @__PURE__ */ jsx6(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
 }
 export {
   ImageView,
   ImageViewProvider,
+  MultiImageUploader,
   useImageView
 };
 //# sourceMappingURL=index.mjs.map
