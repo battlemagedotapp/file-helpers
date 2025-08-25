@@ -3,7 +3,7 @@ import { ImageView } from '@/image/view/ImageView'
 import { cn } from '@/lib/utils'
 import { MultipleFileUploaderHeadless } from '@battlemagedotapp/convex-upload-helpers'
 import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'
-import ConfirmAlertDialog from './ConfirmAlertDialog'
+import ConfirmAlertDialog from '../ConfirmAlertDialog'
 
 type MultiImageUploaderProps = {
   imageFields: { id: string; value: string }[]

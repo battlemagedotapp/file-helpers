@@ -42,7 +42,7 @@ export function ImageCropDialog({
 }: ImageCropDialogProps) {
   const [images, setImages] = useState<ImageData[]>([])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  const [crops, setCrops] = useState<Crop[]>([])
+  const [crops, setCrops] = useState<(Crop | undefined)[]>([])
   const [rotations, setRotations] = useState<number[]>([])
   const imgRefs = useRef<(HTMLImageElement | null)[]>([])
 
@@ -86,6 +86,14 @@ export function ImageCropDialog({
       const newRotations = [...prev]
       newRotations[index] = (newRotations[index] + 90) % 360
       return newRotations
+    })
+  }, [])
+
+  const handleUnselectCrop = useCallback((index: number) => {
+    setCrops((prev) => {
+      const newCrops = [...prev]
+      newCrops[index] = undefined
+      return newCrops
     })
   }, [])
 
@@ -169,15 +177,26 @@ export function ImageCropDialog({
               <h3 className="text-sm font-medium">
                 Image {selectedImageIndex + 1} of {images.length}
               </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => handleRotate(selectedImageIndex)}
-              >
-                <RotateCw className="h-4 w-4" />
-                Rotate
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleUnselectCrop(selectedImageIndex)}
+                  disabled={!selectedCrop}
+                >
+                  Unselect
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRotate(selectedImageIndex)}
+                >
+                  <RotateCw className="h-4 w-4" />
+                  Rotate
+                </Button>
+              </div>
             </div>
 
             <div className="flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg">

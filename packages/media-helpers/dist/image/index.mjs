@@ -1,5 +1,100 @@
 import "../chunk-PMJAV4JJ.mjs";
 
+// src/image/uploader/imageProcessingUtils.ts
+import "react-image-crop";
+function processImage(file, crop, rotation = 0) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Could not get canvas context"));
+          return;
+        }
+        const rotatedWidth = rotation % 180 === 0 ? img.width : img.height;
+        const rotatedHeight = rotation % 180 === 0 ? img.height : img.width;
+        canvas.width = rotatedWidth;
+        canvas.height = rotatedHeight;
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rotation * Math.PI / 180);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        if (crop && crop.width > 0 && crop.height > 0) {
+          const cropCanvas = document.createElement("canvas");
+          const cropCtx = cropCanvas.getContext("2d");
+          if (!cropCtx) {
+            reject(new Error("Could not get crop canvas context"));
+            return;
+          }
+          const cropX = crop.x * rotatedWidth / 100;
+          const cropY = crop.y * rotatedHeight / 100;
+          const cropWidth = crop.width * rotatedWidth / 100;
+          const cropHeight = crop.height * rotatedHeight / 100;
+          cropCanvas.width = cropWidth;
+          cropCanvas.height = cropHeight;
+          cropCtx.drawImage(
+            canvas,
+            cropX,
+            cropY,
+            cropWidth,
+            cropHeight,
+            0,
+            0,
+            cropWidth,
+            cropHeight
+          );
+          cropCanvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const processedFile = new File([blob], file.name, {
+                  type: file.type,
+                  lastModified: Date.now()
+                });
+                resolve(processedFile);
+              } else {
+                reject(new Error("Failed to create blob"));
+              }
+            },
+            file.type,
+            0.9
+          );
+        } else {
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const processedFile = new File([blob], file.name, {
+                  type: file.type,
+                  lastModified: Date.now()
+                });
+                resolve(processedFile);
+              } else {
+                reject(new Error("Failed to create blob"));
+              }
+            },
+            file.type,
+            0.9
+          );
+        }
+      } catch (error) {
+        reject(error);
+      }
+    };
+    img.onerror = () => {
+      reject(new Error("Failed to load image"));
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+async function processImages(processedImages) {
+  const processedFiles = await Promise.all(
+    processedImages.map(
+      ({ file, crop, rotation }) => processImage(file, crop, rotation)
+    )
+  );
+  return processedFiles;
+}
+
 // src/components/ui/button.tsx
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
@@ -160,7 +255,7 @@ function DialogTitle({
   );
 }
 
-// src/image/uploader/ImageCropDialog.tsx
+// src/image/uploader/multiple-image/ImageCropDialog.tsx
 import { RotateCw, Upload, X } from "lucide-react";
 import React3, { useCallback, useRef, useState } from "react";
 import ReactCrop from "react-image-crop";
@@ -199,13 +294,16 @@ function ImageCropDialog({
       });
     };
   }, [images]);
-  const handleCropChange = useCallback((crop, percentCrop, index) => {
-    setCrops((prev) => {
-      const newCrops = [...prev];
-      newCrops[index] = percentCrop;
-      return newCrops;
-    });
-  }, []);
+  const handleCropChange = useCallback(
+    (crop, percentCrop, index) => {
+      setCrops((prev) => {
+        const newCrops = [...prev];
+        newCrops[index] = percentCrop;
+        return newCrops;
+      });
+    },
+    []
+  );
   const handleRotate = useCallback((index) => {
     setRotations((prev) => {
       const newRotations = [...prev];
@@ -213,16 +311,26 @@ function ImageCropDialog({
       return newRotations;
     });
   }, []);
-  const handleRemoveImage = useCallback((index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-    setCrops((prev) => prev.filter((_, i) => i !== index));
-    setRotations((prev) => prev.filter((_, i) => i !== index));
-    if (selectedImageIndex >= index && selectedImageIndex > 0) {
-      setSelectedImageIndex((prev) => prev - 1);
-    } else if (selectedImageIndex === index && index === images.length - 1) {
-      setSelectedImageIndex((prev) => Math.max(0, prev - 1));
-    }
-  }, [selectedImageIndex, images.length]);
+  const handleUnselectCrop = useCallback((index) => {
+    setCrops((prev) => {
+      const newCrops = [...prev];
+      newCrops[index] = void 0;
+      return newCrops;
+    });
+  }, []);
+  const handleRemoveImage = useCallback(
+    (index) => {
+      setImages((prev) => prev.filter((_, i) => i !== index));
+      setCrops((prev) => prev.filter((_, i) => i !== index));
+      setRotations((prev) => prev.filter((_, i) => i !== index));
+      if (selectedImageIndex >= index && selectedImageIndex > 0) {
+        setSelectedImageIndex((prev) => prev - 1);
+      } else if (selectedImageIndex === index && index === images.length - 1) {
+        setSelectedImageIndex((prev) => Math.max(0, prev - 1));
+      }
+    },
+    [selectedImageIndex, images.length]
+  );
   const handleUpload = useCallback(() => {
     const processedImages = images.map((image, index) => ({
       id: image.id,
@@ -286,19 +394,32 @@ function ImageCropDialog({
             " of ",
             images.length
           ] }),
-          /* @__PURE__ */ jsxs2(
-            Button,
-            {
-              type: "button",
-              variant: "outline",
-              size: "sm",
-              onClick: () => handleRotate(selectedImageIndex),
-              children: [
-                /* @__PURE__ */ jsx3(RotateCw, { className: "h-4 w-4" }),
-                "Rotate"
-              ]
-            }
-          )
+          /* @__PURE__ */ jsxs2("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ jsx3(
+              Button,
+              {
+                type: "button",
+                variant: "outline",
+                size: "sm",
+                onClick: () => handleUnselectCrop(selectedImageIndex),
+                disabled: !selectedCrop,
+                children: "Unselect"
+              }
+            ),
+            /* @__PURE__ */ jsxs2(
+              Button,
+              {
+                type: "button",
+                variant: "outline",
+                size: "sm",
+                onClick: () => handleRotate(selectedImageIndex),
+                children: [
+                  /* @__PURE__ */ jsx3(RotateCw, { className: "h-4 w-4" }),
+                  "Rotate"
+                ]
+              }
+            )
+          ] })
         ] }),
         /* @__PURE__ */ jsx3("div", { className: "flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg", children: selectedImage && /* @__PURE__ */ jsx3(
           ReactCrop,
@@ -353,101 +474,6 @@ function ImageCropDialog({
       )
     ] })
   ] }) });
-}
-
-// src/image/uploader/imageProcessingUtils.ts
-import "react-image-crop";
-function processImage(file, crop, rotation = 0) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Could not get canvas context"));
-          return;
-        }
-        const rotatedWidth = rotation % 180 === 0 ? img.width : img.height;
-        const rotatedHeight = rotation % 180 === 0 ? img.height : img.width;
-        canvas.width = rotatedWidth;
-        canvas.height = rotatedHeight;
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(rotation * Math.PI / 180);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        if (crop && crop.width > 0 && crop.height > 0) {
-          const cropCanvas = document.createElement("canvas");
-          const cropCtx = cropCanvas.getContext("2d");
-          if (!cropCtx) {
-            reject(new Error("Could not get crop canvas context"));
-            return;
-          }
-          const cropX = crop.x * rotatedWidth / 100;
-          const cropY = crop.y * rotatedHeight / 100;
-          const cropWidth = crop.width * rotatedWidth / 100;
-          const cropHeight = crop.height * rotatedHeight / 100;
-          cropCanvas.width = cropWidth;
-          cropCanvas.height = cropHeight;
-          cropCtx.drawImage(
-            canvas,
-            cropX,
-            cropY,
-            cropWidth,
-            cropHeight,
-            0,
-            0,
-            cropWidth,
-            cropHeight
-          );
-          cropCanvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const processedFile = new File([blob], file.name, {
-                  type: file.type,
-                  lastModified: Date.now()
-                });
-                resolve(processedFile);
-              } else {
-                reject(new Error("Failed to create blob"));
-              }
-            },
-            file.type,
-            0.9
-          );
-        } else {
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const processedFile = new File([blob], file.name, {
-                  type: file.type,
-                  lastModified: Date.now()
-                });
-                resolve(processedFile);
-              } else {
-                reject(new Error("Failed to create blob"));
-              }
-            },
-            file.type,
-            0.9
-          );
-        }
-      } catch (error) {
-        reject(error);
-      }
-    };
-    img.onerror = () => {
-      reject(new Error("Failed to load image"));
-    };
-    img.src = URL.createObjectURL(file);
-  });
-}
-async function processImages(processedImages) {
-  const processedFiles = await Promise.all(
-    processedImages.map(
-      ({ file, crop, rotation }) => processImage(file, crop, rotation)
-    )
-  );
-  return processedFiles;
 }
 
 // src/image/view/ImageViewProviderContext.tsx
@@ -565,7 +591,7 @@ function ImageView({
   ] });
 }
 
-// src/image/uploader/MultiImageCropUploader.tsx
+// src/image/uploader/multiple-image/MultiImageCropUploader.tsx
 import { useFileUpload } from "@battlemagedotapp/convex-upload-helpers";
 import { ImagePlus, LoaderCircle, Trash } from "lucide-react";
 import { useRef as useRef2, useState as useState3 } from "react";
@@ -731,7 +757,7 @@ function ConfirmAlertDialog({
 }
 var ConfirmAlertDialog_default = ConfirmAlertDialog;
 
-// src/image/uploader/MultiImageCropUploader.tsx
+// src/image/uploader/multiple-image/MultiImageCropUploader.tsx
 import { Fragment, jsx as jsx7, jsxs as jsxs6 } from "react/jsx-runtime";
 function MultiImageCropUploader({
   imageFields,
@@ -895,7 +921,7 @@ function MultiImageCropUploader({
   ] });
 }
 
-// src/image/uploader/MultiImageUploader.tsx
+// src/image/uploader/multiple-image/MultiImageUploader.tsx
 import { MultipleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
 import { ImagePlus as ImagePlus2, LoaderCircle as LoaderCircle2, Trash as Trash2 } from "lucide-react";
 import { jsx as jsx8, jsxs as jsxs7 } from "react/jsx-runtime";
@@ -996,10 +1022,264 @@ function MultiImageUploader({
   );
 }
 
-// src/image/uploader/SingleImageUploader.tsx
-import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
-import { ImagePlus as ImagePlus3, LoaderCircle as LoaderCircle3, Trash as Trash3 } from "lucide-react";
+// src/image/uploader/single-image/SingleImageCropDialog.tsx
+import { RotateCw as RotateCw2, Upload as Upload2 } from "lucide-react";
+import React6, { useCallback as useCallback2, useRef as useRef3, useState as useState4 } from "react";
+import ReactCrop2 from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { jsx as jsx9, jsxs as jsxs8 } from "react/jsx-runtime";
+function SingleImageCropDialog({
+  open,
+  onOpenChange,
+  file,
+  onUpload
+}) {
+  const [imageUrl, setImageUrl] = useState4("");
+  const [crop, setCrop] = useState4();
+  const [rotation, setRotation] = useState4(0);
+  const imgRef = useRef3(null);
+  React6.useEffect(() => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    }
+  }, [file]);
+  const handleCropChange = useCallback2(
+    (newCrop, percentCrop) => {
+      setCrop(percentCrop);
+    },
+    []
+  );
+  const handleRotate = useCallback2(() => {
+    setRotation((prev) => (prev + 90) % 360);
+  }, []);
+  const handleUnselectCrop = useCallback2(() => {
+    setCrop(void 0);
+  }, []);
+  const handleUpload = useCallback2(() => {
+    const processedImage = {
+      id: `img-0`,
+      file,
+      crop,
+      rotation
+    };
+    onUpload(processedImage);
+    onOpenChange(false);
+  }, [file, crop, rotation, onUpload, onOpenChange]);
+  if (!file) return null;
+  return /* @__PURE__ */ jsx9(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs8(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
+    /* @__PURE__ */ jsx9(DialogHeader, { children: /* @__PURE__ */ jsx9(DialogTitle, { children: "Edit Image" }) }),
+    /* @__PURE__ */ jsxs8("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden select-none", children: [
+      /* @__PURE__ */ jsx9("div", { className: "flex items-center justify-start", children: /* @__PURE__ */ jsxs8("div", { className: "flex gap-2", children: [
+        /* @__PURE__ */ jsx9(
+          Button,
+          {
+            type: "button",
+            variant: "outline",
+            size: "sm",
+            onClick: handleUnselectCrop,
+            disabled: !crop,
+            children: "Unselect"
+          }
+        ),
+        /* @__PURE__ */ jsxs8(
+          Button,
+          {
+            type: "button",
+            variant: "outline",
+            size: "sm",
+            onClick: handleRotate,
+            children: [
+              /* @__PURE__ */ jsx9(RotateCw2, { className: "h-4 w-4" }),
+              "Rotate"
+            ]
+          }
+        )
+      ] }) }),
+      /* @__PURE__ */ jsx9("div", { className: "flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg", children: imageUrl && /* @__PURE__ */ jsx9(
+        ReactCrop2,
+        {
+          crop,
+          onChange: handleCropChange,
+          aspect: void 0,
+          minWidth: 50,
+          minHeight: 50,
+          keepSelection: true,
+          children: /* @__PURE__ */ jsx9(
+            "img",
+            {
+              ref: imgRef,
+              src: imageUrl,
+              alt: "Image to crop",
+              className: "max-h-[400px] max-w-full object-contain",
+              style: {
+                transform: `rotate(${rotation}deg)`
+              }
+            }
+          )
+        }
+      ) })
+    ] }),
+    /* @__PURE__ */ jsxs8(DialogFooter, { children: [
+      /* @__PURE__ */ jsx9(
+        Button,
+        {
+          type: "button",
+          variant: "outline",
+          onClick: () => onOpenChange(false),
+          children: "Cancel"
+        }
+      ),
+      /* @__PURE__ */ jsxs8(Button, { type: "button", onClick: handleUpload, children: [
+        /* @__PURE__ */ jsx9(Upload2, { className: "h-4 w-4" }),
+        "Upload"
+      ] })
+    ] })
+  ] }) });
+}
+
+// src/image/uploader/single-image/SingleImageCropUploader.tsx
+import { useFileUpload as useFileUpload2 } from "@battlemagedotapp/convex-upload-helpers";
+import { ImagePlus as ImagePlus3, LoaderCircle as LoaderCircle3, Trash as Trash3 } from "lucide-react";
+import { useRef as useRef4, useState as useState5 } from "react";
+import { Fragment as Fragment2, jsx as jsx10, jsxs as jsxs9 } from "react/jsx-runtime";
+function SingleImageCropUploader({
+  file,
+  setFile,
+  removeFile,
+  maxSizeInMB,
+  allowedTypes = [],
+  successMessage = "File uploaded successfully!",
+  errorMessage = "Failed to upload file",
+  className,
+  imageClassName
+}) {
+  const [cropDialogOpen, setCropDialogOpen] = useState5(false);
+  const [pendingFile, setPendingFile] = useState5(null);
+  const [isUploading, setIsUploading] = useState5(false);
+  const fileInputRef = useRef4(null);
+  const { uploadFile, deleteFile } = useFileUpload2({
+    maxSizeInMB,
+    allowedTypes,
+    successMessage,
+    errorMessage
+  });
+  const handleFileSelect = (event) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    const filesArray = Array.from(files);
+    const selectedFile = filesArray[0];
+    setPendingFile(selectedFile);
+    setCropDialogOpen(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+  const handleCropDialogUpload = async (processedImage) => {
+    try {
+      setIsUploading(true);
+      const processedFile = await processImage(
+        processedImage.file,
+        processedImage.crop,
+        processedImage.rotation
+      );
+      const storageId = await uploadFile(processedFile);
+      setFile(storageId);
+    } catch (error) {
+      console.error("Error processing image:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  const handleFileDelete = async () => {
+    try {
+      if (file && !file.startsWith("data:")) {
+        await deleteFile({ storageId: file });
+      }
+      removeFile();
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      removeFile();
+    }
+  };
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+  const hasFile = !!file;
+  return /* @__PURE__ */ jsxs9(Fragment2, { children: [
+    /* @__PURE__ */ jsxs9("div", { className: cn("relative", className), children: [
+      /* @__PURE__ */ jsx10(
+        "input",
+        {
+          ref: fileInputRef,
+          type: "file",
+          onChange: handleFileSelect,
+          className: "hidden",
+          accept: allowedTypes.join(",")
+        }
+      ),
+      !hasFile && /* @__PURE__ */ jsxs9(
+        Button,
+        {
+          disabled: isUploading,
+          variant: "default",
+          size: "default",
+          className: "w-fit",
+          onClick: triggerFileSelect,
+          children: [
+            isUploading ? /* @__PURE__ */ jsx10(LoaderCircle3, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx10(ImagePlus3, { className: "h-4 w-4" }),
+            isUploading ? "Uploading..." : "Add image"
+          ]
+        }
+      ),
+      file && /* @__PURE__ */ jsxs9("div", { className: "relative p-4 w-fit", children: [
+        /* @__PURE__ */ jsx10(
+          ImageView,
+          {
+            src: file,
+            alt: "Uploaded image",
+            className: cn("rounded-lg overflow-hidden", imageClassName)
+          }
+        ),
+        /* @__PURE__ */ jsx10("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx10(
+          ConfirmAlertDialog_default,
+          {
+            trigger: /* @__PURE__ */ jsx10(
+              Button,
+              {
+                type: "button",
+                variant: "secondary",
+                size: "icon",
+                className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
+                children: /* @__PURE__ */ jsx10(Trash3, { className: "h-4 w-4" })
+              }
+            ),
+            title: "Delete image",
+            description: "Are you sure you want to delete this image? This action cannot be undone.",
+            confirmLabel: "Delete",
+            cancelLabel: "Cancel",
+            onConfirm: handleFileDelete
+          }
+        ) })
+      ] })
+    ] }),
+    pendingFile && /* @__PURE__ */ jsx10(
+      SingleImageCropDialog,
+      {
+        open: cropDialogOpen,
+        onOpenChange: setCropDialogOpen,
+        file: pendingFile,
+        onUpload: handleCropDialogUpload
+      }
+    )
+  ] });
+}
+
+// src/image/uploader/single-image/SingleImageUploader.tsx
+import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
+import { ImagePlus as ImagePlus4, LoaderCircle as LoaderCircle4, Trash as Trash4 } from "lucide-react";
+import { jsx as jsx11, jsxs as jsxs10 } from "react/jsx-runtime";
 function SingleImageUploader({
   file,
   setFile,
@@ -1011,7 +1291,7 @@ function SingleImageUploader({
   className,
   imageClassName
 }) {
-  return /* @__PURE__ */ jsx9(
+  return /* @__PURE__ */ jsx11(
     SingleFileUploaderHeadless,
     {
       file,
@@ -1021,8 +1301,8 @@ function SingleImageUploader({
       allowedTypes,
       successMessage,
       errorMessage,
-      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs8("div", { className: cn("relative", className), children: [
-        !hasFile && /* @__PURE__ */ jsxs8(
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs10("div", { className: cn("relative", className), children: [
+        !hasFile && /* @__PURE__ */ jsxs10(
           Button,
           {
             disabled: isUploading,
@@ -1031,13 +1311,13 @@ function SingleImageUploader({
             className: "w-fit",
             onClick: triggerFileSelect,
             children: [
-              isUploading ? /* @__PURE__ */ jsx9(LoaderCircle3, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx9(ImagePlus3, { className: "h-4 w-4" }),
+              isUploading ? /* @__PURE__ */ jsx11(LoaderCircle4, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx11(ImagePlus4, { className: "h-4 w-4" }),
               isUploading ? "Uploading..." : "Add image"
             ]
           }
         ),
-        file && /* @__PURE__ */ jsxs8("div", { className: "relative", children: [
-          /* @__PURE__ */ jsx9(
+        file && /* @__PURE__ */ jsxs10("div", { className: "relative p-4 w-fit", children: [
+          /* @__PURE__ */ jsx11(
             ImageView,
             {
               src: file,
@@ -1045,17 +1325,17 @@ function SingleImageUploader({
               className: cn("rounded-lg overflow-hidden", imageClassName)
             }
           ),
-          /* @__PURE__ */ jsx9("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx9(
+          /* @__PURE__ */ jsx11("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx11(
             ConfirmAlertDialog_default,
             {
-              trigger: /* @__PURE__ */ jsx9(
+              trigger: /* @__PURE__ */ jsx11(
                 Button,
                 {
                   type: "button",
                   variant: "secondary",
                   size: "icon",
                   className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                  children: /* @__PURE__ */ jsx9(Trash3, { className: "h-4 w-4" })
+                  children: /* @__PURE__ */ jsx11(Trash4, { className: "h-4 w-4" })
                 }
               ),
               title: "Delete image",
@@ -1073,13 +1353,13 @@ function SingleImageUploader({
 
 // src/image/view/ImageViewProvider.tsx
 import "react";
-import { jsx as jsx10 } from "react/jsx-runtime";
+import { jsx as jsx12 } from "react/jsx-runtime";
 function ImageViewProvider({
   transformImageUrlFn,
   children
 }) {
   const fn = transformImageUrlFn ?? ((id) => id);
-  return /* @__PURE__ */ jsx10(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
+  return /* @__PURE__ */ jsx12(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
 }
 export {
   ImageCropDialog,
@@ -1087,6 +1367,8 @@ export {
   ImageViewProvider,
   MultiImageCropUploader,
   MultiImageUploader,
+  SingleImageCropDialog,
+  SingleImageCropUploader,
   SingleImageUploader,
   processImage,
   processImages,

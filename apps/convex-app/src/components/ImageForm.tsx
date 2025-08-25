@@ -1,6 +1,7 @@
 import {
   MultiImageCropUploader,
   MultiImageUploader,
+  SingleImageCropUploader,
   SingleImageUploader,
 } from '@battlemagedotapp/media-helpers/image'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,6 +18,7 @@ const imageFieldSchema = z.object({
 const formSchema = z.object({
   imagesA: z.array(imageFieldSchema).min(1, 'Please select at least one image'),
   imageB: z.string().min(1, 'Please select an image'),
+  imageC: z.string().min(1, 'Please select an image'),
 })
 
 export function ImageForm() {
@@ -74,7 +76,17 @@ export function ImageForm() {
         allowedTypes={['image/jpeg', 'image/png', 'image/webp']}
         successMessage="Image uploaded successfully!"
         errorMessage="Failed to upload image"
-        imageClassName="w-64 h-64 rounded-full"
+        imageClassName="w-64 h-64 rounded-lg"
+      />
+      <SingleImageCropUploader
+        file={form.watch('imageC')}
+        setFile={(f) => form.setValue('imageC', f)}
+        removeFile={() => form.setValue('imageC', '')}
+        maxSizeInMB={10}
+        allowedTypes={['image/jpeg', 'image/png', 'image/webp']}
+        successMessage="Image uploaded successfully!"
+        errorMessage="Failed to upload image"
+        imageClassName="w-64 h-64 rounded-lg"
       />
       <Button className="w-fit" onClick={form.handleSubmit(handleFormSubmit)}>
         Submit

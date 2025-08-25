@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils'
 import { useFileUpload } from '@battlemagedotapp/convex-upload-helpers'
 import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'
 import { useRef, useState } from 'react'
-import ConfirmAlertDialog from './ConfirmAlertDialog'
+import ConfirmAlertDialog from '../ConfirmAlertDialog'
+import { processImages, type ProcessedImageData } from '../imageProcessingUtils'
 import { ImageCropDialog } from './ImageCropDialog'
-import { processImages, type ProcessedImageData } from './imageProcessingUtils'
 
 type MultiImageCropUploaderProps = {
   imageFields: { id: string; value: string }[]

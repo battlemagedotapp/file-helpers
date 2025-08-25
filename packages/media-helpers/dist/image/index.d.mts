@@ -1,6 +1,15 @@
-import * as react_jsx_runtime from 'react/jsx-runtime';
 import { Crop } from 'react-image-crop';
+import * as react_jsx_runtime from 'react/jsx-runtime';
 import react from 'react';
+
+interface ProcessedImageData {
+    id: string;
+    file: File;
+    crop?: Crop;
+    rotation: number;
+}
+declare function processImage(file: File, crop?: Crop, rotation?: number): Promise<File>;
+declare function processImages(processedImages: ProcessedImageData[]): Promise<File[]>;
 
 interface ImageCropDialogProps {
     open: boolean;
@@ -14,15 +23,6 @@ interface ImageCropDialogProps {
     }[]) => void;
 }
 declare function ImageCropDialog({ open, onOpenChange, files, onUpload, }: ImageCropDialogProps): react_jsx_runtime.JSX.Element | null;
-
-interface ProcessedImageData {
-    id: string;
-    file: File;
-    crop?: Crop;
-    rotation: number;
-}
-declare function processImage(file: File, crop?: Crop, rotation?: number): Promise<File>;
-declare function processImages(processedImages: ProcessedImageData[]): Promise<File[]>;
 
 type MultiImageCropUploaderProps = {
     imageFields: {
@@ -62,6 +62,32 @@ type MultiImageUploaderProps = {
 };
 declare function MultiImageUploader({ imageFields, appendImage, removeImage, maxFiles, maxSizeInMB, allowedTypes, successMessage, errorMessage, previewImageListClassName, previewImageItemClassName, }: MultiImageUploaderProps): react_jsx_runtime.JSX.Element;
 
+interface SingleImageCropDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    file: File;
+    onUpload: (processedImage: {
+        id: string;
+        file: File;
+        crop?: Crop;
+        rotation: number;
+    }) => void;
+}
+declare function SingleImageCropDialog({ open, onOpenChange, file, onUpload, }: SingleImageCropDialogProps): react_jsx_runtime.JSX.Element | null;
+
+type SingleImageCropUploaderProps = {
+    file?: string | null;
+    setFile: (f: string) => void;
+    removeFile: () => void;
+    maxSizeInMB?: number;
+    allowedTypes?: string[];
+    successMessage?: string;
+    errorMessage?: string;
+    className?: string;
+    imageClassName?: string;
+};
+declare function SingleImageCropUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, imageClassName, }: SingleImageCropUploaderProps): react_jsx_runtime.JSX.Element;
+
 type SingleImageUploaderProps = {
     file?: string | null;
     setFile: (f: string) => void;
@@ -95,4 +121,4 @@ type ImageViewProviderProps = {
 };
 declare function ImageViewProvider({ transformImageUrlFn, children, }: ImageViewProviderProps): react_jsx_runtime.JSX.Element;
 
-export { ImageCropDialog, ImageView, ImageViewProvider, MultiImageCropUploader, MultiImageUploader, type ProcessedImageData, SingleImageUploader, type TransformImageUrlFn, processImage, processImages, useImageView };
+export { ImageCropDialog, ImageView, ImageViewProvider, MultiImageCropUploader, MultiImageUploader, type ProcessedImageData, SingleImageCropDialog, SingleImageCropUploader, SingleImageUploader, type TransformImageUrlFn, processImage, processImages, useImageView };

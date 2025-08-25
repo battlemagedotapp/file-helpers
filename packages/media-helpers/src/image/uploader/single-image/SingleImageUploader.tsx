@@ -3,7 +3,7 @@ import { ImageView } from '@/image/view/ImageView'
 import { cn } from '@/lib/utils'
 import { SingleFileUploaderHeadless } from '@battlemagedotapp/convex-upload-helpers'
 import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'
-import ConfirmAlertDialog from './ConfirmAlertDialog'
+import ConfirmAlertDialog from '../ConfirmAlertDialog'
 
 type SingleImageUploaderProps = {
   file?: string | null
@@ -58,13 +58,13 @@ export function SingleImageUploader({
           )}
 
           {file && (
-            <div className="relative">
+            <div className="relative p-4 w-fit">
               <ImageView
                 src={file}
                 alt="Uploaded image"
                 className={cn('rounded-lg overflow-hidden', imageClassName)}
               />
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-0 right-0">
                 <ConfirmAlertDialog
                   trigger={
                     <Button
