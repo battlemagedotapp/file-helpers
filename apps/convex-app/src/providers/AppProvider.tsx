@@ -1,6 +1,7 @@
 import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import { ThemeProvider } from 'react-theme-hook'
 import FileUploadHookProvider from './FileUploadHookProvider'
+import { ImageViewLibProvider } from './ImageViewLibProvider'
 import ToastProvider from './ToastProvider'
 
 const CONVEX_URL = import.meta.env.VITE_CONVEX_URL
@@ -19,8 +20,10 @@ export default function AppProvider({
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <ConvexProvider client={convex}>
         <FileUploadHookProvider>
-          {children}
-          <ToastProvider />
+          <ImageViewLibProvider>
+            {children}
+            <ToastProvider />
+          </ImageViewLibProvider>
         </FileUploadHookProvider>
       </ConvexProvider>
     </ThemeProvider>

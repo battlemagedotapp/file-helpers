@@ -115,6 +115,7 @@ export function MultipleFileUploader({
         multiple
         onChange={handleFileChange}
         className="hidden"
+        accept={allowedTypes.join(',')}
       />
       {children(renderProps)}
     </>

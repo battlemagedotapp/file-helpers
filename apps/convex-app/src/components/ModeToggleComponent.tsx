@@ -14,7 +14,7 @@ export function ModeToggleComponent() {
       {({ theme, setTheme, getThemeLabel }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex w-fit items-center gap-2">
               {theme === 'light' ? (
                 <Sun className="h-4 w-4" />
               ) : theme === 'dark' ? (

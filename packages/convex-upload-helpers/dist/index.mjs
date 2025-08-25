@@ -1,7 +1,9 @@
 // src/providers/FileUploadProvider.tsx
 import { createContext, useContext } from "react";
 import { jsx } from "react/jsx-runtime";
-var FileUploadContext = createContext(void 0);
+var FileUploadContext = createContext(
+  void 0
+);
 var FileUploadProvider = ({
   children,
   generateUploadUrl,
@@ -18,7 +20,9 @@ var FileUploadProvider = ({
 var useFileUploadActions = () => {
   const context = useContext(FileUploadContext);
   if (context === void 0) {
-    throw new Error("useFileUploadActions must be used within a FileUploadProvider");
+    throw new Error(
+      "useFileUploadActions must be used within a FileUploadProvider"
+    );
   }
   return context;
 };
@@ -208,7 +212,8 @@ function MultipleFileUploader({
         type: "file",
         multiple: true,
         onChange: handleFileChange,
-        className: "hidden"
+        className: "hidden",
+        accept: allowedTypes.join(",")
       }
     ),
     children(renderProps)
@@ -274,7 +279,8 @@ function SingleFileUploader({
         ref: fileInputRef,
         type: "file",
         onChange: handleFileChange,
-        className: "hidden"
+        className: "hidden",
+        accept: allowedTypes.join(",")
       }
     ),
     children(renderProps)
