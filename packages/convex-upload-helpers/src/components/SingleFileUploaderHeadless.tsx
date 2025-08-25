@@ -2,7 +2,7 @@ import { useFileUpload } from '@/hooks/useFileUpload'
 import type { Id } from 'node_modules/convex/dist/esm-types/values/value'
 import React, { useRef, useState } from 'react'
 
-type SingleFileUploaderRenderProps = {
+type SingleFileUploaderHeadlessRenderProps = {
   isUploading: boolean
   file?: { id: string; value: string } | null
   handleFileChange: (
@@ -14,7 +14,7 @@ type SingleFileUploaderRenderProps = {
   hasFile: boolean
 }
 
-type SingleFileUploaderProps = {
+type SingleFileUploaderHeadlessProps = {
   file?: { id: string; value: string } | null
   setFile: (f: { value: string }) => void
   removeFile: () => void
@@ -22,10 +22,10 @@ type SingleFileUploaderProps = {
   allowedTypes?: string[]
   successMessage?: string
   errorMessage?: string
-  children: (props: SingleFileUploaderRenderProps) => React.ReactNode
+  children: (props: SingleFileUploaderHeadlessRenderProps) => React.ReactNode
 }
 
-export function SingleFileUploader({
+export function SingleFileUploaderHeadless({
   file,
   setFile,
   removeFile,
@@ -34,7 +34,7 @@ export function SingleFileUploader({
   successMessage = 'File uploaded successfully!',
   errorMessage = 'Failed to upload file',
   children,
-}: SingleFileUploaderProps) {
+}: SingleFileUploaderHeadlessProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -76,7 +76,7 @@ export function SingleFileUploader({
 
   const hasFile = Boolean(file)
 
-  const renderProps: SingleFileUploaderRenderProps = {
+  const renderProps: SingleFileUploaderHeadlessRenderProps = {
     isUploading,
     file,
     handleFileChange,

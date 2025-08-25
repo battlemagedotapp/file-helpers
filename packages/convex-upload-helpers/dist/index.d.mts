@@ -2,7 +2,7 @@ import * as react_jsx_runtime from 'react/jsx-runtime';
 import React, { ReactNode } from 'react';
 import { Id } from 'node_modules/convex/dist/esm-types/values/value';
 
-type MultipleFileUploaderRenderProps = {
+type MultipleFileUploaderHeadlessRenderProps = {
     isUploading: boolean;
     fileFields: {
         id: string;
@@ -16,7 +16,7 @@ type MultipleFileUploaderRenderProps = {
     canAddMore: boolean;
     remainingSlots: number;
 };
-type MultipleFileUploaderProps = {
+type MultipleFileUploaderHeadlessProps = {
     fileFields: {
         id: string;
         value: string;
@@ -30,11 +30,11 @@ type MultipleFileUploaderProps = {
     allowedTypes?: string[];
     successMessage?: string;
     errorMessage?: string;
-    children: (props: MultipleFileUploaderRenderProps) => React.ReactNode;
+    children: (props: MultipleFileUploaderHeadlessRenderProps) => React.ReactNode;
 };
-declare function MultipleFileUploader({ fileFields, appendFile, removeFile, maxFiles, maxSizeInMB, allowedTypes, successMessage, errorMessage, children, }: MultipleFileUploaderProps): react_jsx_runtime.JSX.Element;
+declare function MultipleFileUploaderHeadless({ fileFields, appendFile, removeFile, maxFiles, maxSizeInMB, allowedTypes, successMessage, errorMessage, children, }: MultipleFileUploaderHeadlessProps): react_jsx_runtime.JSX.Element;
 
-type SingleFileUploaderRenderProps = {
+type SingleFileUploaderHeadlessRenderProps = {
     isUploading: boolean;
     file?: {
         id: string;
@@ -46,7 +46,7 @@ type SingleFileUploaderRenderProps = {
     fileInputRef: React.RefObject<HTMLInputElement | null>;
     hasFile: boolean;
 };
-type SingleFileUploaderProps = {
+type SingleFileUploaderHeadlessProps = {
     file?: {
         id: string;
         value: string;
@@ -59,9 +59,9 @@ type SingleFileUploaderProps = {
     allowedTypes?: string[];
     successMessage?: string;
     errorMessage?: string;
-    children: (props: SingleFileUploaderRenderProps) => React.ReactNode;
+    children: (props: SingleFileUploaderHeadlessRenderProps) => React.ReactNode;
 };
-declare function SingleFileUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, children, }: SingleFileUploaderProps): react_jsx_runtime.JSX.Element;
+declare function SingleFileUploaderHeadless({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, children, }: SingleFileUploaderHeadlessProps): react_jsx_runtime.JSX.Element;
 
 interface UseFileUploadConfig {
     maxSizeInMB?: number;
@@ -99,4 +99,4 @@ interface FileUploadProviderProps {
 }
 declare const FileUploadProvider: ({ children, generateUploadUrl, saveFile, deleteFile, }: FileUploadProviderProps) => react_jsx_runtime.JSX.Element;
 
-export { FileUploadProvider, MultipleFileUploader, SingleFileUploader, useFileUpload };
+export { FileUploadProvider, MultipleFileUploaderHeadless, SingleFileUploaderHeadless, useFileUpload };

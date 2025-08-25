@@ -1,4 +1,4 @@
-import { MultipleFileUploader } from '@battlemagedotapp/convex-upload-helpers'
+import { MultipleFileUploaderHeadless as MultipleFileUploader } from '@battlemagedotapp/convex-upload-helpers'
 import { ImageView } from '@battlemagedotapp/media-helpers/image'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'

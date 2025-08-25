@@ -2,7 +2,7 @@ import { useFileUpload } from '@/hooks/useFileUpload'
 import type { Id } from 'node_modules/convex/dist/esm-types/values/value'
 import React, { useRef, useState } from 'react'
 
-type MultipleFileUploaderRenderProps = {
+type MultipleFileUploaderHeadlessRenderProps = {
   isUploading: boolean
   fileFields: { id: string; value: string }[]
   handleFileChange: (
@@ -16,7 +16,7 @@ type MultipleFileUploaderRenderProps = {
   remainingSlots: number
 }
 
-type MultipleFileUploaderProps = {
+type MultipleFileUploaderHeadlessProps = {
   fileFields: { id: string; value: string }[]
   appendFile: (f: { value: string }) => void
   removeFile: (index: number) => void
@@ -25,10 +25,10 @@ type MultipleFileUploaderProps = {
   allowedTypes?: string[]
   successMessage?: string
   errorMessage?: string
-  children: (props: MultipleFileUploaderRenderProps) => React.ReactNode
+  children: (props: MultipleFileUploaderHeadlessRenderProps) => React.ReactNode
 }
 
-export function MultipleFileUploader({
+export function MultipleFileUploaderHeadless({
   fileFields,
   appendFile,
   removeFile,
@@ -38,7 +38,7 @@ export function MultipleFileUploader({
   successMessage = 'Files uploaded successfully!',
   errorMessage = 'Failed to upload files',
   children,
-}: MultipleFileUploaderProps) {
+}: MultipleFileUploaderHeadlessProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -95,7 +95,7 @@ export function MultipleFileUploader({
   const canAddMore = fileFields.length < maxFiles
   const remainingSlots = Math.max(0, maxFiles - fileFields.length)
 
-  const renderProps: MultipleFileUploaderRenderProps = {
+  const renderProps: MultipleFileUploaderHeadlessRenderProps = {
     isUploading,
     fileFields,
     handleFileChange,

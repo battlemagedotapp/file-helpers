@@ -136,10 +136,10 @@ function useFileUpload(config = {}) {
   };
 }
 
-// src/components/MultipleFileUploader.tsx
+// src/components/MultipleFileUploaderHeadless.tsx
 import { useRef, useState as useState2 } from "react";
 import { Fragment, jsx as jsx2, jsxs } from "react/jsx-runtime";
-function MultipleFileUploader({
+function MultipleFileUploaderHeadless({
   fileFields,
   appendFile,
   removeFile,
@@ -220,10 +220,10 @@ function MultipleFileUploader({
   ] });
 }
 
-// src/components/SingleFileUploader.tsx
+// src/components/SingleFileUploaderHeadless.tsx
 import { useRef as useRef2, useState as useState3 } from "react";
 import { Fragment as Fragment2, jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
-function SingleFileUploader({
+function SingleFileUploaderHeadless({
   file,
   setFile,
   removeFile,
@@ -288,8 +288,8 @@ function SingleFileUploader({
 }
 export {
   FileUploadProvider,
-  MultipleFileUploader,
-  SingleFileUploader,
+  MultipleFileUploaderHeadless,
+  SingleFileUploaderHeadless,
   useFileUpload
 };
 //# sourceMappingURL=index.mjs.map

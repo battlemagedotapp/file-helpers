@@ -268,6 +268,9 @@ importers:
 
   packages/media-helpers:
     dependencies:
+      '@battlemagedotapp/convex-upload-helpers':
+        specifier: github:battlemagedotapp/file-helpers#release-convex-upload-helpers
+        version: https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/8d1d8a7a242136e43f18a541faac2964ce9f211a(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@radix-ui/react-slot':
         specifier: ^1.2.3
         version: 1.2.3(@types/react@19.1.11)(react@19.1.1)
@@ -432,6 +435,13 @@ packages:
   '@babel/types@7.28.2':
     resolution: {integrity: sha512-ruv7Ae4J5dUYULmeXw1gmb7rYRz57OWCPM57pHojnLq/3Z1CK2lNSLTCVjxVk1F/TZHwOZZrOWi0ur95BbLxNQ==}
     engines: {node: '>=6.9.0'}
+
+  '@battlemagedotapp/convex-upload-helpers@https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/8d1d8a7a242136e43f18a541faac2964ce9f211a':
+    resolution: {tarball: https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/8d1d8a7a242136e43f18a541faac2964ce9f211a}
+    version: 1.0.0
+    peerDependencies:
+      react: ^19.1.1
+      react-dom: ^19.1.1
 
   '@date-fns/tz@1.4.1':
     resolution: {integrity: sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA==}
@@ -3396,6 +3406,16 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
+
+  '@battlemagedotapp/convex-upload-helpers@https://codeload.github.com/battlemagedotapp/file-helpers/tar.gz/8d1d8a7a242136e43f18a541faac2964ce9f211a(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+    dependencies:
+      convex: 1.26.1(react@19.1.1)
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
+      sonner: 2.0.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+    transitivePeerDependencies:
+      - '@auth0/auth0-react'
+      - '@clerk/clerk-react'
 
   '@date-fns/tz@1.4.1': {}
 

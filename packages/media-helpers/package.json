@@ -46,13 +46,14 @@
     "typescript-eslint": "^8.40.0"
   },
   "peerDependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
+    "lucide-react": "^0.541.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "lucide-react": "^0.541.0",
-    "react-hook-form": "^7.62.0",
-    "@radix-ui/react-slot": "^1.2.3"
+    "react-hook-form": "^7.62.0"
   },
   "dependencies": {
+    "@battlemagedotapp/convex-upload-helpers": "github:battlemagedotapp/file-helpers#release-convex-upload-helpers",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.1"
