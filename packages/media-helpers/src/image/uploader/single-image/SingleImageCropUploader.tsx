@@ -6,11 +6,7 @@ import { ImagePlus, LoaderCircle, Trash } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import ConfirmAlertDialog from '../ConfirmAlertDialog'
-import {
-  isImageTypeSupported,
-  processImage,
-  type CompressionOptions,
-} from '../imageProcessingUtils'
+import { processImage, type CompressionOptions } from '../imageProcessingUtils'
 import { SingleImageCropDialog } from './SingleImageCropDialog'
 
 type SingleImageCropUploaderProps = {
@@ -55,7 +51,6 @@ export function SingleImageCropUploader({
     if (!files || files.length === 0) return
 
     const filesArray = Array.from(files)
-    // For single image uploader, we only take the first file
     const selectedFile = filesArray[0]
 
     setPendingFile(selectedFile)
@@ -73,28 +68,12 @@ export function SingleImageCropUploader({
     try {
       setIsUploading(true)
 
-      // Check if compression is needed and validate image type
-      if (
-        compressionOptions &&
-        !isImageTypeSupported(processedImage.file.type)
-      ) {
-        toast.error(
-          `Image type ${processedImage.file.type} is not supported for compression`,
-        )
-        return
-      }
-
       const processedFile = await processImage(
         processedImage.file,
         processedImage.crop,
         processedImage.rotation,
         compressionOptions,
       )
-
-      // Show compression success message if compression was applied
-      if (compressionOptions) {
-        toast.success('Image compressed successfully')
-      }
 
       const storageId = await uploadFile(processedFile)
       setFile(storageId)
@@ -163,8 +142,9 @@ export function SingleImageCropUploader({
             />
             <div className="absolute top-0 right-0">
               <ConfirmAlertDialog
-                trigger={
+                trigger={(props) => (
                   <Button
+                    {...props}
                     type="button"
                     variant="secondary"
                     size="icon"
@@ -172,7 +152,7 @@ export function SingleImageCropUploader({
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
-                }
+                )}
                 title="Delete image"
                 description="Are you sure you want to delete this image? This action cannot be undone."
                 confirmLabel="Delete"

@@ -54,11 +54,11 @@ export function ImageForm() {
         removeImage={removeImage}
         maxFiles={10}
         maxSizeInMB={10}
-        allowedTypes={['image/jpeg', 'image/png', 'image/webp']}
+        allowedTypes={['image/jpeg', 'image/png', 'image/webp', 'image/gif']}
         successMessage="Image uploaded successfully!"
         errorMessage="Failed to upload image"
         compressionOptions={{
-          maxSizeMB: 1,
+          maxSizeMB: 0.5,
           maxWidthOrHeight: 1920,
           useWebWorker: true,
         }}
@@ -93,7 +93,7 @@ export function ImageForm() {
         errorMessage="Failed to upload image"
         imageClassName="w-64 h-64 rounded-lg"
         compressionOptions={{
-          maxSizeMB: 1,
+          maxSizeMB: 0.5,
           maxWidthOrHeight: 1920,
           useWebWorker: true,
         }}

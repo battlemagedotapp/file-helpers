@@ -30,6 +30,7 @@ export function SingleImageCropDialog({
   onUpload,
 }: SingleImageCropDialogProps) {
   const [imageUrl, setImageUrl] = useState<string>('')
+  const [rotatedImageUrl, setRotatedImageUrl] = useState<string>('')
   const [crop, setCrop] = useState<Crop>()
   const [rotation, setRotation] = useState<number>(0)
   const imgRef = useRef<HTMLImageElement | null>(null)
@@ -43,6 +44,40 @@ export function SingleImageCropDialog({
       }
     }
   }, [file])
+
+  const createRotatedImage = useCallback(
+    (imageUrl: string, rotation: number): Promise<string> => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')!
+
+          const isVertical = rotation % 180 === 90
+          const width = isVertical ? img.height : img.width
+          const height = isVertical ? img.width : img.height
+
+          canvas.width = width
+          canvas.height = height
+
+          ctx.translate(width / 2, height / 2)
+          ctx.rotate((rotation * Math.PI) / 180)
+          ctx.drawImage(img, -img.width / 2, -img.height / 2)
+
+          const rotatedUrl = canvas.toDataURL('image/jpeg', 0.9)
+          resolve(rotatedUrl)
+        }
+        img.src = imageUrl
+      })
+    },
+    [],
+  )
+
+  React.useEffect(() => {
+    if (imageUrl) {
+      createRotatedImage(imageUrl, rotation).then(setRotatedImageUrl)
+    }
+  }, [imageUrl, rotation, createRotatedImage])
 
   const handleCropChange = useCallback(
     (newCrop: Crop, percentCrop: PercentCrop) => {
@@ -103,24 +138,26 @@ export function SingleImageCropDialog({
             </div>
           </div>
 
-          <div className="flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg">
-            {imageUrl && (
+          <div
+            style={{
+              height: '100%',
+              overflow: 'scroll',
+            }}
+          >
+            {rotatedImageUrl && (
               <ReactCrop
                 crop={crop}
                 onChange={handleCropChange}
                 aspect={undefined}
-                minWidth={50}
-                minHeight={50}
+                minWidth={5}
+                minHeight={5}
                 keepSelection
               >
                 <img
                   ref={imgRef}
-                  src={imageUrl}
+                  src={rotatedImageUrl}
                   alt="Image to crop"
-                  className="max-h-[400px] max-w-full object-contain"
-                  style={{
-                    transform: `rotate(${rotation}deg)`,
-                  }}
+                  className="h-full w-auto object-contain"
                 />
               </ReactCrop>
             )}

@@ -7,7 +7,6 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import ConfirmAlertDialog from '../ConfirmAlertDialog'
 import {
-  isImageTypeSupported,
   processImages,
   type CompressionOptions,
   type ProcessedImageData,
@@ -81,34 +80,10 @@ export function MultiImageCropUploader({
     try {
       setIsUploading(true)
 
-      // Check if compression is needed and validate image types
-      if (compressionOptions) {
-        const unsupportedImages = processedImages.filter(
-          (img) => !isImageTypeSupported(img.file.type),
-        )
-
-        if (unsupportedImages.length > 0) {
-          const unsupportedTypes = [
-            ...new Set(unsupportedImages.map((img) => img.file.type)),
-          ]
-          toast.error(
-            `Some image types are not supported for compression: ${unsupportedTypes.join(', ')}`,
-          )
-          return
-        }
-      }
-
       const processedFiles = await processImages(
         processedImages,
         compressionOptions,
       )
-
-      // Show compression success message if compression was applied
-      if (compressionOptions) {
-        toast.success(
-          `Successfully compressed ${processedFiles.length} image(s)`,
-        )
-      }
 
       for (const file of processedFiles) {
         const storageId = await uploadFile(file)
@@ -193,8 +168,9 @@ export function MultiImageCropUploader({
                 />
                 <div className="absolute top-2 right-2">
                   <ConfirmAlertDialog
-                    trigger={
+                    trigger={(props) => (
                       <Button
+                        {...props}
                         type="button"
                         variant="secondary"
                         size="icon"
@@ -202,7 +178,7 @@ export function MultiImageCropUploader({
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
-                    }
+                    )}
                     title="Delete image"
                     description="Are you sure you want to delete this image? This action cannot be undone."
                     confirmLabel="Delete"

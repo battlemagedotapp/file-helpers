@@ -14,7 +14,11 @@ import * as React from 'react'
 type ConfirmAlertDialogProps = {
   title?: string
   description?: string
-  trigger?: React.ReactNode
+  trigger?:
+    | React.ReactNode
+    | ((
+        props: React.ComponentProps<typeof AlertDialogTrigger>,
+      ) => React.ReactNode)
   onConfirm: () => void
   confirmLabel?: string
   cancelLabel?: string
@@ -30,7 +34,15 @@ export function ConfirmAlertDialog({
 }: ConfirmAlertDialogProps) {
   return (
     <BaseAlertDialog>
-      {trigger ? <AlertDialogTrigger>{trigger}</AlertDialogTrigger> : null}
+      {trigger ? (
+        typeof trigger === 'function' ? (
+          <AlertDialogTrigger asChild>
+            {trigger({} as React.ComponentProps<typeof AlertDialogTrigger>)}
+          </AlertDialogTrigger>
+        ) : (
+          <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+        )
+      ) : null}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

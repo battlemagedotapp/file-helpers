@@ -324,7 +324,7 @@ function ConfirmAlertDialog({
   cancelLabel = "Cancel"
 }) {
   return /* @__PURE__ */ jsxs3(AlertDialog, { children: [
-    trigger ? /* @__PURE__ */ jsx4(AlertDialogTrigger, { children: trigger }) : null,
+    trigger ? typeof trigger === "function" ? /* @__PURE__ */ jsx4(AlertDialogTrigger, { asChild: true, children: trigger({}) }) : /* @__PURE__ */ jsx4(AlertDialogTrigger, { asChild: true, children: trigger }) : null,
     /* @__PURE__ */ jsxs3(AlertDialogContent, { children: [
       /* @__PURE__ */ jsxs3(AlertDialogHeader, { children: [
         /* @__PURE__ */ jsx4(AlertDialogTitle, { children: title }),
@@ -354,17 +354,21 @@ function isImageTypeSupported(fileType) {
 }
 async function compressImage(file, options) {
   if (!isImageTypeSupported(file.type)) {
-    throw new Error(
-      `Image type ${file.type} is not supported for compression. Supported types: ${SUPPORTED_IMAGE_TYPES.join(", ")}`
+    console.log(
+      `Skipping compression for ${file.name} (${file.type}) - type not supported`
     );
+    return file;
   }
   try {
+    console.log(`Compressing ${file.name} (${file.type})`);
     const compressedFile = await imageCompression(file, options);
+    console.log(`Successfully compressed ${file.name}`);
     return compressedFile;
   } catch (error) {
-    throw new Error(
-      `Failed to compress image: ${error instanceof Error ? error.message : "Unknown error"}`
+    console.warn(
+      `Failed to compress ${file.name}: ${error instanceof Error ? error.message : "Unknown error"}`
     );
+    return file;
   }
 }
 function processImage(file, crop, rotation = 0, compressionOptions) {
@@ -417,15 +421,10 @@ function processImage(file, crop, rotation = 0, compressionOptions) {
                   lastModified: Date.now()
                 });
                 if (compressionOptions) {
-                  try {
-                    processedFile = await compressImage(
-                      processedFile,
-                      compressionOptions
-                    );
-                  } catch (error) {
-                    reject(error);
-                    return;
-                  }
+                  processedFile = await compressImage(
+                    processedFile,
+                    compressionOptions
+                  );
                 }
                 resolve(processedFile);
               } else {
@@ -444,15 +443,10 @@ function processImage(file, crop, rotation = 0, compressionOptions) {
                   lastModified: Date.now()
                 });
                 if (compressionOptions) {
-                  try {
-                    processedFile = await compressImage(
-                      processedFile,
-                      compressionOptions
-                    );
-                  } catch (error) {
-                    reject(error);
-                    return;
-                  }
+                  processedFile = await compressImage(
+                    processedFile,
+                    compressionOptions
+                  );
                 }
                 resolve(processedFile);
               } else {
@@ -602,12 +596,33 @@ function ImageCropDialog({
   const [crops, setCrops] = useState2([]);
   const [rotations, setRotations] = useState2([]);
   const imgRefs = useRef([]);
+  const createRotatedImage = useCallback((imageUrl, rotation) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const isVertical = rotation % 180 === 90;
+        const width = isVertical ? img.height : img.width;
+        const height = isVertical ? img.width : img.height;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(rotation * Math.PI / 180);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        const rotatedUrl = canvas.toDataURL("image/jpeg", 0.9);
+        resolve(rotatedUrl);
+      };
+      img.src = imageUrl;
+    });
+  }, []);
   React5.useEffect(() => {
     if (files.length > 0) {
       const newImages = files.map((file, index) => ({
         id: `img-${index}`,
         file,
         url: URL.createObjectURL(file),
+        rotatedUrl: "",
         rotation: 0
       }));
       setImages(newImages);
@@ -617,6 +632,44 @@ function ImageCropDialog({
       imgRefs.current = new Array(files.length).fill(null);
     }
   }, [files]);
+  React5.useEffect(() => {
+    const initializeRotatedImages = async () => {
+      const updatedImages = await Promise.all(
+        images.map(async (image) => {
+          const freshUrl = URL.createObjectURL(image.file);
+          try {
+            const rotatedUrl = await createRotatedImage(freshUrl, image.rotation);
+            return { ...image, rotatedUrl };
+          } finally {
+            URL.revokeObjectURL(freshUrl);
+          }
+        })
+      );
+      setImages(updatedImages);
+    };
+    if (images.length > 0 && images[0].rotatedUrl === "") {
+      initializeRotatedImages();
+    }
+  }, [images, createRotatedImage]);
+  const updateRotatedImage = useCallback(async (index, newRotation) => {
+    setImages((prev) => {
+      const image = prev[index];
+      if (image) {
+        const freshUrl = URL.createObjectURL(image.file);
+        createRotatedImage(freshUrl, newRotation).then((rotatedUrl) => {
+          URL.revokeObjectURL(freshUrl);
+          setImages((currentImages) => {
+            const newImages = [...currentImages];
+            newImages[index] = { ...newImages[index], rotatedUrl, rotation: newRotation };
+            return newImages;
+          });
+        }).catch(() => {
+          URL.revokeObjectURL(freshUrl);
+        });
+      }
+      return prev;
+    });
+  }, [createRotatedImage]);
   React5.useEffect(() => {
     return () => {
       images.forEach((image) => {
@@ -635,12 +688,14 @@ function ImageCropDialog({
     []
   );
   const handleRotate = useCallback((index) => {
+    const newRotation = (rotations[index] + 90) % 360;
     setRotations((prev) => {
       const newRotations = [...prev];
-      newRotations[index] = (newRotations[index] + 90) % 360;
+      newRotations[index] = newRotation;
       return newRotations;
     });
-  }, []);
+    updateRotatedImage(index, newRotation);
+  }, [rotations, updateRotatedImage]);
   const handleUnselectCrop = useCallback((index) => {
     setCrops((prev) => {
       const newCrops = [...prev];
@@ -673,7 +728,6 @@ function ImageCropDialog({
   }, [images, crops, rotations, onUpload, onOpenChange]);
   const selectedImage = images[selectedImageIndex];
   const selectedCrop = crops[selectedImageIndex];
-  const selectedRotation = rotations[selectedImageIndex];
   if (images.length === 0) return null;
   return /* @__PURE__ */ jsx6(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs5(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
     /* @__PURE__ */ jsx6(DialogHeader, { children: /* @__PURE__ */ jsx6(DialogTitle, { children: "Edit Images" }) }),
@@ -690,12 +744,9 @@ function ImageCropDialog({
             /* @__PURE__ */ jsx6(
               "img",
               {
-                src: image.url,
+                src: image.rotatedUrl || image.url,
                 alt: `Image ${index + 1}`,
-                className: "aspect-square h-full object-cover",
-                style: {
-                  transform: `rotate(${rotations[index]}deg)`
-                }
+                className: "aspect-square h-full object-contain"
               }
             ),
             /* @__PURE__ */ jsx6(
@@ -751,31 +802,37 @@ function ImageCropDialog({
             )
           ] })
         ] }),
-        /* @__PURE__ */ jsx6("div", { className: "flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg", children: selectedImage && /* @__PURE__ */ jsx6(
-          ReactCrop,
+        /* @__PURE__ */ jsx6(
+          "div",
           {
-            crop: selectedCrop,
-            onChange: (crop, percentCrop) => handleCropChange(crop, percentCrop, selectedImageIndex),
-            aspect: void 0,
-            minWidth: 50,
-            minHeight: 50,
-            keepSelection: true,
-            children: /* @__PURE__ */ jsx6(
-              "img",
+            style: {
+              height: "100%",
+              overflow: "scroll"
+            },
+            children: selectedImage && /* @__PURE__ */ jsx6(
+              ReactCrop,
               {
-                ref: (el) => {
-                  imgRefs.current[selectedImageIndex] = el;
-                },
-                src: selectedImage.url,
-                alt: `Selected image ${selectedImageIndex + 1}`,
-                className: "max-h-[400px] max-w-full object-contain",
-                style: {
-                  transform: `rotate(${selectedRotation}deg)`
-                }
+                crop: selectedCrop,
+                onChange: (crop, percentCrop) => handleCropChange(crop, percentCrop, selectedImageIndex),
+                aspect: void 0,
+                minWidth: 5,
+                minHeight: 5,
+                keepSelection: true,
+                children: /* @__PURE__ */ jsx6(
+                  "img",
+                  {
+                    ref: (el) => {
+                      imgRefs.current[selectedImageIndex] = el;
+                    },
+                    src: selectedImage.rotatedUrl || selectedImage.url,
+                    alt: `Selected image ${selectedImageIndex + 1}`,
+                    className: "h-full w-auto object-contain"
+                  }
+                )
               }
             )
           }
-        ) })
+        )
       ] })
     ] }),
     /* @__PURE__ */ jsxs5(DialogFooter, { children: [
@@ -850,29 +907,10 @@ function MultiImageCropUploader({
   const handleCropDialogUpload = async (processedImages) => {
     try {
       setIsUploading(true);
-      if (compressionOptions) {
-        const unsupportedImages = processedImages.filter(
-          (img) => !isImageTypeSupported(img.file.type)
-        );
-        if (unsupportedImages.length > 0) {
-          const unsupportedTypes = [
-            ...new Set(unsupportedImages.map((img) => img.file.type))
-          ];
-          toast.error(
-            `Some image types are not supported for compression: ${unsupportedTypes.join(", ")}`
-          );
-          return;
-        }
-      }
       const processedFiles = await processImages(
         processedImages,
         compressionOptions
       );
-      if (compressionOptions) {
-        toast.success(
-          `Successfully compressed ${processedFiles.length} image(s)`
-        );
-      }
       for (const file of processedFiles) {
         const storageId = await uploadFile(file);
         appendImage({ value: storageId });
@@ -960,9 +998,10 @@ function MultiImageCropUploader({
                 /* @__PURE__ */ jsx7("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx7(
                   ConfirmAlertDialog_default,
                   {
-                    trigger: /* @__PURE__ */ jsx7(
+                    trigger: (props) => /* @__PURE__ */ jsx7(
                       Button,
                       {
+                        ...props,
                         type: "button",
                         variant: "secondary",
                         size: "icon",
@@ -1069,9 +1108,10 @@ function MultiImageUploader({
                   /* @__PURE__ */ jsx8("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx8(
                     ConfirmAlertDialog_default,
                     {
-                      trigger: /* @__PURE__ */ jsx8(
+                      trigger: (props) => /* @__PURE__ */ jsx8(
                         Button,
                         {
+                          ...props,
                           type: "button",
                           variant: "secondary",
                           size: "icon",
@@ -1116,6 +1156,7 @@ function SingleImageCropDialog({
   onUpload
 }) {
   const [imageUrl, setImageUrl] = useState4("");
+  const [rotatedImageUrl, setRotatedImageUrl] = useState4("");
   const [crop, setCrop] = useState4();
   const [rotation, setRotation] = useState4(0);
   const imgRef = useRef3(null);
@@ -1128,6 +1169,31 @@ function SingleImageCropDialog({
       };
     }
   }, [file]);
+  const createRotatedImage = useCallback2((imageUrl2, rotation2) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const isVertical = rotation2 % 180 === 90;
+        const width = isVertical ? img.height : img.width;
+        const height = isVertical ? img.width : img.height;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(rotation2 * Math.PI / 180);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        const rotatedUrl = canvas.toDataURL("image/jpeg", 0.9);
+        resolve(rotatedUrl);
+      };
+      img.src = imageUrl2;
+    });
+  }, []);
+  React6.useEffect(() => {
+    if (imageUrl) {
+      createRotatedImage(imageUrl, rotation).then(setRotatedImageUrl);
+    }
+  }, [imageUrl, rotation, createRotatedImage]);
   const handleCropChange = useCallback2(
     (newCrop, percentCrop) => {
       setCrop(percentCrop);
@@ -1180,29 +1246,35 @@ function SingleImageCropDialog({
           }
         )
       ] }) }),
-      /* @__PURE__ */ jsx9("div", { className: "flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg", children: imageUrl && /* @__PURE__ */ jsx9(
-        ReactCrop2,
+      /* @__PURE__ */ jsx9(
+        "div",
         {
-          crop,
-          onChange: handleCropChange,
-          aspect: void 0,
-          minWidth: 50,
-          minHeight: 50,
-          keepSelection: true,
-          children: /* @__PURE__ */ jsx9(
-            "img",
+          style: {
+            height: "100%",
+            overflow: "scroll"
+          },
+          children: rotatedImageUrl && /* @__PURE__ */ jsx9(
+            ReactCrop2,
             {
-              ref: imgRef,
-              src: imageUrl,
-              alt: "Image to crop",
-              className: "max-h-[400px] max-w-full object-contain",
-              style: {
-                transform: `rotate(${rotation}deg)`
-              }
+              crop,
+              onChange: handleCropChange,
+              aspect: void 0,
+              minWidth: 5,
+              minHeight: 5,
+              keepSelection: true,
+              children: /* @__PURE__ */ jsx9(
+                "img",
+                {
+                  ref: imgRef,
+                  src: rotatedImageUrl,
+                  alt: "Image to crop",
+                  className: "h-full w-auto object-contain"
+                }
+              )
             }
           )
         }
-      ) })
+      )
     ] }),
     /* @__PURE__ */ jsxs8(DialogFooter, { children: [
       /* @__PURE__ */ jsx9(
@@ -1258,21 +1330,12 @@ function SingleImageCropUploader({
   const handleCropDialogUpload = async (processedImage) => {
     try {
       setIsUploading(true);
-      if (compressionOptions && !isImageTypeSupported(processedImage.file.type)) {
-        toast2.error(
-          `Image type ${processedImage.file.type} is not supported for compression`
-        );
-        return;
-      }
       const processedFile = await processImage(
         processedImage.file,
         processedImage.crop,
         processedImage.rotation,
         compressionOptions
       );
-      if (compressionOptions) {
-        toast2.success("Image compressed successfully");
-      }
       const storageId = await uploadFile(processedFile);
       setFile(storageId);
     } catch (error) {
@@ -1337,9 +1400,10 @@ function SingleImageCropUploader({
         /* @__PURE__ */ jsx10("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx10(
           ConfirmAlertDialog_default,
           {
-            trigger: /* @__PURE__ */ jsx10(
+            trigger: (props) => /* @__PURE__ */ jsx10(
               Button,
               {
+                ...props,
                 type: "button",
                 variant: "secondary",
                 size: "icon",
@@ -1420,9 +1484,10 @@ function SingleImageUploader({
           /* @__PURE__ */ jsx11("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx11(
             ConfirmAlertDialog_default,
             {
-              trigger: /* @__PURE__ */ jsx11(
+              trigger: (props) => /* @__PURE__ */ jsx11(
                 Button,
                 {
+                  ...props,
                   type: "button",
                   variant: "secondary",
                   size: "icon",

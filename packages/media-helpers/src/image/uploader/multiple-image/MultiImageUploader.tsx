@@ -82,8 +82,9 @@ export function MultiImageUploader({
                   />
                   <div className="absolute top-2 right-2">
                     <ConfirmAlertDialog
-                      trigger={
+                      trigger={(props) => (
                         <Button
+                          {...props}
                           type="button"
                           variant="secondary"
                           size="icon"
@@ -91,7 +92,7 @@ export function MultiImageUploader({
                         >
                           <Trash className="h-4 w-4" />
                         </Button>
-                      }
+                      )}
                       title="Delete image"
                       description="Are you sure you want to delete this image? This action cannot be undone."
                       confirmLabel="Delete"

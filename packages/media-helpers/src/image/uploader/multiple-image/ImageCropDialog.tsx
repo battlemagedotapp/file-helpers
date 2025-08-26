@@ -16,6 +16,7 @@ interface ImageData {
   id: string
   file: File
   url: string
+  rotatedUrl: string
   crop?: Crop
   rotation: number
 }
@@ -46,12 +47,41 @@ export function ImageCropDialog({
   const [rotations, setRotations] = useState<number[]>([])
   const imgRefs = useRef<(HTMLImageElement | null)[]>([])
 
+  const createRotatedImage = useCallback(
+    (imageUrl: string, rotation: number): Promise<string> => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')!
+
+          const isVertical = rotation % 180 === 90
+          const width = isVertical ? img.height : img.width
+          const height = isVertical ? img.width : img.height
+
+          canvas.width = width
+          canvas.height = height
+
+          ctx.translate(width / 2, height / 2)
+          ctx.rotate((rotation * Math.PI) / 180)
+          ctx.drawImage(img, -img.width / 2, -img.height / 2)
+
+          const rotatedUrl = canvas.toDataURL('image/jpeg', 0.9)
+          resolve(rotatedUrl)
+        }
+        img.src = imageUrl
+      })
+    },
+    [],
+  )
+
   React.useEffect(() => {
     if (files.length > 0) {
       const newImages: ImageData[] = files.map((file, index) => ({
         id: `img-${index}`,
         file,
         url: URL.createObjectURL(file),
+        rotatedUrl: '',
         rotation: 0,
       }))
       setImages(newImages)
@@ -61,6 +91,59 @@ export function ImageCropDialog({
       imgRefs.current = new Array(files.length).fill(null)
     }
   }, [files])
+
+  React.useEffect(() => {
+    const initializeRotatedImages = async () => {
+      const updatedImages = await Promise.all(
+        images.map(async (image) => {
+          const freshUrl = URL.createObjectURL(image.file)
+          try {
+            const rotatedUrl = await createRotatedImage(
+              freshUrl,
+              image.rotation,
+            )
+            return { ...image, rotatedUrl }
+          } finally {
+            URL.revokeObjectURL(freshUrl)
+          }
+        }),
+      )
+      setImages(updatedImages)
+    }
+
+    if (images.length > 0 && images[0].rotatedUrl === '') {
+      initializeRotatedImages()
+    }
+  }, [images, createRotatedImage])
+
+  const updateRotatedImage = useCallback(
+    async (index: number, newRotation: number) => {
+      setImages((prev) => {
+        const image = prev[index]
+        if (image) {
+          const freshUrl = URL.createObjectURL(image.file)
+          createRotatedImage(freshUrl, newRotation)
+            .then((rotatedUrl) => {
+              URL.revokeObjectURL(freshUrl)
+              setImages((currentImages) => {
+                const newImages = [...currentImages]
+                newImages[index] = {
+                  ...newImages[index],
+                  rotatedUrl,
+                  rotation: newRotation,
+                }
+                return newImages
+              })
+            })
+            .catch(() => {
+              URL.revokeObjectURL(freshUrl)
+            })
+        }
+        return prev
+      })
+    },
+    [createRotatedImage],
+  )
 
   React.useEffect(() => {
     return () => {
@@ -81,13 +164,18 @@ export function ImageCropDialog({
     [],
   )
 
-  const handleRotate = useCallback((index: number) => {
-    setRotations((prev) => {
-      const newRotations = [...prev]
-      newRotations[index] = (newRotations[index] + 90) % 360
-      return newRotations
-    })
-  }, [])
+  const handleRotate = useCallback(
+    (index: number) => {
+      const newRotation = (rotations[index] + 90) % 360
+      setRotations((prev) => {
+        const newRotations = [...prev]
+        newRotations[index] = newRotation
+        return newRotations
+      })
+      updateRotatedImage(index, newRotation)
+    },
+    [rotations, updateRotatedImage],
+  )
 
   const handleUnselectCrop = useCallback((index: number) => {
     setCrops((prev) => {
@@ -125,7 +213,6 @@ export function ImageCropDialog({
 
   const selectedImage = images[selectedImageIndex]
   const selectedCrop = crops[selectedImageIndex]
-  const selectedRotation = rotations[selectedImageIndex]
 
   if (images.length === 0) return null
 
@@ -150,12 +237,9 @@ export function ImageCropDialog({
                 onClick={() => setSelectedImageIndex(index)}
               >
                 <img
-                  src={image.url}
+                  src={image.rotatedUrl || image.url}
                   alt={`Image ${index + 1}`}
-                  className="aspect-square h-full object-cover"
-                  style={{
-                    transform: `rotate(${rotations[index]}deg)`,
-                  }}
+                  className="aspect-square h-full object-contain"
                 />
                 <Button
                   type="button"
@@ -199,7 +283,12 @@ export function ImageCropDialog({
               </div>
             </div>
 
-            <div className="flex-1 flex items-center justify-center overflow-hidden bg-muted/20 rounded-lg">
+            <div
+              style={{
+                height: '100%',
+                overflow: 'scroll',
+              }}
+            >
               {selectedImage && (
                 <ReactCrop
                   crop={selectedCrop}
@@ -207,20 +296,17 @@ export function ImageCropDialog({
                     handleCropChange(crop, percentCrop, selectedImageIndex)
                   }
                   aspect={undefined}
-                  minWidth={50}
-                  minHeight={50}
+                  minWidth={5}
+                  minHeight={5}
                   keepSelection
                 >
                   <img
                     ref={(el) => {
                       imgRefs.current[selectedImageIndex] = el
                     }}
-                    src={selectedImage.url}
+                    src={selectedImage.rotatedUrl || selectedImage.url}
                     alt={`Selected image ${selectedImageIndex + 1}`}
-                    className="max-h-[400px] max-w-full object-contain"
-                    style={{
-                      transform: `rotate(${selectedRotation}deg)`,
-                    }}
+                    className="h-full w-auto object-contain"
                   />
                 </ReactCrop>
               )}

@@ -22,7 +22,6 @@ export interface CompressionOptions {
   alwaysKeepResolution?: boolean
 }
 
-// Supported image types for browser-image-compression
 const SUPPORTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',
@@ -40,18 +39,22 @@ export async function compressImage(
   options: CompressionOptions,
 ): Promise<File> {
   if (!isImageTypeSupported(file.type)) {
-    throw new Error(
-      `Image type ${file.type} is not supported for compression. Supported types: ${SUPPORTED_IMAGE_TYPES.join(', ')}`,
+    console.log(
+      `Skipping compression for ${file.name} (${file.type}) - type not supported`,
     )
+    return file
   }
 
   try {
+    console.log(`Compressing ${file.name} (${file.type})`)
     const compressedFile = await imageCompression(file, options)
+    console.log(`Successfully compressed ${file.name}`)
     return compressedFile
   } catch (error) {
-    throw new Error(
-      `Failed to compress image: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    console.warn(
+      `Failed to compress ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
     )
+    return file
   }
 }
 
@@ -120,17 +123,11 @@ export function processImage(
                   lastModified: Date.now(),
                 })
 
-                // Apply compression if options are provided
                 if (compressionOptions) {
-                  try {
-                    processedFile = await compressImage(
-                      processedFile,
-                      compressionOptions,
-                    )
-                  } catch (error) {
-                    reject(error)
-                    return
-                  }
+                  processedFile = await compressImage(
+                    processedFile,
+                    compressionOptions,
+                  )
                 }
 
                 resolve(processedFile)
@@ -151,15 +148,10 @@ export function processImage(
                 })
 
                 if (compressionOptions) {
-                  try {
-                    processedFile = await compressImage(
-                      processedFile,
-                      compressionOptions,
-                    )
-                  } catch (error) {
-                    reject(error)
-                    return
-                  }
+                  processedFile = await compressImage(
+                    processedFile,
+                    compressionOptions,
+                  )
                 }
 
                 resolve(processedFile)
