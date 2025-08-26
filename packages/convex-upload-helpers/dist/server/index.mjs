@@ -17,6 +17,16 @@ function filesTable(fields = {}) {
 
 // src/server/http.ts
 async function handleGetImage(ctx, request) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    });
+  }
   const { searchParams } = new URL(request.url);
   const storageId = searchParams.get("storageId");
   if (!storageId) {
@@ -30,7 +40,10 @@ async function handleGetImage(ctx, request) {
     return new Response(blob, {
       headers: {
         "Content-Type": blob.type || "image/jpeg",
-        "Cache-Control": "public, max-age=31536000"
+        "Cache-Control": "public, max-age=31536000",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
       }
     });
   } catch (error) {
@@ -39,6 +52,16 @@ async function handleGetImage(ctx, request) {
   }
 }
 async function handleGetAudio(ctx, request) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    });
+  }
   const { searchParams } = new URL(request.url);
   const storageId = searchParams.get("storageId");
   if (!storageId) {
@@ -52,7 +75,10 @@ async function handleGetAudio(ctx, request) {
     return new Response(blob, {
       headers: {
         "Content-Type": blob.type || "audio/mpeg",
-        "Cache-Control": "public, max-age=31536000"
+        "Cache-Control": "public, max-age=31536000",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
       }
     });
   } catch (error) {

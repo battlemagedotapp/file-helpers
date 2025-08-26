@@ -40,6 +40,7 @@ export function AudioPlayer({
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const { transformAudioUrlFn } = useAudioPlayer()
 
   const audioSrc = externalAudioUrlFn
@@ -52,25 +53,47 @@ export function AudioPlayer({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
+  const fetchAndPlay = useCallback(async () => {
+    if (!audioSrc || audioUrl) return
+
+    setIsLoading(true)
+    try {
+      const response = await fetch(audioSrc)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audio: ${response.statusText}`)
+      }
+
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      setAudioUrl(url)
+
+      if (audioRef.current) {
+        audioRef.current.src = url
+        await audioRef.current.play()
+        setIsPlaying(true)
+      }
+    } catch (error) {
+      console.error('Failed to fetch audio as blob:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [audioSrc, audioUrl])
+
   const handlePlay = useCallback(async () => {
     if (!audioRef.current) return
 
-    if (!isLoaded) {
-      setIsLoading(true)
-      // Set the audio source directly
-      audioRef.current.src = audioSrc
-      setIsLoaded(true)
+    if (!audioUrl) {
+      await fetchAndPlay()
+      return
     }
 
     try {
       await audioRef.current.play()
       setIsPlaying(true)
-      setIsLoading(false)
     } catch (error) {
       console.error('Failed to play audio:', error)
-      setIsLoading(false)
     }
-  }, [audioSrc, isLoaded])
+  }, [audioUrl, fetchAndPlay])
 
   const handlePause = () => {
     if (audioRef.current) {
@@ -150,7 +173,16 @@ export function AudioPlayer({
       audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('canplay', handleCanPlay)
     }
-  }, [])
+  }, [audioUrl])
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl)
+      }
+    }
+  }, [audioUrl])
 
   return (
     <div
@@ -161,7 +193,25 @@ export function AudioPlayer({
       )}
       style={{ minWidth: compact ? '300px' : '400px', flexShrink: 0 }}
     >
-      <audio ref={audioRef} preload="none" />
+      <audio
+        ref={audioRef}
+        preload="none"
+        style={{ display: 'none' }}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        onLoadedMetadata={() => {
+          const audio = audioRef.current
+          if (audio) {
+            setDuration(audio.duration)
+            setIsLoaded(true)
+          }
+        }}
+        onCanPlay={() => setIsLoaded(true)}
+        onError={(e) => {
+          console.error('Audio error:', e)
+        }}
+      />
 
       {compact ? (
         <>

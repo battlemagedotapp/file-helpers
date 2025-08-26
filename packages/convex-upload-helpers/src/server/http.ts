@@ -6,6 +6,17 @@ export async function handleGetImage(
   ctx: GenericActionCtx<any>,
   request: Request,
 ) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    })
+  }
+
   const { searchParams } = new URL(request.url)
   const storageId = searchParams.get('storageId') as Id<'_storage'>
 
@@ -23,6 +34,9 @@ export async function handleGetImage(
       headers: {
         'Content-Type': blob.type || 'image/jpeg',
         'Cache-Control': 'public, max-age=31536000',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
       },
     })
   } catch (error) {
@@ -36,6 +50,17 @@ export async function handleGetAudio(
   ctx: GenericActionCtx<any>,
   request: Request,
 ) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    })
+  }
+
   const { searchParams } = new URL(request.url)
   const storageId = searchParams.get('storageId')! as Id<'_storage'>
 
@@ -53,6 +78,9 @@ export async function handleGetAudio(
       headers: {
         'Content-Type': blob.type || 'audio/mpeg',
         'Cache-Control': 'public, max-age=31536000',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
       },
     })
   } catch (error) {

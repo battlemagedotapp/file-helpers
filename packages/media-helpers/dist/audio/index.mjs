@@ -2,7 +2,7 @@ import {
   AudioPlayer,
   AudioPlayerProvider,
   SingleAudioUploader
-} from "../chunk-GP3E6GZB.mjs";
+} from "../chunk-MV2GWG6C.mjs";
 import "../chunk-QQHSLCS3.mjs";
 export {
   AudioPlayer,

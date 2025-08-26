@@ -144,6 +144,7 @@ function AudioPlayer({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [audioUrl, setAudioUrl] = useState(null);
   const { transformAudioUrlFn } = useAudioPlayer();
   const audioSrc = externalAudioUrlFn ? externalAudioUrlFn(src) : transformAudioUrlFn(src);
   const formatTime = (time) => {
@@ -151,22 +152,41 @@ function AudioPlayer({
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
+  const fetchAndPlay = useCallback(async () => {
+    if (!audioSrc || audioUrl) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(audioSrc);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audio: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setAudioUrl(url);
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch audio as blob:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [audioSrc, audioUrl]);
   const handlePlay = useCallback(async () => {
     if (!audioRef.current) return;
-    if (!isLoaded) {
-      setIsLoading(true);
-      audioRef.current.src = audioSrc;
-      setIsLoaded(true);
+    if (!audioUrl) {
+      await fetchAndPlay();
+      return;
     }
     try {
       await audioRef.current.play();
       setIsPlaying(true);
-      setIsLoading(false);
     } catch (error) {
       console.error("Failed to play audio:", error);
-      setIsLoading(false);
     }
-  }, [audioSrc, isLoaded]);
+  }, [audioUrl, fetchAndPlay]);
   const handlePause = () => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -235,249 +255,256 @@ function AudioPlayer({
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("canplay", handleCanPlay);
     };
-  }, []);
-  return /* @__PURE__ */ jsxs2("div", { className: cn("bg-background border rounded-lg p-4 select-none", compact ? "w-full space-y-4" : "w-full", className), style: { minWidth: compact ? "300px" : "400px", flexShrink: 0 }, children: [
-    /* @__PURE__ */ jsx3("audio", { ref: audioRef, preload: "none" }),
-    compact ? /* @__PURE__ */ jsxs2(Fragment, { children: [
-      /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-center space-x-2", children: [
-        /* @__PURE__ */ jsxs2(Popover, { children: [
-          /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx3(
+  }, [audioUrl]);
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+  return /* @__PURE__ */ jsxs2(
+    "div",
+    {
+      className: cn(
+        "bg-background border rounded-lg p-4 select-none",
+        compact ? "w-full space-y-4" : "w-full",
+        className
+      ),
+      style: { minWidth: compact ? "300px" : "400px", flexShrink: 0 },
+      children: [
+        /* @__PURE__ */ jsx3(
+          "audio",
+          {
+            ref: audioRef,
+            preload: "none",
+            style: { display: "none" },
+            onPlay: () => setIsPlaying(true),
+            onPause: () => setIsPlaying(false),
+            onEnded: () => setIsPlaying(false),
+            onLoadedMetadata: () => {
+              const audio = audioRef.current;
+              if (audio) {
+                setDuration(audio.duration);
+                setIsLoaded(true);
+              }
+            },
+            onCanPlay: () => setIsLoaded(true),
+            onError: (e) => {
+              console.error("Audio error:", e);
+            }
+          }
+        ),
+        compact ? /* @__PURE__ */ jsxs2(Fragment, { children: [
+          /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-center space-x-2", children: [
+            /* @__PURE__ */ jsxs2(Popover, { children: [
+              /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx3(Button, { variant: "outline", size: "icon", disabled: !isLoaded, children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-4 w-4" }) }) }),
+              /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
+                /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-between", children: [
+                  /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Volume" }),
+                  /* @__PURE__ */ jsx3(
+                    Button,
+                    {
+                      variant: "ghost",
+                      size: "sm",
+                      onClick: handleMuteToggle,
+                      className: "h-6 w-6 p-0",
+                      children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-3 w-3" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-3 w-3" })
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ jsx3(
+                  Slider,
+                  {
+                    value: [isMuted ? 0 : volume * 100],
+                    onValueChange: handleVolumeChange,
+                    max: 100,
+                    step: 1,
+                    disabled: !isLoaded,
+                    className: "w-full",
+                    orientation: "vertical"
+                  }
+                )
+              ] }) })
+            ] }),
+            /* @__PURE__ */ jsx3(
+              Button,
+              {
+                variant: "outline",
+                size: "icon",
+                onClick: handleSkip.bind(null, "backward"),
+                disabled: !isLoaded,
+                children: /* @__PURE__ */ jsx3(Undo, { className: "h-4 w-4" })
+              }
+            ),
+            /* @__PURE__ */ jsx3(
+              Button,
+              {
+                variant: "default",
+                size: "icon",
+                onClick: isPlaying ? handlePause : handlePlay,
+                disabled: isLoading,
+                className: "h-12 w-12",
+                children: isLoading ? /* @__PURE__ */ jsx3(Loader2, { className: "h-6 w-6 animate-spin" }) : isPlaying ? /* @__PURE__ */ jsx3(Pause, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx3(Play, { className: "h-6 w-6" })
+              }
+            ),
+            /* @__PURE__ */ jsx3(
+              Button,
+              {
+                variant: "outline",
+                size: "icon",
+                onClick: handleSkip.bind(null, "forward"),
+                disabled: !isLoaded,
+                children: /* @__PURE__ */ jsx3(Redo, { className: "h-4 w-4" })
+              }
+            ),
+            /* @__PURE__ */ jsxs2(Popover, { children: [
+              /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs2(Button, { variant: "outline", size: "sm", disabled: !isLoaded, children: [
+                playbackRate,
+                "x"
+              ] }) }),
+              /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
+                /* @__PURE__ */ jsx3("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Speed" }) }),
+                /* @__PURE__ */ jsx3("div", { className: "flex flex-col gap-2", children: speeds.map((speed) => /* @__PURE__ */ jsxs2(
+                  Button,
+                  {
+                    variant: playbackRate === speed ? "default" : "ghost",
+                    size: "sm",
+                    onClick: () => handleSpeedChange(speed),
+                    className: "text-xs",
+                    children: [
+                      speed,
+                      "x"
+                    ]
+                  },
+                  speed
+                )) })
+              ] }) })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs2("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsx3(
+              Slider,
+              {
+                value: [duration > 0 ? currentTime / duration * 100 : 0],
+                onValueChange: handleSeek,
+                max: 100,
+                step: 0.1,
+                disabled: !isLoaded,
+                className: "w-full"
+              }
+            ),
+            /* @__PURE__ */ jsxs2("div", { className: "flex justify-between text-sm text-muted-foreground", children: [
+              /* @__PURE__ */ jsx3("span", { children: formatTime(currentTime) }),
+              /* @__PURE__ */ jsx3("span", { children: formatTime(duration) })
+            ] })
+          ] })
+        ] }) : /* @__PURE__ */ jsxs2("div", { className: "flex items-center space-x-2", children: [
+          /* @__PURE__ */ jsxs2(Popover, { children: [
+            /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx3(Button, { variant: "outline", size: "icon", disabled: !isLoaded, children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-4 w-4" }) }) }),
+            /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
+              /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-between", children: [
+                /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Volume" }),
+                /* @__PURE__ */ jsx3(
+                  Button,
+                  {
+                    variant: "ghost",
+                    size: "sm",
+                    onClick: handleMuteToggle,
+                    className: "h-6 w-6 p-0",
+                    children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-3 w-3" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-3 w-3" })
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsx3(
+                Slider,
+                {
+                  value: [isMuted ? 0 : volume * 100],
+                  onValueChange: handleVolumeChange,
+                  max: 100,
+                  step: 1,
+                  disabled: !isLoaded,
+                  className: "w-full",
+                  orientation: "vertical"
+                }
+              )
+            ] }) })
+          ] }),
+          /* @__PURE__ */ jsx3(
             Button,
             {
               variant: "outline",
               size: "icon",
+              onClick: handleSkip.bind(null, "backward"),
               disabled: !isLoaded,
-              children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-4 w-4" })
+              children: /* @__PURE__ */ jsx3(Undo, { className: "h-4 w-4" })
             }
-          ) }),
-          /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
-            /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-between", children: [
-              /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Volume" }),
-              /* @__PURE__ */ jsx3(
-                Button,
-                {
-                  variant: "ghost",
-                  size: "sm",
-                  onClick: handleMuteToggle,
-                  className: "h-6 w-6 p-0",
-                  children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-3 w-3" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-3 w-3" })
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsx3(
-              Slider,
-              {
-                value: [isMuted ? 0 : volume * 100],
-                onValueChange: handleVolumeChange,
-                max: 100,
-                step: 1,
-                disabled: !isLoaded,
-                className: "w-full",
-                orientation: "vertical"
-              }
-            )
-          ] }) })
-        ] }),
-        /* @__PURE__ */ jsx3(
-          Button,
-          {
-            variant: "outline",
-            size: "icon",
-            onClick: handleSkip.bind(null, "backward"),
-            disabled: !isLoaded,
-            children: /* @__PURE__ */ jsx3(Undo, { className: "h-4 w-4" })
-          }
-        ),
-        /* @__PURE__ */ jsx3(
-          Button,
-          {
-            variant: "default",
-            size: "icon",
-            onClick: isPlaying ? handlePause : handlePlay,
-            disabled: isLoading,
-            className: "h-12 w-12",
-            children: isLoading ? /* @__PURE__ */ jsx3(Loader2, { className: "h-6 w-6 animate-spin" }) : isPlaying ? /* @__PURE__ */ jsx3(Pause, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx3(Play, { className: "h-6 w-6" })
-          }
-        ),
-        /* @__PURE__ */ jsx3(
-          Button,
-          {
-            variant: "outline",
-            size: "icon",
-            onClick: handleSkip.bind(null, "forward"),
-            disabled: !isLoaded,
-            children: /* @__PURE__ */ jsx3(Redo, { className: "h-4 w-4" })
-          }
-        ),
-        /* @__PURE__ */ jsxs2(Popover, { children: [
-          /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs2(
+          ),
+          /* @__PURE__ */ jsx3(
+            Button,
+            {
+              variant: "default",
+              size: "icon",
+              onClick: isPlaying ? handlePause : handlePlay,
+              disabled: isLoading,
+              className: "h-12 w-12",
+              children: isLoading ? /* @__PURE__ */ jsx3(Loader2, { className: "h-6 w-6 animate-spin" }) : isPlaying ? /* @__PURE__ */ jsx3(Pause, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx3(Play, { className: "h-6 w-6" })
+            }
+          ),
+          /* @__PURE__ */ jsx3(
             Button,
             {
               variant: "outline",
-              size: "sm",
+              size: "icon",
+              onClick: handleSkip.bind(null, "forward"),
               disabled: !isLoaded,
-              children: [
-                playbackRate,
-                "x"
-              ]
+              children: /* @__PURE__ */ jsx3(Redo, { className: "h-4 w-4" })
             }
-          ) }),
-          /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
-            /* @__PURE__ */ jsx3("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Speed" }) }),
-            /* @__PURE__ */ jsx3("div", { className: "flex flex-col gap-2", children: speeds.map((speed) => /* @__PURE__ */ jsxs2(
-              Button,
-              {
-                variant: playbackRate === speed ? "default" : "ghost",
-                size: "sm",
-                onClick: () => handleSpeedChange(speed),
-                className: "text-xs",
-                children: [
-                  speed,
-                  "x"
-                ]
-              },
-              speed
-            )) })
-          ] }) })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxs2("div", { className: "space-y-2", children: [
-        /* @__PURE__ */ jsx3(
-          Slider,
-          {
-            value: [duration > 0 ? currentTime / duration * 100 : 0],
-            onValueChange: handleSeek,
-            max: 100,
-            step: 0.1,
-            disabled: !isLoaded,
-            className: "w-full"
-          }
-        ),
-        /* @__PURE__ */ jsxs2("div", { className: "flex justify-between text-sm text-muted-foreground", children: [
-          /* @__PURE__ */ jsx3("span", { children: formatTime(currentTime) }),
-          /* @__PURE__ */ jsx3("span", { children: formatTime(duration) })
-        ] })
-      ] })
-    ] }) : /* @__PURE__ */ jsxs2("div", { className: "flex items-center space-x-2", children: [
-      /* @__PURE__ */ jsxs2(Popover, { children: [
-        /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx3(
-          Button,
-          {
-            variant: "outline",
-            size: "icon",
-            disabled: !isLoaded,
-            children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-4 w-4" })
-          }
-        ) }),
-        /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
-          /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-between", children: [
-            /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Volume" }),
+          ),
+          /* @__PURE__ */ jsxs2("div", { className: "flex-1 max-lg:w-full space-y-2", children: [
             /* @__PURE__ */ jsx3(
-              Button,
+              Slider,
               {
-                variant: "ghost",
-                size: "sm",
-                onClick: handleMuteToggle,
-                className: "h-6 w-6 p-0",
-                children: isMuted ? /* @__PURE__ */ jsx3(VolumeX, { className: "h-3 w-3" }) : /* @__PURE__ */ jsx3(Volume2, { className: "h-3 w-3" })
+                value: [duration > 0 ? currentTime / duration * 100 : 0],
+                onValueChange: handleSeek,
+                max: 100,
+                step: 0.1,
+                disabled: !isLoaded,
+                className: "w-full"
               }
-            )
+            ),
+            /* @__PURE__ */ jsxs2("div", { className: "flex justify-between text-xs text-muted-foreground", children: [
+              /* @__PURE__ */ jsx3("span", { children: formatTime(currentTime) }),
+              /* @__PURE__ */ jsx3("span", { children: formatTime(duration) })
+            ] })
           ] }),
-          /* @__PURE__ */ jsx3(
-            Slider,
-            {
-              value: [isMuted ? 0 : volume * 100],
-              onValueChange: handleVolumeChange,
-              max: 100,
-              step: 1,
-              disabled: !isLoaded,
-              className: "w-full",
-              orientation: "vertical"
-            }
-          )
-        ] }) })
-      ] }),
-      /* @__PURE__ */ jsx3(
-        Button,
-        {
-          variant: "outline",
-          size: "icon",
-          onClick: handleSkip.bind(null, "backward"),
-          disabled: !isLoaded,
-          children: /* @__PURE__ */ jsx3(Undo, { className: "h-4 w-4" })
-        }
-      ),
-      /* @__PURE__ */ jsx3(
-        Button,
-        {
-          variant: "default",
-          size: "icon",
-          onClick: isPlaying ? handlePause : handlePlay,
-          disabled: isLoading,
-          className: "h-12 w-12",
-          children: isLoading ? /* @__PURE__ */ jsx3(Loader2, { className: "h-6 w-6 animate-spin" }) : isPlaying ? /* @__PURE__ */ jsx3(Pause, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx3(Play, { className: "h-6 w-6" })
-        }
-      ),
-      /* @__PURE__ */ jsx3(
-        Button,
-        {
-          variant: "outline",
-          size: "icon",
-          onClick: handleSkip.bind(null, "forward"),
-          disabled: !isLoaded,
-          children: /* @__PURE__ */ jsx3(Redo, { className: "h-4 w-4" })
-        }
-      ),
-      /* @__PURE__ */ jsxs2("div", { className: "flex-1 max-lg:w-full space-y-2", children: [
-        /* @__PURE__ */ jsx3(
-          Slider,
-          {
-            value: [duration > 0 ? currentTime / duration * 100 : 0],
-            onValueChange: handleSeek,
-            max: 100,
-            step: 0.1,
-            disabled: !isLoaded,
-            className: "w-full"
-          }
-        ),
-        /* @__PURE__ */ jsxs2("div", { className: "flex justify-between text-xs text-muted-foreground", children: [
-          /* @__PURE__ */ jsx3("span", { children: formatTime(currentTime) }),
-          /* @__PURE__ */ jsx3("span", { children: formatTime(duration) })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxs2(Popover, { children: [
-        /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs2(
-          Button,
-          {
-            variant: "outline",
-            size: "sm",
-            disabled: !isLoaded,
-            children: [
+          /* @__PURE__ */ jsxs2(Popover, { children: [
+            /* @__PURE__ */ jsx3(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs2(Button, { variant: "outline", size: "sm", disabled: !isLoaded, children: [
               playbackRate,
               "x"
-            ]
-          }
-        ) }),
-        /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
-          /* @__PURE__ */ jsx3("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Speed" }) }),
-          /* @__PURE__ */ jsx3("div", { className: "flex flex-col gap-2", children: speeds.map((speed) => /* @__PURE__ */ jsxs2(
-            Button,
-            {
-              variant: playbackRate === speed ? "default" : "ghost",
-              size: "sm",
-              onClick: () => handleSpeedChange(speed),
-              className: "text-xs",
-              children: [
-                speed,
-                "x"
-              ]
-            },
-            speed
-          )) })
-        ] }) })
-      ] })
-    ] })
-  ] });
+            ] }) }),
+            /* @__PURE__ */ jsx3(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs2("div", { className: "space-y-4", children: [
+              /* @__PURE__ */ jsx3("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsx3("span", { className: "text-sm font-medium", children: "Speed" }) }),
+              /* @__PURE__ */ jsx3("div", { className: "flex flex-col gap-2", children: speeds.map((speed) => /* @__PURE__ */ jsxs2(
+                Button,
+                {
+                  variant: playbackRate === speed ? "default" : "ghost",
+                  size: "sm",
+                  onClick: () => handleSpeedChange(speed),
+                  className: "text-xs",
+                  children: [
+                    speed,
+                    "x"
+                  ]
+                },
+                speed
+              )) })
+            ] }) })
+          ] })
+        ] })
+      ]
+    }
+  );
 }
 
 // src/audio/play/AudioPlayerProvider.tsx
@@ -609,4 +636,4 @@ export {
   AudioPlayerProvider,
   SingleAudioUploader
 };
-//# sourceMappingURL=chunk-GP3E6GZB.mjs.map
+//# sourceMappingURL=chunk-MV2GWG6C.mjs.map
