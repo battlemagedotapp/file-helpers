@@ -13,5 +13,9 @@ export default defineConfig({
     'lucide-react',
     'react-hook-form',
     '@radix-ui/react-slot',
+    '@radix-ui/react-alert-dialog',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-slider',
+    'sonner',
   ],
 })
