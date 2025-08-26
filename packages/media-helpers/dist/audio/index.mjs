@@ -1,12 +1,12 @@
 import {
-  AudioPlayer,
   AudioPlayerProvider,
-  SingleAudioUploader
-} from "../chunk-MV2GWG6C.mjs";
+  SingleAudioUploader,
+  WaveSurferAudioPlayer
+} from "../chunk-WZQS42Q6.mjs";
 import "../chunk-QQHSLCS3.mjs";
 export {
-  AudioPlayer,
   AudioPlayerProvider,
-  SingleAudioUploader
+  SingleAudioUploader,
+  WaveSurferAudioPlayer
 };
 //# sourceMappingURL=index.mjs.map

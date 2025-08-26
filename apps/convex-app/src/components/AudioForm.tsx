@@ -8,6 +8,7 @@ import { Form } from './ui/form'
 
 const formSchema = z.object({
   audioA: z.string().min(1, 'Please select an audio file'),
+  audioB: z.string().min(1, 'Please select an audio file'),
 })
 
 export function AudioForm() {
@@ -15,6 +16,7 @@ export function AudioForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       audioA: '',
+      audioB: '',
     },
   })
 
@@ -26,14 +28,17 @@ export function AudioForm() {
     console.log(data)
   }
 
+  const audioA = form.watch('audioA')
+  const audioB = form.watch('audioB')
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <Form {...form}>
         <SingleAudioUploader
-          file={form.watch('audioA')}
+          file={audioA}
           setFile={(f: string) => form.setValue('audioA', f)}
           removeFile={() => form.setValue('audioA', '')}
-          maxSizeInMB={50}
+          maxSizeInMB={15}
           allowedTypes={[
             'audio/mpeg',
             'audio/wav',
@@ -43,11 +48,18 @@ export function AudioForm() {
           ]}
           successMessage="Audio file uploaded successfully!"
           errorMessage="Failed to upload audio file"
-          compact={false}
+          compact={true}
         />
-        <Button className="w-fit" onClick={form.handleSubmit(handleFormSubmit)}>
-          Submit
-        </Button>
+
+        <div className="flex justify-center mt-6">
+          <Button
+            className="w-fit"
+            onClick={form.handleSubmit(handleFormSubmit)}
+            disabled={!audioA || !audioB}
+          >
+            Submit Audio Files
+          </Button>
+        </div>
       </Form>
     </div>
   )

@@ -17,21 +17,23 @@ import {
   VolumeX,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import WaveSurfer from 'wavesurfer.js'
 
-type AudioPlayerProps = {
+type WaveSurferAudioPlayerProps = {
   src: string
   className?: string
   externalAudioUrlFn?: (url: string) => string
   compact?: boolean
 }
 
-export function AudioPlayer({
+export function WaveSurferAudioPlayer({
   src,
   className,
   externalAudioUrlFn,
   compact = false,
-}: AudioPlayerProps) {
-  const audioRef = useRef<HTMLAudioElement>(null)
+}: WaveSurferAudioPlayerProps) {
+  const waveformRef = useRef<HTMLDivElement>(null)
+  const wavesurferRef = useRef<WaveSurfer | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -53,127 +55,82 @@ export function AudioPlayer({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
-  const fetchAndPlay = useCallback(async () => {
-    if (!audioSrc || audioUrl) return
-
-    setIsLoading(true)
-    try {
-      const response = await fetch(audioSrc)
-      if (!response.ok) {
-        throw new Error(`Failed to fetch audio: ${response.statusText}`)
-      }
-
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      setAudioUrl(url)
-
-      if (audioRef.current) {
-        audioRef.current.src = url
-        await audioRef.current.play()
-        setIsPlaying(true)
-      }
-    } catch (error) {
-      console.error('Failed to fetch audio as blob:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [audioSrc, audioUrl])
-
-  const handlePlay = useCallback(async () => {
-    if (!audioRef.current) return
-
-    if (!audioUrl) {
-      await fetchAndPlay()
-      return
-    }
-
-    try {
-      await audioRef.current.play()
-      setIsPlaying(true)
-    } catch (error) {
-      console.error('Failed to play audio:', error)
-    }
-  }, [audioUrl, fetchAndPlay])
-
-  const handlePause = () => {
-    if (audioRef.current) {
-      audioRef.current.pause()
-      setIsPlaying(false)
-    }
-  }
-
-  const handleSeek = (value: number[]) => {
-    if (audioRef.current) {
-      const newTime = (value[0] / 100) * duration
-      audioRef.current.currentTime = newTime
-      setCurrentTime(newTime)
-    }
-  }
-
-  const handleVolumeChange = (value: number[]) => {
-    const newVolume = value[0] / 100
-    setVolume(newVolume)
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume
-    }
-    if (newVolume === 0) {
-      setIsMuted(true)
-    } else if (isMuted) {
-      setIsMuted(false)
-    }
-  }
-
-  const handleMuteToggle = () => {
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.volume = volume
-        setIsMuted(false)
-      } else {
-        audioRef.current.volume = 0
-        setIsMuted(true)
-      }
-    }
-  }
-
-  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
-
-  const handleSpeedChange = (newSpeed: number) => {
-    setPlaybackRate(newSpeed)
-    if (audioRef.current) {
-      audioRef.current.playbackRate = newSpeed
-    }
-  }
-
-  const handleSkip = (direction: 'forward' | 'backward') => {
-    if (audioRef.current) {
-      const skipTime = direction === 'forward' ? 10 : -10
-      const newTime = Math.max(0, Math.min(duration, currentTime + skipTime))
-      audioRef.current.currentTime = newTime
-      setCurrentTime(newTime)
-    }
-  }
-
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
+    if (!waveformRef.current) return
 
-    const updateTime = () => setCurrentTime(audio.currentTime)
-    const updateDuration = () => setDuration(audio.duration)
-    const handleEnded = () => setIsPlaying(false)
-    const handleCanPlay = () => setIsLoaded(true)
+    const wavesurfer = WaveSurfer.create({
+      container: waveformRef.current,
+      waveColor: 'oklch(0.556 0 0)',
+      progressColor: 'oklch(0.145 0 0)',
+      cursorColor: 'oklch(0.145 0 0)',
+      barWidth: 2,
+      barRadius: 3,
+      cursorWidth: 1,
+      height: compact ? 60 : 80,
+      barGap: 2,
+      normalize: true,
+    })
 
-    audio.addEventListener('timeupdate', updateTime)
-    audio.addEventListener('loadedmetadata', updateDuration)
-    audio.addEventListener('ended', handleEnded)
-    audio.addEventListener('canplay', handleCanPlay)
+    wavesurferRef.current = wavesurfer
+
+    // Event listeners
+    wavesurfer.on('ready', () => {
+      setIsLoaded(true)
+      setDuration(wavesurfer.getDuration())
+      setIsLoading(false)
+    })
+
+    wavesurfer.on('play', () => {
+      setIsPlaying(true)
+    })
+
+    wavesurfer.on('pause', () => {
+      setIsPlaying(false)
+    })
+
+    wavesurfer.on('finish', () => {
+      setIsPlaying(false)
+    })
+
+    wavesurfer.on('timeupdate', (currentTime) => {
+      setCurrentTime(currentTime)
+    })
+
+    wavesurfer.on('error', (error) => {
+      console.error('WaveSurfer error:', error)
+      setIsLoading(false)
+    })
 
     return () => {
-      audio.removeEventListener('timeupdate', updateTime)
-      audio.removeEventListener('loadedmetadata', updateDuration)
-      audio.removeEventListener('ended', handleEnded)
-      audio.removeEventListener('canplay', handleCanPlay)
+      wavesurfer.destroy()
     }
-  }, [audioUrl])
+  }, [compact])
+
+  // Load audio when audioSrc changes
+  useEffect(() => {
+    if (!wavesurferRef.current || !audioSrc) return
+
+    const loadAudio = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetch(audioSrc)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch audio: ${response.statusText}`)
+        }
+
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        setAudioUrl(url)
+
+        await wavesurferRef.current!.loadBlob(blob)
+      } catch (error) {
+        console.error('Failed to load audio:', error)
+        setIsLoading(false)
+      }
+    }
+
+    loadAudio()
+  }, [audioSrc])
 
   // Cleanup blob URL on unmount
   useEffect(() => {
@@ -184,6 +141,64 @@ export function AudioPlayer({
     }
   }, [audioUrl])
 
+  const handlePlay = useCallback(async () => {
+    if (!wavesurferRef.current || !isLoaded) return
+
+    try {
+      await wavesurferRef.current.play()
+    } catch (error) {
+      console.error('Failed to play audio:', error)
+    }
+  }, [isLoaded])
+
+  const handlePause = () => {
+    if (wavesurferRef.current) {
+      wavesurferRef.current.pause()
+    }
+  }
+
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0] / 100
+    setVolume(newVolume)
+    if (wavesurferRef.current) {
+      wavesurferRef.current.setVolume(newVolume)
+    }
+    if (newVolume === 0) {
+      setIsMuted(true)
+    } else if (isMuted) {
+      setIsMuted(false)
+    }
+  }
+
+  const handleMuteToggle = () => {
+    if (wavesurferRef.current) {
+      if (isMuted) {
+        wavesurferRef.current.setVolume(volume)
+        setIsMuted(false)
+      } else {
+        wavesurferRef.current.setVolume(0)
+        setIsMuted(true)
+      }
+    }
+  }
+
+  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
+
+  const handleSpeedChange = (newSpeed: number) => {
+    setPlaybackRate(newSpeed)
+    if (wavesurferRef.current) {
+      wavesurferRef.current.setPlaybackRate(newSpeed)
+    }
+  }
+
+  const handleSkip = (direction: 'forward' | 'backward') => {
+    if (wavesurferRef.current && duration > 0) {
+      const skipTime = direction === 'forward' ? 10 : -10
+      const newTime = Math.max(0, Math.min(duration, currentTime + skipTime))
+      wavesurferRef.current.setTime(newTime)
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -193,26 +208,6 @@ export function AudioPlayer({
       )}
       style={{ minWidth: compact ? '300px' : '400px', flexShrink: 0 }}
     >
-      <audio
-        ref={audioRef}
-        preload="none"
-        style={{ display: 'none' }}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onLoadedMetadata={() => {
-          const audio = audioRef.current
-          if (audio) {
-            setDuration(audio.duration)
-            setIsLoaded(true)
-          }
-        }}
-        onCanPlay={() => setIsLoaded(true)}
-        onError={(e) => {
-          console.error('Audio error:', e)
-        }}
-      />
-
       {compact ? (
         <>
           <div className="flex items-center justify-center space-x-2">
@@ -319,19 +314,14 @@ export function AudioPlayer({
             </Popover>
           </div>
 
-          <div className="space-y-2">
-            <Slider
-              value={[duration > 0 ? (currentTime / duration) * 100 : 0]}
-              onValueChange={handleSeek}
-              max={100}
-              step={0.1}
-              disabled={!isLoaded}
+          <div className="space-x-2 flex items-center text-sm text-muted-foreground">
+            <span>{formatTime(currentTime)}</span>
+            <div
+              ref={waveformRef}
               className="w-full"
+              style={{ minHeight: '60px' }}
             />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
+            <span>{formatTime(duration)}</span>
           </div>
         </>
       ) : (
@@ -410,19 +400,14 @@ export function AudioPlayer({
             <Redo className="h-4 w-4" />
           </Button>
 
-          <div className="flex-1 max-lg:w-full space-y-2">
-            <Slider
-              value={[duration > 0 ? (currentTime / duration) * 100 : 0]}
-              onValueChange={handleSeek}
-              max={100}
-              step={0.1}
-              disabled={!isLoaded}
+          <div className="flex-1 max-lg:w-full space-x-2 flex flex-row items-center text-muted-foreground">
+            <span>{formatTime(currentTime)}</span>
+            <div
+              ref={waveformRef}
               className="w-full"
+              style={{ minHeight: '80px' }}
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
+            <span>{formatTime(duration)}</span>
           </div>
 
           <Popover>
@@ -458,4 +443,4 @@ export function AudioPlayer({
   )
 }
 
-export default AudioPlayer
+export default WaveSurferAudioPlayer

@@ -1,4 +1,4 @@
-import { AudioPlayer } from '@/audio/play/AudioPlayer'
+import { WaveSurferAudioPlayer } from '@/audio/play/WaveSurferAudioPlayer'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SingleFileUploaderHeadless } from '@battlemagedotapp/convex-upload-helpers'
@@ -64,7 +64,7 @@ export function SingleAudioUploader({
               className="relative p-4 w-full"
               style={{ minWidth: compact ? '332px' : '432px', flexShrink: 0 }}
             >
-              <AudioPlayer
+              <WaveSurferAudioPlayer
                 src={file}
                 className={cn('w-full', audioClassName)}
                 compact={compact}

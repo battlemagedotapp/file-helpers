@@ -1,8 +1,8 @@
 import {
-  AudioPlayer,
   AudioPlayerProvider,
-  SingleAudioUploader
-} from "./chunk-MV2GWG6C.mjs";
+  SingleAudioUploader,
+  WaveSurferAudioPlayer
+} from "./chunk-WZQS42Q6.mjs";
 import {
   ImageView,
   ImageViewProvider,
@@ -13,7 +13,6 @@ import {
 } from "./chunk-L2VMG6HE.mjs";
 import "./chunk-QQHSLCS3.mjs";
 export {
-  AudioPlayer,
   AudioPlayerProvider,
   ImageView,
   ImageViewProvider,
@@ -21,6 +20,7 @@ export {
   MultiImageUploader,
   SingleAudioUploader,
   SingleImageCropUploader,
-  SingleImageUploader
+  SingleImageUploader,
+  WaveSurferAudioPlayer
 };
 //# sourceMappingURL=index.mjs.map
