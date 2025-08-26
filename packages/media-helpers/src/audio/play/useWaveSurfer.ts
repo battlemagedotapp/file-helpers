@@ -66,7 +66,6 @@ export function useWaveSurfer(options: WaveSurferOptions): UseWaveSurferReturn {
 
     wavesurferRef.current = wavesurfer
 
-    // Event listeners
     wavesurfer.on('ready', () => {
       setIsReady(true)
       setDuration(wavesurfer.getDuration())

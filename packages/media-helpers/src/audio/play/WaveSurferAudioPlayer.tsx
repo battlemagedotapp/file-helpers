@@ -73,7 +73,6 @@ export function WaveSurferAudioPlayer({
 
     wavesurferRef.current = wavesurfer
 
-    // Event listeners
     wavesurfer.on('ready', () => {
       setIsLoaded(true)
       setDuration(wavesurfer.getDuration())
@@ -106,7 +105,6 @@ export function WaveSurferAudioPlayer({
     }
   }, [compact])
 
-  // Load audio when audioSrc changes
   useEffect(() => {
     if (!wavesurferRef.current || !audioSrc) return
 
@@ -132,7 +130,6 @@ export function WaveSurferAudioPlayer({
     loadAudio()
   }, [audioSrc])
 
-  // Cleanup blob URL on unmount
   useEffect(() => {
     return () => {
       if (audioUrl) {
