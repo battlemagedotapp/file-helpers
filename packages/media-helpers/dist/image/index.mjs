@@ -596,26 +596,29 @@ function ImageCropDialog({
   const [crops, setCrops] = useState2([]);
   const [rotations, setRotations] = useState2([]);
   const imgRefs = useRef([]);
-  const createRotatedImage = useCallback((imageUrl, rotation) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const isVertical = rotation % 180 === 90;
-        const width = isVertical ? img.height : img.width;
-        const height = isVertical ? img.width : img.height;
-        canvas.width = width;
-        canvas.height = height;
-        ctx.translate(width / 2, height / 2);
-        ctx.rotate(rotation * Math.PI / 180);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        const rotatedUrl = canvas.toDataURL("image/jpeg", 0.9);
-        resolve(rotatedUrl);
-      };
-      img.src = imageUrl;
-    });
-  }, []);
+  const createRotatedImage = useCallback(
+    (imageUrl, rotation) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const isVertical = rotation % 180 === 90;
+          const width = isVertical ? img.height : img.width;
+          const height = isVertical ? img.width : img.height;
+          canvas.width = width;
+          canvas.height = height;
+          ctx.translate(width / 2, height / 2);
+          ctx.rotate(rotation * Math.PI / 180);
+          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+          const rotatedUrl = canvas.toDataURL("image/jpeg", 0.9);
+          resolve(rotatedUrl);
+        };
+        img.src = imageUrl;
+      });
+    },
+    []
+  );
   React5.useEffect(() => {
     if (files.length > 0) {
       const newImages = files.map((file, index) => ({
@@ -638,7 +641,10 @@ function ImageCropDialog({
         images.map(async (image) => {
           const freshUrl = URL.createObjectURL(image.file);
           try {
-            const rotatedUrl = await createRotatedImage(freshUrl, image.rotation);
+            const rotatedUrl = await createRotatedImage(
+              freshUrl,
+              image.rotation
+            );
             return { ...image, rotatedUrl };
           } finally {
             URL.revokeObjectURL(freshUrl);
@@ -651,25 +657,32 @@ function ImageCropDialog({
       initializeRotatedImages();
     }
   }, [images, createRotatedImage]);
-  const updateRotatedImage = useCallback(async (index, newRotation) => {
-    setImages((prev) => {
-      const image = prev[index];
-      if (image) {
-        const freshUrl = URL.createObjectURL(image.file);
-        createRotatedImage(freshUrl, newRotation).then((rotatedUrl) => {
-          URL.revokeObjectURL(freshUrl);
-          setImages((currentImages) => {
-            const newImages = [...currentImages];
-            newImages[index] = { ...newImages[index], rotatedUrl, rotation: newRotation };
-            return newImages;
+  const updateRotatedImage = useCallback(
+    async (index, newRotation) => {
+      setImages((prev) => {
+        const image = prev[index];
+        if (image) {
+          const freshUrl = URL.createObjectURL(image.file);
+          createRotatedImage(freshUrl, newRotation).then((rotatedUrl) => {
+            URL.revokeObjectURL(freshUrl);
+            setImages((currentImages) => {
+              const newImages = [...currentImages];
+              newImages[index] = {
+                ...newImages[index],
+                rotatedUrl,
+                rotation: newRotation
+              };
+              return newImages;
+            });
+          }).catch(() => {
+            URL.revokeObjectURL(freshUrl);
           });
-        }).catch(() => {
-          URL.revokeObjectURL(freshUrl);
-        });
-      }
-      return prev;
-    });
-  }, [createRotatedImage]);
+        }
+        return prev;
+      });
+    },
+    [createRotatedImage]
+  );
   React5.useEffect(() => {
     return () => {
       images.forEach((image) => {
@@ -687,15 +700,18 @@ function ImageCropDialog({
     },
     []
   );
-  const handleRotate = useCallback((index) => {
-    const newRotation = (rotations[index] + 90) % 360;
-    setRotations((prev) => {
-      const newRotations = [...prev];
-      newRotations[index] = newRotation;
-      return newRotations;
-    });
-    updateRotatedImage(index, newRotation);
-  }, [rotations, updateRotatedImage]);
+  const handleRotate = useCallback(
+    (index) => {
+      const newRotation = (rotations[index] + 90) % 360;
+      setRotations((prev) => {
+        const newRotations = [...prev];
+        newRotations[index] = newRotation;
+        return newRotations;
+      });
+      updateRotatedImage(index, newRotation);
+    },
+    [rotations, updateRotatedImage]
+  );
   const handleUnselectCrop = useCallback((index) => {
     setCrops((prev) => {
       const newCrops = [...prev];
@@ -1169,26 +1185,29 @@ function SingleImageCropDialog({
       };
     }
   }, [file]);
-  const createRotatedImage = useCallback2((imageUrl2, rotation2) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const isVertical = rotation2 % 180 === 90;
-        const width = isVertical ? img.height : img.width;
-        const height = isVertical ? img.width : img.height;
-        canvas.width = width;
-        canvas.height = height;
-        ctx.translate(width / 2, height / 2);
-        ctx.rotate(rotation2 * Math.PI / 180);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        const rotatedUrl = canvas.toDataURL("image/jpeg", 0.9);
-        resolve(rotatedUrl);
-      };
-      img.src = imageUrl2;
-    });
-  }, []);
+  const createRotatedImage = useCallback2(
+    (imageUrl2, rotation2) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const isVertical = rotation2 % 180 === 90;
+          const width = isVertical ? img.height : img.width;
+          const height = isVertical ? img.width : img.height;
+          canvas.width = width;
+          canvas.height = height;
+          ctx.translate(width / 2, height / 2);
+          ctx.rotate(rotation2 * Math.PI / 180);
+          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+          const rotatedUrl = canvas.toDataURL("image/jpeg", 0.9);
+          resolve(rotatedUrl);
+        };
+        img.src = imageUrl2;
+      });
+    },
+    []
+  );
   React6.useEffect(() => {
     if (imageUrl) {
       createRotatedImage(imageUrl, rotation).then(setRotatedImageUrl);
