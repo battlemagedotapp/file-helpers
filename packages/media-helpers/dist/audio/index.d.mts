@@ -44,7 +44,8 @@ type SingleAudioUploaderProps = {
     errorMessage?: string;
     className?: string;
     compact?: boolean;
+    externalAudioUrlFn?: (url: string) => string;
 };
-declare function SingleAudioUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, compact, }: SingleAudioUploaderProps): react_jsx_runtime.JSX.Element;
+declare function SingleAudioUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, compact, externalAudioUrlFn, }: SingleAudioUploaderProps): react_jsx_runtime.JSX.Element;
 
 export { AudioPlayback, AudioPlaybackWithBlob, SingleAudioUploader };

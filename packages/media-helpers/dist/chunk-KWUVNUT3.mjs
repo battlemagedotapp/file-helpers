@@ -471,7 +471,8 @@ function SingleAudioUploader({
   successMessage = "Audio file uploaded successfully!",
   errorMessage = "Failed to upload audio file",
   className,
-  compact = false
+  compact = false,
+  externalAudioUrlFn
 }) {
   return /* @__PURE__ */ jsx6(
     SingleFileUploaderHeadless,
@@ -504,7 +505,13 @@ function SingleAudioUploader({
             className: "relative p-4 w-full",
             style: { minWidth: compact ? "332px" : "432px", flexShrink: 0 },
             children: [
-              /* @__PURE__ */ jsx6(AudioPlaybackWithBlob, { src: file }),
+              /* @__PURE__ */ jsx6(
+                AudioPlaybackWithBlob,
+                {
+                  src: file,
+                  externalAudioUrlFn
+                }
+              ),
               /* @__PURE__ */ jsx6("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx6(
                 ConfirmAlertDialog_default,
                 {
@@ -539,4 +546,4 @@ export {
   AudioPlaybackWithBlob,
   SingleAudioUploader
 };
-//# sourceMappingURL=chunk-HSGHHBEZ.mjs.map
+//# sourceMappingURL=chunk-KWUVNUT3.mjs.map

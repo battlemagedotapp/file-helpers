@@ -35,6 +35,9 @@ export function AudioForm() {
     <div className="flex flex-col gap-6">
       <Form {...form}>
         <SingleAudioUploader
+          externalAudioUrlFn={(storageId) => {
+            return `${import.meta.env.VITE_CONVEX_SITE_URL}/getAudio?storageId=${storageId}`
+          }}
           file={audioA}
           setFile={(f: string) => form.setValue('audioA', f)}
           removeFile={() => form.setValue('audioA', '')}

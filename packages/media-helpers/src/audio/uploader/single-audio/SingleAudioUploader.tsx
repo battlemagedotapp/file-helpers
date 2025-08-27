@@ -15,6 +15,7 @@ type SingleAudioUploaderProps = {
   errorMessage?: string
   className?: string
   compact?: boolean
+  externalAudioUrlFn?: (url: string) => string
 }
 
 export function SingleAudioUploader({
@@ -27,6 +28,7 @@ export function SingleAudioUploader({
   errorMessage = 'Failed to upload audio file',
   className,
   compact = false,
+  externalAudioUrlFn,
 }: SingleAudioUploaderProps) {
   return (
     <SingleFileUploaderHeadless
@@ -62,7 +64,10 @@ export function SingleAudioUploader({
               className="relative p-4 w-full"
               style={{ minWidth: compact ? '332px' : '432px', flexShrink: 0 }}
             >
-              <AudioPlaybackWithBlob src={file} />
+              <AudioPlaybackWithBlob
+                src={file}
+                externalAudioUrlFn={externalAudioUrlFn}
+              />
               <div className="absolute top-0 right-0">
                 <ConfirmAlertDialog
                   trigger={(props) => (
