@@ -17,8 +17,9 @@ type AudioPlaybackProps = {
     initialPlaybackRate?: number;
     initialCurrentTime?: number;
     initialPlaying?: boolean;
+    className?: string;
 };
-declare function AudioPlayback({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
+declare function AudioPlayback({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
 
 type AudioPlaybackWithBlobProps = {
     src: string;
@@ -29,8 +30,9 @@ type AudioPlaybackWithBlobProps = {
     initialPlaybackRate?: number;
     initialCurrentTime?: number;
     initialPlaying?: boolean;
+    className?: string;
 };
-declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
+declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
 
 type SingleAudioUploaderProps = {
     file?: string | null;

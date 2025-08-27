@@ -400,6 +400,9 @@
   .max-w-full {
     max-width: 100%;
   }
+  .min-w-fit {
+    min-width: fit-content;
+  }
   .flex-1 {
     flex: 1;
   }

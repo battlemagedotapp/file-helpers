@@ -5,6 +5,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
+import { cn } from '@/lib/utils'
 import { Pause, Play, Redo, Undo, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
@@ -29,6 +30,7 @@ type AudioPlaybackProps = {
   initialPlaybackRate?: number
   initialCurrentTime?: number
   initialPlaying?: boolean
+  className?: string
 }
 
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
@@ -42,8 +44,9 @@ export function AudioPlayback({
   initialPlaybackRate = 1,
   initialCurrentTime = 0,
   initialPlaying = false,
+  className,
 }: AudioPlaybackProps) {
-  const timelineRef = useRef(null)
+  const timelineRef = useRef<HTMLDivElement | null>(null)
   const [currentTime, setCurrentTime] = useState<number>(initialCurrentTime)
   const [wavesurferObj, setWavesurferObj] = useState<WaveSurfer>()
   const [volume, setVolume] = useState<number>(initialVolume)
@@ -53,17 +56,21 @@ export function AudioPlayback({
 
   useEffect(() => {
     if (timelineRef.current && !wavesurferObj) {
-      setWavesurferObj(
-        WaveSurfer.create({
-          container: timelineRef.current,
-          cursorColor: 'violet',
-          waveColor: '#211027',
-          progressColor: '#69207F',
-          height: 'auto',
-          normalize: true,
-          fillParent: true,
-        }),
-      )
+      if (timelineRef.current) {
+        timelineRef.current.innerHTML = ''
+      }
+
+      const ws = WaveSurfer.create({
+        container: timelineRef.current,
+        cursorColor: 'violet',
+        waveColor: '#211027',
+        progressColor: '#69207F',
+        height: 32,
+        normalize: true,
+        fillParent: true,
+      })
+
+      setWavesurferObj(ws)
     }
   }, [wavesurferObj])
 
@@ -123,6 +130,7 @@ export function AudioPlayback({
 
       return () => {
         wavesurferObj.destroy()
+        setWavesurferObj(undefined)
       }
     }
   }, [wavesurferObj])
@@ -183,7 +191,10 @@ export function AudioPlayback({
   return (
     <div
       key={trackId}
-      className="bg-background border rounded-lg p-4 select-none"
+      className={cn(
+        'p-4 select-none flex gap-2 sm:flex-row flex-col min-w-fit',
+        className,
+      )}
     >
       {!!trackName && (
         <div className="flex flex-row items-center justify-center">
@@ -226,9 +237,9 @@ export function AudioPlayback({
         />
       </div>
 
-      <div className="space-x-2 flex flex-row justify-center items-center text-sm text-muted-foreground">
+      <div className="space-x-2 flex flex-row w-full justify-center items-center text-sm text-muted-foreground">
         <div>{formatTime(currentTime)}</div>
-        <div ref={timelineRef} className="w-full h-8" />
+        <div ref={timelineRef} className="w-full" />
         <div>{formatTime(duration)}</div>
       </div>
     </div>

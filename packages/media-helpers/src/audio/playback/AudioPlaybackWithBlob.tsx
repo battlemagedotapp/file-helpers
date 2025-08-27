@@ -10,6 +10,7 @@ type AudioPlaybackWithBlobProps = {
   initialPlaybackRate?: number
   initialCurrentTime?: number
   initialPlaying?: boolean
+  className?: string
 }
 
 async function loadAudio(srcUrl: string) {
@@ -27,6 +28,7 @@ export function AudioPlaybackWithBlob({
   initialPlaybackRate,
   initialCurrentTime,
   initialPlaying,
+  className,
 }: AudioPlaybackWithBlobProps) {
   const srcUrl = useMemo(
     () => (externalAudioUrlFn ? externalAudioUrlFn(src) : src),
@@ -83,6 +85,7 @@ export function AudioPlaybackWithBlob({
         initialPlaybackRate={initialPlaybackRate}
         initialCurrentTime={initialCurrentTime}
         initialPlaying={initialPlaying}
+        className={className}
       />
     )
   }
