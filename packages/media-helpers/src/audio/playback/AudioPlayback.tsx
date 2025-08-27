@@ -43,7 +43,6 @@ export function AudioPlayback({
   initialCurrentTime = 0,
   initialPlaying = false,
 }: AudioPlaybackProps) {
-  const wavesurferRef = useRef(null)
   const timelineRef = useRef(null)
   const [currentTime, setCurrentTime] = useState<number>(initialCurrentTime)
   const [wavesurferObj, setWavesurferObj] = useState<WaveSurfer>()
@@ -53,22 +52,20 @@ export function AudioPlayback({
   const [playbackRate, setPlaybackRate] = useState<number>(initialPlaybackRate)
 
   useEffect(() => {
-    if (timelineRef.current && wavesurferRef.current && !wavesurferObj) {
+    if (timelineRef.current && !wavesurferObj) {
       setWavesurferObj(
         WaveSurfer.create({
           container: timelineRef.current,
           cursorColor: 'violet',
           waveColor: '#211027',
           progressColor: '#69207F',
-          barWidth: 2,
-          barRadius: 3,
-          barGap: 2,
-          height: 40,
+          height: 'auto',
           normalize: true,
+          fillParent: true,
         }),
       )
     }
-  }, [wavesurferRef, wavesurferObj])
+  }, [wavesurferObj])
 
   useEffect(() => {
     if (src && wavesurferObj) {
@@ -207,12 +204,7 @@ export function AudioPlayback({
           <Undo className="h-4 w-4" />
         </Button>
 
-        <Button
-          variant="default"
-          size="icon"
-          onClick={handlePlayPause}
-          className="h-12 w-12"
-        >
+        <Button variant="default" size="icon" onClick={handlePlayPause}>
           {playing ? (
             <Pause className="h-6 w-6" />
           ) : (
@@ -234,10 +226,10 @@ export function AudioPlayback({
         />
       </div>
 
-      <div className="space-x-2 flex items-center text-sm text-muted-foreground">
-        <span>{formatTime(currentTime)}</span>
-        <div ref={timelineRef} className="w-full" />
-        <span>{formatTime(duration)}</span>
+      <div className="space-x-2 flex flex-row justify-center items-center text-sm text-muted-foreground">
+        <div>{formatTime(currentTime)}</div>
+        <div ref={timelineRef} className="w-full h-8" />
+        <div>{formatTime(duration)}</div>
       </div>
     </div>
   )

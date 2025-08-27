@@ -124,7 +124,6 @@ function AudioPlayback({
   initialCurrentTime = 0,
   initialPlaying = false
 }) {
-  const wavesurferRef = useRef(null);
   const timelineRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(initialCurrentTime);
   const [wavesurferObj, setWavesurferObj] = useState();
@@ -133,22 +132,20 @@ function AudioPlayback({
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(initialPlaybackRate);
   useEffect(() => {
-    if (timelineRef.current && wavesurferRef.current && !wavesurferObj) {
+    if (timelineRef.current && !wavesurferObj) {
       setWavesurferObj(
         WaveSurfer.create({
           container: timelineRef.current,
           cursorColor: "violet",
           waveColor: "#211027",
           progressColor: "#69207F",
-          barWidth: 2,
-          barRadius: 3,
-          barGap: 2,
-          height: 40,
-          normalize: true
+          height: "auto",
+          normalize: true,
+          fillParent: true
         })
       );
     }
-  }, [wavesurferRef, wavesurferObj]);
+  }, [wavesurferObj]);
   useEffect(() => {
     if (src && wavesurferObj) {
       if (src.mode === "url") {
@@ -265,16 +262,7 @@ function AudioPlayback({
               children: /* @__PURE__ */ jsx3(Undo, { className: "h-4 w-4" })
             }
           ),
-          /* @__PURE__ */ jsx3(
-            Button,
-            {
-              variant: "default",
-              size: "icon",
-              onClick: handlePlayPause,
-              className: "h-12 w-12",
-              children: playing ? /* @__PURE__ */ jsx3(Pause, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx3(Play, { className: "h-6 w-6" })
-            }
-          ),
+          /* @__PURE__ */ jsx3(Button, { variant: "default", size: "icon", onClick: handlePlayPause, children: playing ? /* @__PURE__ */ jsx3(Pause, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx3(Play, { className: "h-6 w-6" }) }),
           /* @__PURE__ */ jsx3(
             Button,
             {
@@ -292,10 +280,10 @@ function AudioPlayback({
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs2("div", { className: "space-x-2 flex items-center text-sm text-muted-foreground", children: [
-          /* @__PURE__ */ jsx3("span", { children: formatTime(currentTime) }),
-          /* @__PURE__ */ jsx3("div", { ref: timelineRef, className: "w-full" }),
-          /* @__PURE__ */ jsx3("span", { children: formatTime(duration) })
+        /* @__PURE__ */ jsxs2("div", { className: "space-x-2 flex flex-row justify-center items-center text-sm text-muted-foreground", children: [
+          /* @__PURE__ */ jsx3("div", { children: formatTime(currentTime) }),
+          /* @__PURE__ */ jsx3("div", { ref: timelineRef, className: "w-full h-8" }),
+          /* @__PURE__ */ jsx3("div", { children: formatTime(duration) })
         ] })
       ]
     },
@@ -542,4 +530,4 @@ export {
   AudioPlaybackWithBlob,
   SingleAudioUploader
 };
-//# sourceMappingURL=chunk-KY5JR24O.mjs.map
+//# sourceMappingURL=chunk-C3FPMU4M.mjs.map
