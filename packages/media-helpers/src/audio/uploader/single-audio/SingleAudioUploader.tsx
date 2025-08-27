@@ -72,7 +72,7 @@ export function SingleAudioUploader({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                className="cursor-pointer"
                 onClick={() => addToGlobalPlayer(file, 'Uploaded Audio')}
                 title="Open in global player"
               >

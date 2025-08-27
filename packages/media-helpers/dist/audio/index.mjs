@@ -171,28 +171,19 @@ function AudioPlayback({
       } else if (src.mode === "blob") {
         wavesurferObj.loadBlob(src.blob);
       }
-      updatePlaybackState({
-        wavesurferObj,
-        initialVolume,
-        initialPlaybackRate,
-        initialCurrentTime,
-        initialPlaying
-      });
     }
-  }, [
-    src,
-    wavesurferObj,
-    externalAudioUrlFn,
-    initialVolume,
-    initialPlaybackRate,
-    initialCurrentTime,
-    initialPlaying
-  ]);
+  }, [src, wavesurferObj, externalAudioUrlFn]);
   useEffect(() => {
     if (wavesurferObj) {
       const handleReady = () => {
-        wavesurferObj.pause();
         setDuration(wavesurferObj.getDuration());
+        updatePlaybackState({
+          wavesurferObj,
+          initialVolume,
+          initialPlaybackRate,
+          initialCurrentTime,
+          initialPlaying
+        });
       };
       const handlePlay = () => {
         setPlaying(true);
@@ -215,7 +206,14 @@ function AudioPlayback({
         setWavesurferObj(void 0);
       };
     }
-  }, [wavesurferObj, onWavesurferReady]);
+  }, [
+    wavesurferObj,
+    onWavesurferReady,
+    initialVolume,
+    initialPlaybackRate,
+    initialCurrentTime,
+    initialPlaying
+  ]);
   useEffect(() => {
     if (wavesurferObj) wavesurferObj.setVolume(volume);
   }, [volume, wavesurferObj]);
@@ -597,6 +595,7 @@ function GlobalPlayerProvider({
           GLOBAL_PLAYER_STORAGE_KEY,
           JSON.stringify(newState)
         );
+        toast.success("Added. Press the play button to play.");
       } catch (err) {
         console.error("Failed to save global player state:", err);
         toast.error("Failed to save player state");
@@ -731,7 +730,7 @@ function SingleAudioUploader({
               type: "button",
               variant: "outline",
               size: "sm",
-              className: "cursor-pointer hover:bg-primary hover:text-primary-foreground",
+              className: "cursor-pointer",
               onClick: () => addToGlobalPlayer(file, "Uploaded Audio"),
               title: "Open in global player",
               children: [

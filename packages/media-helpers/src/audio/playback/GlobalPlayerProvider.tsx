@@ -117,6 +117,7 @@ export function GlobalPlayerProvider({
           GLOBAL_PLAYER_STORAGE_KEY,
           JSON.stringify(newState),
         )
+        toast.success('Added. Press the play button to play.')
       } catch (err) {
         console.error('Failed to save global player state:', err)
         toast.error('Failed to save player state')

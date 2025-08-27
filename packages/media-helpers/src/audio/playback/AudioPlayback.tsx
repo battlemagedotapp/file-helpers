@@ -97,30 +97,22 @@ export function AudioPlayback({
       } else if (src.mode === 'blob') {
         wavesurferObj.loadBlob(src.blob)
       }
-
-      updatePlaybackState({
-        wavesurferObj,
-        initialVolume,
-        initialPlaybackRate,
-        initialCurrentTime,
-        initialPlaying,
-      })
     }
-  }, [
-    src,
-    wavesurferObj,
-    externalAudioUrlFn,
-    initialVolume,
-    initialPlaybackRate,
-    initialCurrentTime,
-    initialPlaying,
-  ])
+  }, [src, wavesurferObj, externalAudioUrlFn])
 
   useEffect(() => {
     if (wavesurferObj) {
       const handleReady = () => {
-        wavesurferObj.pause()
         setDuration(wavesurferObj.getDuration())
+
+        // Restore playback state when wavesurfer is ready
+        updatePlaybackState({
+          wavesurferObj,
+          initialVolume,
+          initialPlaybackRate,
+          initialCurrentTime,
+          initialPlaying,
+        })
       }
 
       const handlePlay = () => {
@@ -150,7 +142,14 @@ export function AudioPlayback({
         setWavesurferObj(undefined)
       }
     }
-  }, [wavesurferObj, onWavesurferReady])
+  }, [
+    wavesurferObj,
+    onWavesurferReady,
+    initialVolume,
+    initialPlaybackRate,
+    initialCurrentTime,
+    initialPlaying,
+  ])
 
   useEffect(() => {
     if (wavesurferObj) wavesurferObj.setVolume(volume)
