@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import WaveSurfer from 'wavesurfer.js'
 import { AudioPlaybackWithBlob } from './AudioPlaybackWithBlob'
 
 type GlobalPlayerState = {
@@ -15,6 +16,7 @@ type GlobalPlayerProps = {
   externalAudioUrlFn?: (url: string) => string
   playerState: GlobalPlayerState
   onClose: () => void
+  onWavesurferReady?: (wavesurfer: WaveSurfer) => void
 }
 
 export function GlobalPlayer({
@@ -22,6 +24,7 @@ export function GlobalPlayer({
   externalAudioUrlFn,
   playerState,
   onClose,
+  onWavesurferReady,
 }: GlobalPlayerProps) {
   return (
     <div
@@ -40,6 +43,7 @@ export function GlobalPlayer({
           initialCurrentTime={playerState.currentTime}
           initialPlaying={false}
           closePlayer={onClose}
+          onWavesurferReady={onWavesurferReady}
         />
       </div>
     </div>

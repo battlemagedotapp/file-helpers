@@ -40,6 +40,7 @@ type AudioPlaybackProps = {
   initialPlaying?: boolean
   className?: string
   closePlayer?: () => void
+  onWavesurferReady?: (wavesurfer: WaveSurfer) => void
 }
 
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
@@ -55,6 +56,7 @@ export function AudioPlayback({
   initialPlaying = false,
   className,
   closePlayer,
+  onWavesurferReady,
 }: AudioPlaybackProps) {
   const timelineRef = useRef<HTMLDivElement | null>(null)
   const [currentTime, setCurrentTime] = useState<number>(initialCurrentTime)
@@ -138,12 +140,17 @@ export function AudioPlayback({
       wavesurferObj.on('finish', handleFinish)
       wavesurferObj.on('timeupdate', handleTimeUpdate)
 
+      // Notify parent when wavesurfer is ready
+      if (onWavesurferReady) {
+        onWavesurferReady(wavesurferObj)
+      }
+
       return () => {
         wavesurferObj.destroy()
         setWavesurferObj(undefined)
       }
     }
-  }, [wavesurferObj])
+  }, [wavesurferObj, onWavesurferReady])
 
   useEffect(() => {
     if (wavesurferObj) wavesurferObj.setVolume(volume)

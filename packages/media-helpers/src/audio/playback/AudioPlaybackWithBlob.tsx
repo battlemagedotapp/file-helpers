@@ -1,5 +1,6 @@
 import { Ellipsis } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import WaveSurfer from 'wavesurfer.js'
 import { AudioPlayback } from './AudioPlayback'
 
 type AudioPlaybackWithBlobProps = {
@@ -13,6 +14,7 @@ type AudioPlaybackWithBlobProps = {
   initialPlaying?: boolean
   className?: string
   closePlayer?: () => void
+  onWavesurferReady?: (wavesurfer: WaveSurfer) => void
 }
 
 async function loadAudio(srcUrl: string) {
@@ -32,6 +34,7 @@ export function AudioPlaybackWithBlob({
   initialPlaying,
   className,
   closePlayer,
+  onWavesurferReady,
 }: AudioPlaybackWithBlobProps) {
   const srcUrl = useMemo(
     () => (externalAudioUrlFn ? externalAudioUrlFn(src) : src),
@@ -94,6 +97,7 @@ export function AudioPlaybackWithBlob({
         initialPlaying={initialPlaying}
         className={className}
         closePlayer={closePlayer}
+        onWavesurferReady={onWavesurferReady}
       />
     )
   }

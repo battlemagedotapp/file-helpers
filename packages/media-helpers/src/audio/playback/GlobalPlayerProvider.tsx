@@ -1,5 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
+import WaveSurfer from 'wavesurfer.js'
 import { GlobalPlayer } from './GlobalPlayer'
 import { GlobalPlayerContext } from './GlobalPlayerContext'
 
@@ -21,39 +22,68 @@ export function GlobalPlayerProvider({
   children: ReactNode
   externalAudioUrlFn?: (url: string) => string
 }) {
-  const [globalPlayerState, setGlobalPlayerState] =
-    useState<GlobalPlayerState | null>(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
+  // Create internal wavesurfer ref for the global player
+  const wavesurferRef = useRef<WaveSurfer | null>(null)
+  // Load initial state synchronously so we don't call setState inside effects
+  const loadInitialState = (): GlobalPlayerState | null => {
     try {
       const stored = localStorage.getItem(GLOBAL_PLAYER_STORAGE_KEY)
       if (stored) {
         const state = JSON.parse(stored) as GlobalPlayerState
         const isRecent = Date.now() - state.timestamp < 24 * 60 * 60 * 1000
-        if (isRecent) {
-          setGlobalPlayerState(state)
-          setIsVisible(true)
-        } else {
-          localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY)
-        }
+        if (isRecent) return state
+        localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY)
       }
     } catch (err) {
       console.error('Failed to load global player state:', err)
       localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY)
       toast.error('Failed to load saved player state')
     }
+    return null
+  }
+
+  const initialStored = loadInitialState()
+  const [storedPlayerState, setStoredPlayerState] =
+    useState<GlobalPlayerState | null>(initialStored)
+  const storedPlayerStateRef = useRef<GlobalPlayerState | null>(initialStored)
+  const [isVisible, setIsVisible] = useState<boolean>(
+    () => initialStored != null,
+  )
+
+  // Keep the ref in sync whenever we explicitly update the stored state
+  const updateStoredState = useCallback((next: GlobalPlayerState | null) => {
+    storedPlayerStateRef.current = next
+    setStoredPlayerState(next)
   }, [])
 
+  // Persist a snapshot from wavesurferRef every 3 seconds when playing (read-only).
   useEffect(() => {
-    if (!globalPlayerState) return
+    const wsRef = wavesurferRef
+    if (!wsRef) return
 
     const interval = setInterval(() => {
       try {
-        const updatedState = {
-          ...globalPlayerState,
+        const currentStored = storedPlayerStateRef.current
+        if (!currentStored) return
+        const ws = wsRef.current
+        if (!ws) return
+
+        // Only update if the player is currently playing
+        if (!ws.isPlaying()) return
+
+        // Read values from wavesurfer instance
+        const currentTime = ws.getCurrentTime()
+        const volume = ws.getVolume()
+        const playbackRate = ws.getPlaybackRate()
+
+        const updatedState: GlobalPlayerState = {
+          ...currentStored,
+          currentTime,
+          volume,
+          playbackRate,
           timestamp: Date.now(),
         }
+
         localStorage.setItem(
           GLOBAL_PLAYER_STORAGE_KEY,
           JSON.stringify(updatedState),
@@ -62,48 +92,61 @@ export function GlobalPlayerProvider({
         console.error('Failed to save global player state:', err)
         toast.error('Failed to save player state')
       }
-    }, 1000)
+    }, 3000)
 
     return () => clearInterval(interval)
-  }, [globalPlayerState])
+    // Intentionally depend only on the ref object so interval isn't recreated frequently
+  }, [wavesurferRef])
 
-  const addToGlobalPlayer = (src: string, trackName?: string) => {
-    const newState: GlobalPlayerState = {
-      src,
-      trackName,
-      currentTime: 0,
-      volume: 1,
-      playbackRate: 1,
-      timestamp: Date.now(),
-    }
+  const addToGlobalPlayer = useCallback(
+    (src: string, trackName?: string) => {
+      const newState: GlobalPlayerState = {
+        src,
+        trackName,
+        currentTime: 0,
+        volume: 1,
+        playbackRate: 1,
+        timestamp: Date.now(),
+      }
 
-    setGlobalPlayerState(newState)
-    setIsVisible(true)
+      updateStoredState(newState)
+      setIsVisible(true)
 
-    try {
-      localStorage.setItem(GLOBAL_PLAYER_STORAGE_KEY, JSON.stringify(newState))
-    } catch (err) {
-      console.error('Failed to save global player state:', err)
-      toast.error('Failed to save player state')
-    }
-  }
+      try {
+        localStorage.setItem(
+          GLOBAL_PLAYER_STORAGE_KEY,
+          JSON.stringify(newState),
+        )
+      } catch (err) {
+        console.error('Failed to save global player state:', err)
+        toast.error('Failed to save player state')
+      }
+    },
+    [updateStoredState],
+  )
 
-  const handleClose = () => {
+  const handleWavesurferReady = useCallback((wavesurfer: WaveSurfer) => {
+    wavesurferRef.current = wavesurfer
+  }, [])
+
+  const handleClose = useCallback(() => {
     setIsVisible(false)
-    setGlobalPlayerState(null)
+    updateStoredState(null)
+    wavesurferRef.current = null
     localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY)
-  }
+  }, [updateStoredState])
 
   return (
     <GlobalPlayerContext.Provider
       value={{ addToGlobalPlayer, isGlobalPlayerVisible: isVisible }}
     >
       {children}
-      {isVisible && globalPlayerState && (
+      {isVisible && storedPlayerState && (
         <GlobalPlayer
           externalAudioUrlFn={externalAudioUrlFn}
-          playerState={globalPlayerState}
+          playerState={storedPlayerState}
           onClose={handleClose}
+          onWavesurferReady={handleWavesurferReady}
         />
       )}
     </GlobalPlayerContext.Provider>

@@ -1,4 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import WaveSurfer from 'wavesurfer.js';
 import { ReactNode } from 'react';
 
 type AudioSource = {
@@ -20,8 +21,9 @@ type AudioPlaybackProps = {
     initialPlaying?: boolean;
     className?: string;
     closePlayer?: () => void;
+    onWavesurferReady?: (wavesurfer: WaveSurfer) => void;
 };
-declare function AudioPlayback({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
+declare function AudioPlayback({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, onWavesurferReady, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
 
 type AudioPlaybackWithBlobProps = {
     src: string;
@@ -34,8 +36,9 @@ type AudioPlaybackWithBlobProps = {
     initialPlaying?: boolean;
     className?: string;
     closePlayer?: () => void;
+    onWavesurferReady?: (wavesurfer: WaveSurfer) => void;
 };
-declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
+declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, onWavesurferReady, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
 
 type GlobalPlayerState = {
     src: string;
@@ -50,8 +53,9 @@ type GlobalPlayerProps = {
     externalAudioUrlFn?: (url: string) => string;
     playerState: GlobalPlayerState;
     onClose: () => void;
+    onWavesurferReady?: (wavesurfer: WaveSurfer) => void;
 };
-declare function GlobalPlayer({ className, externalAudioUrlFn, playerState, onClose, }: GlobalPlayerProps): react_jsx_runtime.JSX.Element;
+declare function GlobalPlayer({ className, externalAudioUrlFn, playerState, onClose, onWavesurferReady, }: GlobalPlayerProps): react_jsx_runtime.JSX.Element;
 
 declare function GlobalPlayerProvider({ children, externalAudioUrlFn, }: {
     children: ReactNode;

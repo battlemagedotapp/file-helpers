@@ -133,7 +133,8 @@ function AudioPlayback({
   initialCurrentTime = 0,
   initialPlaying = false,
   className,
-  closePlayer
+  closePlayer,
+  onWavesurferReady
 }) {
   const timelineRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(initialCurrentTime);
@@ -206,12 +207,15 @@ function AudioPlayback({
       wavesurferObj.on("play", handlePlay);
       wavesurferObj.on("finish", handleFinish);
       wavesurferObj.on("timeupdate", handleTimeUpdate);
+      if (onWavesurferReady) {
+        onWavesurferReady(wavesurferObj);
+      }
       return () => {
         wavesurferObj.destroy();
         setWavesurferObj(void 0);
       };
     }
-  }, [wavesurferObj]);
+  }, [wavesurferObj, onWavesurferReady]);
   useEffect(() => {
     if (wavesurferObj) wavesurferObj.setVolume(volume);
   }, [volume, wavesurferObj]);
@@ -388,6 +392,7 @@ function SpeedControl({
 // src/audio/playback/AudioPlaybackWithBlob.tsx
 import { Ellipsis } from "lucide-react";
 import { useEffect as useEffect2, useMemo as useMemo2, useState as useState2 } from "react";
+import "wavesurfer.js";
 import { jsx as jsx4, jsxs as jsxs3 } from "react/jsx-runtime";
 async function loadAudio(srcUrl) {
   const response = await fetch(srcUrl);
@@ -404,7 +409,8 @@ function AudioPlaybackWithBlob({
   initialCurrentTime,
   initialPlaying,
   className,
-  closePlayer
+  closePlayer,
+  onWavesurferReady
 }) {
   const srcUrl = useMemo2(
     () => externalAudioUrlFn ? externalAudioUrlFn(src) : src,
@@ -457,7 +463,8 @@ function AudioPlaybackWithBlob({
         initialCurrentTime,
         initialPlaying,
         className,
-        closePlayer
+        closePlayer,
+        onWavesurferReady
       }
     );
   }
@@ -465,12 +472,14 @@ function AudioPlaybackWithBlob({
 }
 
 // src/audio/playback/GlobalPlayer.tsx
+import "wavesurfer.js";
 import { jsx as jsx5 } from "react/jsx-runtime";
 function GlobalPlayer({
   className,
   externalAudioUrlFn,
   playerState,
-  onClose
+  onClose,
+  onWavesurferReady
 }) {
   return /* @__PURE__ */ jsx5(
     "div",
@@ -489,7 +498,8 @@ function GlobalPlayer({
           initialPlaybackRate: playerState.playbackRate,
           initialCurrentTime: playerState.currentTime,
           initialPlaying: false,
-          closePlayer: onClose
+          closePlayer: onClose,
+          onWavesurferReady
         }
       ) })
     }
@@ -497,8 +507,9 @@ function GlobalPlayer({
 }
 
 // src/audio/playback/GlobalPlayerProvider.tsx
-import { useEffect as useEffect3, useState as useState3 } from "react";
+import { useCallback, useEffect as useEffect3, useRef as useRef2, useState as useState3 } from "react";
 import { toast } from "sonner";
+import "wavesurfer.js";
 
 // src/audio/playback/GlobalPlayerContext.tsx
 import { createContext } from "react";
@@ -511,33 +522,51 @@ function GlobalPlayerProvider({
   children,
   externalAudioUrlFn
 }) {
-  const [globalPlayerState, setGlobalPlayerState] = useState3(null);
-  const [isVisible, setIsVisible] = useState3(false);
-  useEffect3(() => {
+  const wavesurferRef = useRef2(null);
+  const loadInitialState = () => {
     try {
       const stored = localStorage.getItem(GLOBAL_PLAYER_STORAGE_KEY);
       if (stored) {
         const state = JSON.parse(stored);
         const isRecent = Date.now() - state.timestamp < 24 * 60 * 60 * 1e3;
-        if (isRecent) {
-          setGlobalPlayerState(state);
-          setIsVisible(true);
-        } else {
-          localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY);
-        }
+        if (isRecent) return state;
+        localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY);
       }
     } catch (err) {
       console.error("Failed to load global player state:", err);
       localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY);
       toast.error("Failed to load saved player state");
     }
+    return null;
+  };
+  const initialStored = loadInitialState();
+  const [storedPlayerState, setStoredPlayerState] = useState3(initialStored);
+  const storedPlayerStateRef = useRef2(initialStored);
+  const [isVisible, setIsVisible] = useState3(
+    () => initialStored != null
+  );
+  const updateStoredState = useCallback((next) => {
+    storedPlayerStateRef.current = next;
+    setStoredPlayerState(next);
   }, []);
   useEffect3(() => {
-    if (!globalPlayerState) return;
+    const wsRef = wavesurferRef;
+    if (!wsRef) return;
     const interval = setInterval(() => {
       try {
+        const currentStored = storedPlayerStateRef.current;
+        if (!currentStored) return;
+        const ws = wsRef.current;
+        if (!ws) return;
+        if (!ws.isPlaying()) return;
+        const currentTime = ws.getCurrentTime();
+        const volume = ws.getVolume();
+        const playbackRate = ws.getPlaybackRate();
         const updatedState = {
-          ...globalPlayerState,
+          ...currentStored,
+          currentTime,
+          volume,
+          playbackRate,
           timestamp: Date.now()
         };
         localStorage.setItem(
@@ -548,44 +577,55 @@ function GlobalPlayerProvider({
         console.error("Failed to save global player state:", err);
         toast.error("Failed to save player state");
       }
-    }, 1e3);
+    }, 3e3);
     return () => clearInterval(interval);
-  }, [globalPlayerState]);
-  const addToGlobalPlayer = (src, trackName) => {
-    const newState = {
-      src,
-      trackName,
-      currentTime: 0,
-      volume: 1,
-      playbackRate: 1,
-      timestamp: Date.now()
-    };
-    setGlobalPlayerState(newState);
-    setIsVisible(true);
-    try {
-      localStorage.setItem(GLOBAL_PLAYER_STORAGE_KEY, JSON.stringify(newState));
-    } catch (err) {
-      console.error("Failed to save global player state:", err);
-      toast.error("Failed to save player state");
-    }
-  };
-  const handleClose = () => {
+  }, [wavesurferRef]);
+  const addToGlobalPlayer = useCallback(
+    (src, trackName) => {
+      const newState = {
+        src,
+        trackName,
+        currentTime: 0,
+        volume: 1,
+        playbackRate: 1,
+        timestamp: Date.now()
+      };
+      updateStoredState(newState);
+      setIsVisible(true);
+      try {
+        localStorage.setItem(
+          GLOBAL_PLAYER_STORAGE_KEY,
+          JSON.stringify(newState)
+        );
+      } catch (err) {
+        console.error("Failed to save global player state:", err);
+        toast.error("Failed to save player state");
+      }
+    },
+    [updateStoredState]
+  );
+  const handleWavesurferReady = useCallback((wavesurfer) => {
+    wavesurferRef.current = wavesurfer;
+  }, []);
+  const handleClose = useCallback(() => {
     setIsVisible(false);
-    setGlobalPlayerState(null);
+    updateStoredState(null);
+    wavesurferRef.current = null;
     localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY);
-  };
+  }, [updateStoredState]);
   return /* @__PURE__ */ jsxs4(
     GlobalPlayerContext.Provider,
     {
       value: { addToGlobalPlayer, isGlobalPlayerVisible: isVisible },
       children: [
         children,
-        isVisible && globalPlayerState && /* @__PURE__ */ jsx6(
+        isVisible && storedPlayerState && /* @__PURE__ */ jsx6(
           GlobalPlayer,
           {
             externalAudioUrlFn,
-            playerState: globalPlayerState,
-            onClose: handleClose
+            playerState: storedPlayerState,
+            onClose: handleClose,
+            onWavesurferReady: handleWavesurferReady
           }
         )
       ]
