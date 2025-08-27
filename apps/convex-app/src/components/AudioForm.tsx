@@ -55,14 +55,15 @@ export function AudioForm() {
         />
 
         <AudioPlayback
+          trackName="Track name asdfasd fj;ldsjf;ld sajf;ladsjflkasj"
           src={{
             mode: 'url',
             url: 'https://cdn.pixabay.com/audio/2025/05/17/audio_3882df0036.mp3',
           }}
-          // className="border rounded-lg sm:flex-row flex-col min-w-[300px]"
+          closePlayer={() => {
+            console.log('close player')
+          }}
         />
-
-        {/* <div className="w-16 h-16 bg-red-500 sm:bg-blue-500 min-w-[300px]" /> */}
 
         <div className="flex justify-center mt-6">
           <Button

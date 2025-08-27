@@ -6,7 +6,15 @@ import {
 } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
-import { Pause, Play, Redo, Undo, Volume2, VolumeX } from 'lucide-react'
+import {
+  CircleX,
+  Pause,
+  Play,
+  Redo,
+  Undo,
+  Volume2,
+  VolumeX,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 
@@ -31,6 +39,7 @@ type AudioPlaybackProps = {
   initialCurrentTime?: number
   initialPlaying?: boolean
   className?: string
+  closePlayer?: () => void
 }
 
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
@@ -45,6 +54,7 @@ export function AudioPlayback({
   initialCurrentTime = 0,
   initialPlaying = false,
   className,
+  closePlayer,
 }: AudioPlaybackProps) {
   const timelineRef = useRef<HTMLDivElement | null>(null)
   const [currentTime, setCurrentTime] = useState<number>(initialCurrentTime)
@@ -62,9 +72,9 @@ export function AudioPlayback({
 
       const ws = WaveSurfer.create({
         container: timelineRef.current,
-        cursorColor: 'violet',
-        waveColor: '#211027',
-        progressColor: '#69207F',
+        cursorColor: 'oklch(0.769 0.188 70.08)',
+        waveColor: 'oklch(0.708 0 0)',
+        progressColor: 'oklch(0.769 0.188 70.08)',
         height: 32,
         normalize: true,
         fillParent: true,
@@ -192,13 +202,25 @@ export function AudioPlayback({
     <div
       key={trackId}
       className={cn(
-        'p-4 select-none flex gap-2 sm:flex-row flex-col min-w-fit',
+        'p-4 select-none flex gap-2 sm:flex-row flex-col min-w-[250px]',
         className,
       )}
     >
       {!!trackName && (
-        <div className="flex flex-row items-center justify-center">
-          <p className="text-sm font-semibold">{trackName}</p>
+        <div className="flex flex-row items-center justify-center gap-2">
+          <p className="text-sm text-center sm:text-left font-semibold text-ellipsis line-clamp-1 sm:line-clamp-2 min-w-[200px] sm:max-w-[150px] sm:min-w-[100px]">
+            {trackName}
+          </p>
+          {!!closePlayer && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => closePlayer()}
+              className="cursor-pointer sm:hidden"
+            >
+              <CircleX className="h-4 w-4 text-destructive" />
+            </Button>
+          )}
         </div>
       )}
       <div className="flex items-center justify-center space-x-2">
@@ -237,10 +259,20 @@ export function AudioPlayback({
         />
       </div>
 
-      <div className="space-x-2 flex flex-row w-full justify-center items-center text-sm text-muted-foreground">
+      <div className="gap-2 flex flex-row w-full justify-center items-center text-sm text-muted-foreground">
         <div>{formatTime(currentTime)}</div>
         <div ref={timelineRef} className="w-full" />
         <div>{formatTime(duration)}</div>
+        {!!closePlayer && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => closePlayer()}
+            className="cursor-pointer hidden sm:block ml-2"
+          >
+            <CircleX className="h-4 w-4 text-destructive" />
+          </Button>
+        )}
       </div>
     </div>
   )

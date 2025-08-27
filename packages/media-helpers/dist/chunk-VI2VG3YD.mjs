@@ -109,7 +109,15 @@ function Slider({
 }
 
 // src/audio/playback/AudioPlayback.tsx
-import { Pause, Play, Redo, Undo, Volume2, VolumeX } from "lucide-react";
+import {
+  CircleX,
+  Pause,
+  Play,
+  Redo,
+  Undo,
+  Volume2,
+  VolumeX
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
@@ -123,7 +131,8 @@ function AudioPlayback({
   initialPlaybackRate = 1,
   initialCurrentTime = 0,
   initialPlaying = false,
-  className
+  className,
+  closePlayer
 }) {
   const timelineRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(initialCurrentTime);
@@ -139,9 +148,9 @@ function AudioPlayback({
       }
       const ws = WaveSurfer.create({
         container: timelineRef.current,
-        cursorColor: "violet",
-        waveColor: "#211027",
-        progressColor: "#69207F",
+        cursorColor: "oklch(0.769 0.188 70.08)",
+        waveColor: "oklch(0.708 0 0)",
+        progressColor: "oklch(0.769 0.188 70.08)",
         height: 32,
         normalize: true,
         fillParent: true
@@ -247,11 +256,23 @@ function AudioPlayback({
     "div",
     {
       className: cn(
-        "p-4 select-none flex gap-2 sm:flex-row flex-col min-w-fit",
+        "p-4 select-none flex gap-2 sm:flex-row flex-col min-w-[250px]",
         className
       ),
       children: [
-        !!trackName && /* @__PURE__ */ jsx3("div", { className: "flex flex-row items-center justify-center", children: /* @__PURE__ */ jsx3("p", { className: "text-sm font-semibold", children: trackName }) }),
+        !!trackName && /* @__PURE__ */ jsxs2("div", { className: "flex flex-row items-center justify-center gap-2", children: [
+          /* @__PURE__ */ jsx3("p", { className: "text-sm text-center sm:text-left font-semibold text-ellipsis line-clamp-1 sm:line-clamp-2 min-w-[200px] sm:max-w-[150px] sm:min-w-[100px]", children: trackName }),
+          !!closePlayer && /* @__PURE__ */ jsx3(
+            Button,
+            {
+              variant: "ghost",
+              size: "icon",
+              onClick: () => closePlayer(),
+              className: "cursor-pointer sm:hidden",
+              children: /* @__PURE__ */ jsx3(CircleX, { className: "h-4 w-4 text-destructive" })
+            }
+          )
+        ] }),
         /* @__PURE__ */ jsxs2("div", { className: "flex items-center justify-center space-x-2", children: [
           /* @__PURE__ */ jsx3(
             VolumeControl,
@@ -287,10 +308,20 @@ function AudioPlayback({
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs2("div", { className: "space-x-2 flex flex-row w-full justify-center items-center text-sm text-muted-foreground", children: [
+        /* @__PURE__ */ jsxs2("div", { className: "gap-2 flex flex-row w-full justify-center items-center text-sm text-muted-foreground", children: [
           /* @__PURE__ */ jsx3("div", { children: formatTime(currentTime) }),
           /* @__PURE__ */ jsx3("div", { ref: timelineRef, className: "w-full" }),
-          /* @__PURE__ */ jsx3("div", { children: formatTime(duration) })
+          /* @__PURE__ */ jsx3("div", { children: formatTime(duration) }),
+          !!closePlayer && /* @__PURE__ */ jsx3(
+            Button,
+            {
+              variant: "ghost",
+              size: "icon",
+              onClick: () => closePlayer(),
+              className: "cursor-pointer hidden sm:block ml-2",
+              children: /* @__PURE__ */ jsx3(CircleX, { className: "h-4 w-4 text-destructive" })
+            }
+          )
         ] })
       ]
     },
@@ -370,7 +401,8 @@ function AudioPlaybackWithBlob({
   initialPlaybackRate,
   initialCurrentTime,
   initialPlaying,
-  className
+  className,
+  closePlayer
 }) {
   const srcUrl = useMemo2(
     () => externalAudioUrlFn ? externalAudioUrlFn(src) : src,
@@ -422,7 +454,8 @@ function AudioPlaybackWithBlob({
         initialPlaybackRate,
         initialCurrentTime,
         initialPlaying,
-        className
+        className,
+        closePlayer
       }
     );
   }
@@ -472,7 +505,8 @@ function SingleAudioUploader({
   errorMessage = "Failed to upload audio file",
   className,
   compact = false,
-  externalAudioUrlFn
+  externalAudioUrlFn,
+  closePlayer
 }) {
   return /* @__PURE__ */ jsx6(
     SingleFileUploaderHeadless,
@@ -509,7 +543,8 @@ function SingleAudioUploader({
                 AudioPlaybackWithBlob,
                 {
                   src: file,
-                  externalAudioUrlFn
+                  externalAudioUrlFn,
+                  closePlayer
                 }
               ),
               /* @__PURE__ */ jsx6("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx6(
@@ -546,4 +581,4 @@ export {
   AudioPlaybackWithBlob,
   SingleAudioUploader
 };
-//# sourceMappingURL=chunk-KWUVNUT3.mjs.map
+//# sourceMappingURL=chunk-VI2VG3YD.mjs.map

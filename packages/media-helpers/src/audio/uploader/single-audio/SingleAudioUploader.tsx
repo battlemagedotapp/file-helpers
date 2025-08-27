@@ -16,6 +16,7 @@ type SingleAudioUploaderProps = {
   className?: string
   compact?: boolean
   externalAudioUrlFn?: (url: string) => string
+  closePlayer?: () => void
 }
 
 export function SingleAudioUploader({
@@ -29,6 +30,7 @@ export function SingleAudioUploader({
   className,
   compact = false,
   externalAudioUrlFn,
+  closePlayer,
 }: SingleAudioUploaderProps) {
   return (
     <SingleFileUploaderHeadless
@@ -67,6 +69,7 @@ export function SingleAudioUploader({
               <AudioPlaybackWithBlob
                 src={file}
                 externalAudioUrlFn={externalAudioUrlFn}
+                closePlayer={closePlayer}
               />
               <div className="absolute top-0 right-0">
                 <ConfirmAlertDialog

@@ -18,8 +18,9 @@ type AudioPlaybackProps = {
     initialCurrentTime?: number;
     initialPlaying?: boolean;
     className?: string;
+    closePlayer?: () => void;
 };
-declare function AudioPlayback({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
+declare function AudioPlayback({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
 
 type AudioPlaybackWithBlobProps = {
     src: string;
@@ -31,8 +32,9 @@ type AudioPlaybackWithBlobProps = {
     initialCurrentTime?: number;
     initialPlaying?: boolean;
     className?: string;
+    closePlayer?: () => void;
 };
-declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
+declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
 
 type SingleAudioUploaderProps = {
     file?: string | null;
@@ -45,7 +47,8 @@ type SingleAudioUploaderProps = {
     className?: string;
     compact?: boolean;
     externalAudioUrlFn?: (url: string) => string;
+    closePlayer?: () => void;
 };
-declare function SingleAudioUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, compact, externalAudioUrlFn, }: SingleAudioUploaderProps): react_jsx_runtime.JSX.Element;
+declare function SingleAudioUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, compact, externalAudioUrlFn, closePlayer, }: SingleAudioUploaderProps): react_jsx_runtime.JSX.Element;
 
 export { AudioPlayback, AudioPlaybackWithBlob, SingleAudioUploader };
