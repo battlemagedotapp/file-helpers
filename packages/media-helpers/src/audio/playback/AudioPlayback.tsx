@@ -272,9 +272,8 @@ export function AudioPlayback({
         {!!closePlayer && (
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => closePlayer()}
-            className="cursor-pointer hidden sm:block ml-2"
+            className="cursor-pointer hidden sm:block"
           >
             <CircleX className="h-4 w-4 text-destructive" />
           </Button>

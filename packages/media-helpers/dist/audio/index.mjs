@@ -319,9 +319,8 @@ function AudioPlayback({
             Button,
             {
               variant: "ghost",
-              size: "icon",
               onClick: () => closePlayer(),
-              className: "cursor-pointer hidden sm:block ml-2",
+              className: "cursor-pointer hidden sm:block",
               children: /* @__PURE__ */ jsx3(CircleX, { className: "h-4 w-4 text-destructive" })
             }
           )
@@ -441,7 +440,7 @@ function AudioPlaybackWithBlob({
     };
   }, [audioBlobUrl]);
   if (isLoading) {
-    return /* @__PURE__ */ jsx4("div", { children: /* @__PURE__ */ jsx4(Ellipsis, { className: "h-4 w-4 animate-pulse" }) });
+    return /* @__PURE__ */ jsx4("div", { className: "flex flex-row justify-center", children: /* @__PURE__ */ jsx4(Ellipsis, { className: "h-4 w-4 animate-pulse" }) });
   }
   if (error) {
     return /* @__PURE__ */ jsxs3("div", { children: [

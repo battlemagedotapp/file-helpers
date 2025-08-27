@@ -75,7 +75,7 @@ export function AudioPlaybackWithBlob({
 
   if (isLoading) {
     return (
-      <div>
+      <div className="flex flex-row justify-center">
         <Ellipsis className="h-4 w-4 animate-pulse" />
       </div>
     )
