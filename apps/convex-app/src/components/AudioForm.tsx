@@ -59,9 +59,6 @@ export function AudioForm() {
             mode: 'url',
             url: 'https://cdn.pixabay.com/audio/2025/05/17/audio_3882df0036.mp3',
           }}
-          closePlayer={() => {
-            console.log('close player')
-          }}
         />
 
         <div className="flex justify-center mt-6">

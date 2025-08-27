@@ -37,6 +37,22 @@ type AudioPlaybackWithBlobProps = {
 };
 declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
 
+type GlobalPlayerState = {
+    src: string;
+    trackName?: string;
+    currentTime: number;
+    volume: number;
+    playbackRate: number;
+    timestamp: number;
+};
+type GlobalPlayerProps = {
+    className?: string;
+    externalAudioUrlFn?: (url: string) => string;
+    playerState: GlobalPlayerState;
+    onClose: () => void;
+};
+declare function GlobalPlayer({ className, externalAudioUrlFn, playerState, onClose, }: GlobalPlayerProps): react_jsx_runtime.JSX.Element;
+
 declare function GlobalPlayerProvider({ children, externalAudioUrlFn, }: {
     children: ReactNode;
     externalAudioUrlFn?: (url: string) => string;
@@ -63,4 +79,4 @@ type SingleAudioUploaderProps = {
 };
 declare function SingleAudioUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, externalAudioUrlFn, closePlayer, }: SingleAudioUploaderProps): react_jsx_runtime.JSX.Element;
 
-export { AudioPlayback, AudioPlaybackWithBlob, GlobalPlayerProvider, SingleAudioUploader, useGlobalPlayer };
+export { AudioPlayback, AudioPlaybackWithBlob, GlobalPlayer, GlobalPlayerProvider, SingleAudioUploader, useGlobalPlayer };

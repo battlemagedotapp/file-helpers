@@ -1,4 +1,4 @@
-import { GlobalPlayerProvider } from '@battlemagedotapp/media-helpers'
+import { GlobalPlayerProvider } from '@battlemagedotapp/media-helpers/audio'
 import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import { ThemeProvider } from 'react-theme-hook'
 import FileUploadHookProvider from './FileUploadHookProvider'

@@ -1,3 +1,4 @@
+import { Ellipsis } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { AudioPlayback } from './AudioPlayback'
 
@@ -70,7 +71,11 @@ export function AudioPlaybackWithBlob({
   }, [audioBlobUrl])
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return (
+      <div>
+        <Ellipsis className="h-4 w-4 animate-pulse" />
+      </div>
+    )
   }
 
   if (error) {
