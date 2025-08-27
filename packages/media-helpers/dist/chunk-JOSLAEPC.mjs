@@ -256,7 +256,7 @@ function AudioPlayback({
     "div",
     {
       className: cn(
-        "p-4 select-none flex gap-2 sm:flex-row flex-col min-w-[250px]",
+        "p-4 pt-2 sm:pt-4 select-none flex gap-2 sm:flex-row flex-col min-w-[250px]",
         className
       ),
       children: [
@@ -462,13 +462,151 @@ function AudioPlaybackWithBlob({
   return /* @__PURE__ */ jsx4("div", { children: "No audio source found" });
 }
 
+// src/audio/playback/GlobalPlayer.tsx
+import { useEffect as useEffect3, useState as useState3 } from "react";
+import { toast } from "sonner";
+
+// src/audio/playback/GlobalPlayerContext.tsx
+import { createContext } from "react";
+var GlobalPlayerContext = createContext(null);
+
+// src/audio/playback/GlobalPlayer.tsx
+import { jsx as jsx5, jsxs as jsxs4 } from "react/jsx-runtime";
+var GLOBAL_PLAYER_STORAGE_KEY = "global-audio-player";
+function GlobalPlayerComponent({
+  className,
+  externalAudioUrlFn,
+  playerState,
+  onClose
+}) {
+  return /* @__PURE__ */ jsx5(
+    "div",
+    {
+      className: cn(
+        "fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg",
+        className
+      ),
+      children: /* @__PURE__ */ jsx5("div", { className: "w-full", children: /* @__PURE__ */ jsx5(
+        AudioPlaybackWithBlob,
+        {
+          src: playerState.src,
+          externalAudioUrlFn,
+          trackName: playerState.trackName,
+          initialVolume: playerState.volume,
+          initialPlaybackRate: playerState.playbackRate,
+          initialCurrentTime: playerState.currentTime,
+          initialPlaying: false,
+          closePlayer: onClose
+        }
+      ) })
+    }
+  );
+}
+function GlobalPlayerProvider({
+  children,
+  externalAudioUrlFn
+}) {
+  const [globalPlayerState, setGlobalPlayerState] = useState3(null);
+  const [isVisible, setIsVisible] = useState3(false);
+  useEffect3(() => {
+    try {
+      const stored = localStorage.getItem(GLOBAL_PLAYER_STORAGE_KEY);
+      if (stored) {
+        const state = JSON.parse(stored);
+        const isRecent = Date.now() - state.timestamp < 24 * 60 * 60 * 1e3;
+        if (isRecent) {
+          setGlobalPlayerState(state);
+          setIsVisible(true);
+        } else {
+          localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load global player state:", err);
+      localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY);
+      toast.error("Failed to load saved player state");
+    }
+  }, []);
+  useEffect3(() => {
+    if (!globalPlayerState) return;
+    const interval = setInterval(() => {
+      try {
+        const updatedState = {
+          ...globalPlayerState,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(
+          GLOBAL_PLAYER_STORAGE_KEY,
+          JSON.stringify(updatedState)
+        );
+      } catch (err) {
+        console.error("Failed to save global player state:", err);
+        toast.error("Failed to save player state");
+      }
+    }, 1e3);
+    return () => clearInterval(interval);
+  }, [globalPlayerState]);
+  const addToGlobalPlayer = (src, trackName) => {
+    const newState = {
+      src,
+      trackName,
+      currentTime: 0,
+      volume: 1,
+      playbackRate: 1,
+      timestamp: Date.now()
+    };
+    setGlobalPlayerState(newState);
+    setIsVisible(true);
+    try {
+      localStorage.setItem(GLOBAL_PLAYER_STORAGE_KEY, JSON.stringify(newState));
+    } catch (err) {
+      console.error("Failed to save global player state:", err);
+      toast.error("Failed to save player state");
+    }
+  };
+  const handleClose = () => {
+    setIsVisible(false);
+    setGlobalPlayerState(null);
+    localStorage.removeItem(GLOBAL_PLAYER_STORAGE_KEY);
+  };
+  return /* @__PURE__ */ jsxs4(
+    GlobalPlayerContext.Provider,
+    {
+      value: { addToGlobalPlayer, isGlobalPlayerVisible: isVisible },
+      children: [
+        children,
+        isVisible && globalPlayerState && /* @__PURE__ */ jsx5(
+          GlobalPlayerComponent,
+          {
+            externalAudioUrlFn,
+            playerState: globalPlayerState,
+            onClose: handleClose
+          }
+        )
+      ]
+    }
+  );
+}
+
+// src/audio/playback/useGlobalPlayer.ts
+import { useContext } from "react";
+function useGlobalPlayer() {
+  const context = useContext(GlobalPlayerContext);
+  if (!context) {
+    throw new Error(
+      "useGlobalPlayer must be used within a GlobalPlayerProvider"
+    );
+  }
+  return context;
+}
+
 // src/audio/uploader/single-audio/SingleAudioUploader.tsx
 import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
-import { LoaderCircle, Music, Trash } from "lucide-react";
+import { ExternalLink, LoaderCircle, Music, Trash } from "lucide-react";
 
 // src/audio/uploader/ConfirmAlertDialog.tsx
 import "react";
-import { jsx as jsx5, jsxs as jsxs4 } from "react/jsx-runtime";
+import { jsx as jsx6, jsxs as jsxs5 } from "react/jsx-runtime";
 function ConfirmAlertDialog({
   title = "Are you sure?",
   description = "This action cannot be undone.",
@@ -477,16 +615,16 @@ function ConfirmAlertDialog({
   confirmLabel = "Continue",
   cancelLabel = "Cancel"
 }) {
-  return /* @__PURE__ */ jsxs4(AlertDialog, { children: [
-    trigger ? typeof trigger === "function" ? /* @__PURE__ */ jsx5(AlertDialogTrigger, { asChild: true, children: trigger({}) }) : /* @__PURE__ */ jsx5(AlertDialogTrigger, { asChild: true, children: trigger }) : null,
-    /* @__PURE__ */ jsxs4(AlertDialogContent, { children: [
-      /* @__PURE__ */ jsxs4(AlertDialogHeader, { children: [
-        /* @__PURE__ */ jsx5(AlertDialogTitle, { children: title }),
-        /* @__PURE__ */ jsx5(AlertDialogDescription, { children: description })
+  return /* @__PURE__ */ jsxs5(AlertDialog, { children: [
+    trigger ? typeof trigger === "function" ? /* @__PURE__ */ jsx6(AlertDialogTrigger, { asChild: true, children: trigger({}) }) : /* @__PURE__ */ jsx6(AlertDialogTrigger, { asChild: true, children: trigger }) : null,
+    /* @__PURE__ */ jsxs5(AlertDialogContent, { children: [
+      /* @__PURE__ */ jsxs5(AlertDialogHeader, { children: [
+        /* @__PURE__ */ jsx6(AlertDialogTitle, { children: title }),
+        /* @__PURE__ */ jsx6(AlertDialogDescription, { children: description })
       ] }),
-      /* @__PURE__ */ jsxs4(AlertDialogFooter, { children: [
-        /* @__PURE__ */ jsx5(AlertDialogCancel, { children: cancelLabel }),
-        /* @__PURE__ */ jsx5(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
+      /* @__PURE__ */ jsxs5(AlertDialogFooter, { children: [
+        /* @__PURE__ */ jsx6(AlertDialogCancel, { children: cancelLabel }),
+        /* @__PURE__ */ jsx6(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
       ] })
     ] })
   ] });
@@ -494,7 +632,7 @@ function ConfirmAlertDialog({
 var ConfirmAlertDialog_default = ConfirmAlertDialog;
 
 // src/audio/uploader/single-audio/SingleAudioUploader.tsx
-import { jsx as jsx6, jsxs as jsxs5 } from "react/jsx-runtime";
+import { jsx as jsx7, jsxs as jsxs6 } from "react/jsx-runtime";
 function SingleAudioUploader({
   file,
   setFile,
@@ -504,11 +642,11 @@ function SingleAudioUploader({
   successMessage = "Audio file uploaded successfully!",
   errorMessage = "Failed to upload audio file",
   className,
-  compact = false,
   externalAudioUrlFn,
   closePlayer
 }) {
-  return /* @__PURE__ */ jsx6(
+  const { addToGlobalPlayer } = useGlobalPlayer();
+  return /* @__PURE__ */ jsx7(
     SingleFileUploaderHeadless,
     {
       file,
@@ -518,8 +656,8 @@ function SingleAudioUploader({
       allowedTypes,
       successMessage,
       errorMessage,
-      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs5("div", { className: cn("relative", className), children: [
-        !hasFile && /* @__PURE__ */ jsxs5(
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs6("div", { className: cn("relative", className), children: [
+        !hasFile && /* @__PURE__ */ jsxs6(
           Button,
           {
             disabled: isUploading,
@@ -528,49 +666,57 @@ function SingleAudioUploader({
             className: "w-fit",
             onClick: triggerFileSelect,
             children: [
-              isUploading ? /* @__PURE__ */ jsx6(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx6(Music, { className: "h-4 w-4" }),
+              isUploading ? /* @__PURE__ */ jsx7(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx7(Music, { className: "h-4 w-4" }),
               isUploading ? "Uploading..." : "Add audio"
             ]
           }
         ),
-        file && /* @__PURE__ */ jsxs5(
-          "div",
-          {
-            className: "relative p-4 w-full",
-            style: { minWidth: compact ? "332px" : "432px", flexShrink: 0 },
-            children: [
-              /* @__PURE__ */ jsx6(
-                AudioPlaybackWithBlob,
+        file && /* @__PURE__ */ jsxs6("div", { className: "relative p-4 w-full min-w-[332px] flex flex-col items-center gap-2", children: [
+          /* @__PURE__ */ jsx7(
+            AudioPlaybackWithBlob,
+            {
+              src: file,
+              externalAudioUrlFn,
+              closePlayer
+            }
+          ),
+          /* @__PURE__ */ jsxs6(
+            Button,
+            {
+              type: "button",
+              variant: "outline",
+              size: "sm",
+              className: "cursor-pointer hover:bg-primary hover:text-primary-foreground",
+              onClick: () => addToGlobalPlayer(file, "Uploaded Audio"),
+              title: "Open in global player",
+              children: [
+                /* @__PURE__ */ jsx7(ExternalLink, { className: "h-4 w-4" }),
+                "Open in player"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsx7("div", { className: "absolute top-0 right-0 flex gap-1", children: /* @__PURE__ */ jsx7(
+            ConfirmAlertDialog_default,
+            {
+              trigger: (props) => /* @__PURE__ */ jsx7(
+                Button,
                 {
-                  src: file,
-                  externalAudioUrlFn,
-                  closePlayer
+                  ...props,
+                  type: "button",
+                  variant: "secondary",
+                  size: "icon",
+                  className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
+                  children: /* @__PURE__ */ jsx7(Trash, { className: "h-4 w-4" })
                 }
               ),
-              /* @__PURE__ */ jsx6("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx6(
-                ConfirmAlertDialog_default,
-                {
-                  trigger: (props) => /* @__PURE__ */ jsx6(
-                    Button,
-                    {
-                      ...props,
-                      type: "button",
-                      variant: "secondary",
-                      size: "icon",
-                      className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                      children: /* @__PURE__ */ jsx6(Trash, { className: "h-4 w-4" })
-                    }
-                  ),
-                  title: "Delete audio",
-                  description: "Are you sure you want to delete this audio file? This action cannot be undone.",
-                  confirmLabel: "Delete",
-                  cancelLabel: "Cancel",
-                  onConfirm: handleFileDelete
-                }
-              ) })
-            ]
-          }
-        )
+              title: "Delete audio",
+              description: "Are you sure you want to delete this audio file? This action cannot be undone.",
+              confirmLabel: "Delete",
+              cancelLabel: "Cancel",
+              onConfirm: handleFileDelete
+            }
+          ) })
+        ] })
       ] })
     }
   );
@@ -579,6 +725,8 @@ function SingleAudioUploader({
 export {
   AudioPlayback,
   AudioPlaybackWithBlob,
+  GlobalPlayerProvider,
+  useGlobalPlayer,
   SingleAudioUploader
 };
-//# sourceMappingURL=chunk-VI2VG3YD.mjs.map
+//# sourceMappingURL=chunk-JOSLAEPC.mjs.map

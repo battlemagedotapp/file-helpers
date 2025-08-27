@@ -51,11 +51,10 @@ export function AudioForm() {
           ]}
           successMessage="Audio file uploaded successfully!"
           errorMessage="Failed to upload audio file"
-          compact={true}
         />
 
         <AudioPlayback
-          trackName="Track name asdfasd fj;ldsjf;ld sajf;ladsjflkasj"
+          trackName="Track name"
           src={{
             mode: 'url',
             url: 'https://cdn.pixabay.com/audio/2025/05/17/audio_3882df0036.mp3',

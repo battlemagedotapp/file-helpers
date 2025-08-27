@@ -1,8 +1,9 @@
 import { AudioPlaybackWithBlob } from '@/audio/playback/AudioPlaybackWithBlob'
+import { useGlobalPlayer } from '@/audio/playback/useGlobalPlayer'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SingleFileUploaderHeadless } from '@battlemagedotapp/convex-upload-helpers'
-import { LoaderCircle, Music, Trash } from 'lucide-react'
+import { ExternalLink, LoaderCircle, Music, Trash } from 'lucide-react'
 import ConfirmAlertDialog from '../ConfirmAlertDialog'
 
 type SingleAudioUploaderProps = {
@@ -14,7 +15,6 @@ type SingleAudioUploaderProps = {
   successMessage?: string
   errorMessage?: string
   className?: string
-  compact?: boolean
   externalAudioUrlFn?: (url: string) => string
   closePlayer?: () => void
 }
@@ -28,10 +28,10 @@ export function SingleAudioUploader({
   successMessage = 'Audio file uploaded successfully!',
   errorMessage = 'Failed to upload audio file',
   className,
-  compact = false,
   externalAudioUrlFn,
   closePlayer,
 }: SingleAudioUploaderProps) {
+  const { addToGlobalPlayer } = useGlobalPlayer()
   return (
     <SingleFileUploaderHeadless
       file={file}
@@ -62,16 +62,24 @@ export function SingleAudioUploader({
           )}
 
           {file && (
-            <div
-              className="relative p-4 w-full"
-              style={{ minWidth: compact ? '332px' : '432px', flexShrink: 0 }}
-            >
+            <div className="relative p-4 w-full min-w-[332px] flex flex-col items-center gap-2">
               <AudioPlaybackWithBlob
                 src={file}
                 externalAudioUrlFn={externalAudioUrlFn}
                 closePlayer={closePlayer}
               />
-              <div className="absolute top-0 right-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => addToGlobalPlayer(file, 'Uploaded Audio')}
+                title="Open in global player"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Open in player
+              </Button>
+              <div className="absolute top-0 right-0 flex gap-1">
                 <ConfirmAlertDialog
                   trigger={(props) => (
                     <Button

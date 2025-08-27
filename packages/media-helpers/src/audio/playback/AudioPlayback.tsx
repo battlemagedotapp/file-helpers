@@ -202,7 +202,7 @@ export function AudioPlayback({
     <div
       key={trackId}
       className={cn(
-        'p-4 select-none flex gap-2 sm:flex-row flex-col min-w-[250px]',
+        'p-4 pt-2 sm:pt-4 select-none flex gap-2 sm:flex-row flex-col min-w-[250px]',
         className,
       )}
     >

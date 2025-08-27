@@ -1,3 +1,4 @@
+import { GlobalPlayerProvider } from '@battlemagedotapp/media-helpers'
 import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import { ThemeProvider } from 'react-theme-hook'
 import FileUploadHookProvider from './FileUploadHookProvider'
@@ -21,8 +22,14 @@ export default function AppProvider({
       <ConvexProvider client={convex}>
         <FileUploadHookProvider>
           <ImageViewLibProvider>
-            {children}
-            <ToastProvider />
+            <GlobalPlayerProvider
+              externalAudioUrlFn={(storageId) => {
+                return `${import.meta.env.VITE_CONVEX_SITE_URL}/getAudio?storageId=${storageId}`
+              }}
+            >
+              {children}
+              <ToastProvider />
+            </GlobalPlayerProvider>
           </ImageViewLibProvider>
         </FileUploadHookProvider>
       </ConvexProvider>

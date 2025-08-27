@@ -1,2 +1,3 @@
-export { AudioPlayback, AudioPlaybackWithBlob, SingleAudioUploader } from './audio/index.mjs';
+export { AudioPlayback, AudioPlaybackWithBlob, GlobalPlayerProvider, SingleAudioUploader, useGlobalPlayer } from './audio/index.mjs';
 import 'react/jsx-runtime';
+import 'react';
