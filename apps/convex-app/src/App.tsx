@@ -1,4 +1,3 @@
-import {} from '@battlemagedotapp/convex-upload-helpers'
 import { AudioForm } from './components/AudioForm'
 import { ImageForm } from './components/ImageForm'
 import { ModeToggleComponent } from './components/ModeToggleComponent'
@@ -6,6 +5,7 @@ import { ModeToggleComponent } from './components/ModeToggleComponent'
 function App() {
   return (
     <div className="flex flex-col gap-6 p-6">
+      <div className="h-24"></div>
       <ModeToggleComponent />
       <ImageForm />
       <AudioForm />

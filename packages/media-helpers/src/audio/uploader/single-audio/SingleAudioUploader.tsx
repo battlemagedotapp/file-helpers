@@ -1,4 +1,4 @@
-import { WaveSurferAudioPlayer } from '@/audio/play/WaveSurferAudioPlayer'
+import { AudioPlaybackWithBlob } from '@/audio/playback/AudioPlaybackWithBlob'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SingleFileUploaderHeadless } from '@battlemagedotapp/convex-upload-helpers'
@@ -14,7 +14,6 @@ type SingleAudioUploaderProps = {
   successMessage?: string
   errorMessage?: string
   className?: string
-  audioClassName?: string
   compact?: boolean
 }
 
@@ -27,7 +26,6 @@ export function SingleAudioUploader({
   successMessage = 'Audio file uploaded successfully!',
   errorMessage = 'Failed to upload audio file',
   className,
-  audioClassName,
   compact = false,
 }: SingleAudioUploaderProps) {
   return (
@@ -64,11 +62,7 @@ export function SingleAudioUploader({
               className="relative p-4 w-full"
               style={{ minWidth: compact ? '332px' : '432px', flexShrink: 0 }}
             >
-              <WaveSurferAudioPlayer
-                src={file}
-                className={cn('w-full', audioClassName)}
-                compact={compact}
-              />
+              <AudioPlaybackWithBlob src={file} />
               <div className="absolute top-0 right-0">
                 <ConfirmAlertDialog
                   trigger={(props) => (

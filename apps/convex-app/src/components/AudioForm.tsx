@@ -1,4 +1,7 @@
-import { SingleAudioUploader } from '@battlemagedotapp/media-helpers/audio'
+import {
+  AudioPlayback,
+  SingleAudioUploader,
+} from '@battlemagedotapp/media-helpers/audio'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -8,7 +11,6 @@ import { Form } from './ui/form'
 
 const formSchema = z.object({
   audioA: z.string().min(1, 'Please select an audio file'),
-  audioB: z.string().min(1, 'Please select an audio file'),
 })
 
 export function AudioForm() {
@@ -16,7 +18,6 @@ export function AudioForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       audioA: '',
-      audioB: '',
     },
   })
 
@@ -29,7 +30,6 @@ export function AudioForm() {
   }
 
   const audioA = form.watch('audioA')
-  const audioB = form.watch('audioB')
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,11 +51,18 @@ export function AudioForm() {
           compact={true}
         />
 
+        <AudioPlayback
+          src={{
+            mode: 'url',
+            url: 'https://cdn.pixabay.com/audio/2025/05/17/audio_3882df0036.mp3',
+          }}
+        />
+
         <div className="flex justify-center mt-6">
           <Button
             className="w-fit"
             onClick={form.handleSubmit(handleFormSubmit)}
-            disabled={!audioA || !audioB}
+            disabled={!audioA}
           >
             Submit Audio Files
           </Button>
