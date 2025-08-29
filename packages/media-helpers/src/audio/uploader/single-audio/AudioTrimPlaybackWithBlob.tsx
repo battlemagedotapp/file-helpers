@@ -179,26 +179,29 @@ export function AudioTrimPlaybackWithBlob({
   }, [audioBlobUrl])
 
   useEffect(() => {
-    setIsLoading(true)
-    setError(null)
-    setOriginalAudioBuffer(null)
-    if (audioBlobUrl) {
-      URL.revokeObjectURL(audioBlobUrl)
+    // Only load audio if we don't have an original audio buffer yet
+    // This prevents reloading the original audio after trimming
+    if (!originalAudioBuffer) {
+      setIsLoading(true)
+      setError(null)
+      if (audioBlobUrl) {
+        URL.revokeObjectURL(audioBlobUrl)
+      }
+      loadAudio(srcUrl)
+        .then((result) => {
+          setAudioBlobUrl(result.blobUrl)
+          setAudioBlob(result.blob)
+          setOriginalAudioBuffer(result.audioBuffer)
+        })
+        .catch((err) => {
+          setError(err)
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
     }
-    loadAudio(srcUrl)
-      .then((result) => {
-        setAudioBlobUrl(result.blobUrl)
-        setAudioBlob(result.blob)
-        setOriginalAudioBuffer(result.audioBuffer)
-      })
-      .catch((err) => {
-        setError(err)
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [srcUrl])
+  }, [srcUrl, originalAudioBuffer])
 
   if (isLoading) {
     return (

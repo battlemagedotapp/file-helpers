@@ -1060,22 +1060,23 @@ function AudioTrimPlaybackWithBlob({
     };
   }, [audioBlobUrl]);
   useEffect5(() => {
-    setIsLoading(true);
-    setError(null);
-    setOriginalAudioBuffer(null);
-    if (audioBlobUrl) {
-      URL.revokeObjectURL(audioBlobUrl);
+    if (!originalAudioBuffer) {
+      setIsLoading(true);
+      setError(null);
+      if (audioBlobUrl) {
+        URL.revokeObjectURL(audioBlobUrl);
+      }
+      loadAudio2(srcUrl).then((result) => {
+        setAudioBlobUrl(result.blobUrl);
+        setAudioBlob(result.blob);
+        setOriginalAudioBuffer(result.audioBuffer);
+      }).catch((err) => {
+        setError(err);
+      }).finally(() => {
+        setIsLoading(false);
+      });
     }
-    loadAudio2(srcUrl).then((result) => {
-      setAudioBlobUrl(result.blobUrl);
-      setAudioBlob(result.blob);
-      setOriginalAudioBuffer(result.audioBuffer);
-    }).catch((err) => {
-      setError(err);
-    }).finally(() => {
-      setIsLoading(false);
-    });
-  }, [srcUrl]);
+  }, [srcUrl, originalAudioBuffer]);
   if (isLoading) {
     return /* @__PURE__ */ jsx8("div", { className: "flex flex-row justify-center", children: /* @__PURE__ */ jsx8(Ellipsis2, { className: "h-4 w-4 animate-pulse" }) });
   }

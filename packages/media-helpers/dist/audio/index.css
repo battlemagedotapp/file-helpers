@@ -314,12 +314,6 @@
       max-width: 96rem;
     }
   }
-  .mt-4 {
-    margin-top: calc(var(--spacing) * 4);
-  }
-  .mb-2 {
-    margin-bottom: calc(var(--spacing) * 2);
-  }
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
