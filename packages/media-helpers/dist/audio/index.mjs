@@ -640,7 +640,7 @@ function useGlobalPlayer() {
   return context;
 }
 
-// src/audio/uploader/single-audio/CropTestComponent.tsx
+// src/audio/uploader/single-audio/AudioTrimPlayback.tsx
 import { Crop, Pause as Pause2, Play as Play2, Volume2 as Volume22, VolumeX as VolumeX2, X, ZoomIn } from "lucide-react";
 import { useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
 import WaveSurfer5 from "wavesurfer.js";
@@ -648,7 +648,7 @@ import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
 import { Fragment, jsx as jsx7, jsxs as jsxs5 } from "react/jsx-runtime";
 var regions = RegionsPlugin.create();
-function CropTestComponent({
+function AudioTrimPlayback({
   src,
   className,
   onTrim
@@ -941,7 +941,7 @@ function SetZoom({
   ] });
 }
 
-// src/audio/uploader/single-audio/CropTestComponentWithBlob.tsx
+// src/audio/uploader/single-audio/AudioTrimPlaybackWithBlob.tsx
 import { Ellipsis as Ellipsis2 } from "lucide-react";
 import { useEffect as useEffect5, useMemo as useMemo3, useState as useState5 } from "react";
 import { jsx as jsx8, jsxs as jsxs6 } from "react/jsx-runtime";
@@ -998,7 +998,7 @@ function audioBufferToBlob(audioBuffer) {
   }
   return new Blob([arrayBuffer], { type: "audio/wav" });
 }
-function CropTestComponentWithBlob({
+function AudioTrimPlaybackWithBlob({
   src,
   externalAudioUrlFn
 }) {
@@ -1094,7 +1094,7 @@ function CropTestComponentWithBlob({
   }
   if (audioBlob && audioBlobUrl && originalAudioBuffer) {
     return /* @__PURE__ */ jsx8(
-      CropTestComponent,
+      AudioTrimPlayback,
       {
         src: { mode: "blob", blob: audioBlob },
         onTrim: handleTrim
@@ -1229,8 +1229,8 @@ function SingleAudioUploader({
 export {
   AudioPlayback,
   AudioPlaybackWithBlob,
-  CropTestComponent,
-  CropTestComponentWithBlob,
+  AudioTrimPlayback,
+  AudioTrimPlaybackWithBlob,
   GlobalPlayer,
   GlobalPlayerProvider,
   SingleAudioUploader,

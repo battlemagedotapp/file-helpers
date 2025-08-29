@@ -10,7 +10,7 @@ type AudioSource$1 = {
     mode: 'blob';
     blob: Blob;
 };
-type AudioPlaybackProps$1 = {
+type AudioPlaybackProps = {
     src: AudioSource$1;
     trackId?: string;
     trackName?: string;
@@ -22,9 +22,9 @@ type AudioPlaybackProps$1 = {
     closePlayer?: () => void;
     onWavesurferReady?: (wavesurfer: WaveSurfer) => void;
 };
-declare function AudioPlayback({ src, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, onWavesurferReady, }: AudioPlaybackProps$1): react_jsx_runtime.JSX.Element;
+declare function AudioPlayback({ src, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, onWavesurferReady, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
 
-type AudioPlaybackWithBlobProps$1 = {
+type AudioPlaybackWithBlobProps = {
     src: string;
     externalAudioUrlFn?: (url: string) => string;
     trackId?: string;
@@ -37,7 +37,7 @@ type AudioPlaybackWithBlobProps$1 = {
     closePlayer?: () => void;
     onWavesurferReady?: (wavesurfer: WaveSurfer) => void;
 };
-declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, onWavesurferReady, }: AudioPlaybackWithBlobProps$1): react_jsx_runtime.JSX.Element;
+declare function AudioPlaybackWithBlob({ src, externalAudioUrlFn, trackId, trackName, initialVolume, initialPlaybackRate, initialCurrentTime, initialPlaying, className, closePlayer, onWavesurferReady, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
 
 type GlobalPlayerState = {
     src: string;
@@ -81,7 +81,7 @@ type AudioSource = {
     mode: 'blob';
     blob: Blob;
 };
-type AudioPlaybackProps = {
+type AudioTrimPlaybackProps = {
     src: AudioSource;
     className?: string;
     onTrim?: (regionTimestamps: {
@@ -89,13 +89,13 @@ type AudioPlaybackProps = {
         end: number;
     }) => void;
 };
-declare function CropTestComponent({ src, className, onTrim, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
+declare function AudioTrimPlayback({ src, className, onTrim, }: AudioTrimPlaybackProps): react_jsx_runtime.JSX.Element;
 
-type AudioPlaybackWithBlobProps = {
+type AudioTrimPlaybackWithBlobProps = {
     src: string;
     externalAudioUrlFn?: (url: string) => string;
 };
-declare function CropTestComponentWithBlob({ src, externalAudioUrlFn, }: AudioPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
+declare function AudioTrimPlaybackWithBlob({ src, externalAudioUrlFn, }: AudioTrimPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
 
 type SingleAudioUploaderProps = {
     file?: string | null;
@@ -111,4 +111,4 @@ type SingleAudioUploaderProps = {
 };
 declare function SingleAudioUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, externalAudioUrlFn, closePlayer, }: SingleAudioUploaderProps): react_jsx_runtime.JSX.Element;
 
-export { AudioPlayback, AudioPlaybackWithBlob, CropTestComponent, CropTestComponentWithBlob, GlobalPlayer, GlobalPlayerProvider, SingleAudioUploader, useGlobalPlayer };
+export { AudioPlayback, AudioPlaybackWithBlob, AudioTrimPlayback, AudioTrimPlaybackWithBlob, GlobalPlayer, GlobalPlayerProvider, SingleAudioUploader, useGlobalPlayer };

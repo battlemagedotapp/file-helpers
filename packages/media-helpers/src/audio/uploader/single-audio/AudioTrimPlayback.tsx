@@ -32,17 +32,17 @@ type AudioSource =
       blob: Blob
     }
 
-type AudioPlaybackProps = {
+type AudioTrimPlaybackProps = {
   src: AudioSource
   className?: string
   onTrim?: (regionTimestamps: { start: number; end: number }) => void
 }
 
-export function CropTestComponent({
+export function AudioTrimPlayback({
   src,
   className,
   onTrim,
-}: AudioPlaybackProps) {
+}: AudioTrimPlaybackProps) {
   const timelineRef = useRef<HTMLDivElement | null>(null)
   const timestampsRef = useRef<HTMLDivElement | null>(null)
   const [wavesurferObj, setWavesurferObj] = useState<WaveSurfer>()
@@ -223,24 +223,6 @@ export function CropTestComponent({
     }
   }
 
-  function handleUnselectRegion() {
-    if (wavesurferObj) {
-      // Stop playback before unselecting to prevent state instability
-      if (wavesurferObj.isPlaying()) {
-        wavesurferObj.stop()
-        setPlaying(false)
-      }
-
-      // Clear all regions
-      const regionList = regions.getRegions()
-      const keys = Object.keys(regionList)
-      keys.forEach((key) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(regionList as Record<string, any>)[key].remove()
-      })
-    }
-  }
-
   function handleConfirmTrim() {
     if (!wavesurferObj) return
     const regionList = regions.getRegions()
@@ -296,9 +278,6 @@ export function CropTestComponent({
 
         {!isTrimMode ? (
           <>
-            <Button variant="outline" size="default">
-              Upload
-            </Button>
             <Button variant="default" size="default" onClick={handleTrimMode}>
               <Crop className="h-4 w-4" /> Trim
             </Button>
@@ -307,13 +286,6 @@ export function CropTestComponent({
           <>
             <Button variant="outline" size="default" onClick={handleCancelTrim}>
               <X className="h-4 w-4" /> Cancel
-            </Button>
-            <Button
-              variant="outline"
-              size="default"
-              onClick={handleUnselectRegion}
-            >
-              Unselect
             </Button>
             <Button
               variant="default"

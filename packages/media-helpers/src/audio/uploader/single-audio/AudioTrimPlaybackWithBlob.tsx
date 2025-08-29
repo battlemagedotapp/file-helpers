@@ -1,8 +1,8 @@
 import { Ellipsis } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { CropTestComponent } from './CropTestComponent'
+import { AudioTrimPlayback } from './AudioTrimPlayback'
 
-type AudioPlaybackWithBlobProps = {
+type AudioTrimPlaybackWithBlobProps = {
   src: string
   externalAudioUrlFn?: (url: string) => string
 }
@@ -75,10 +75,10 @@ function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
   return new Blob([arrayBuffer], { type: 'audio/wav' })
 }
 
-export function CropTestComponentWithBlob({
+export function AudioTrimPlaybackWithBlob({
   src,
   externalAudioUrlFn,
-}: AudioPlaybackWithBlobProps) {
+}: AudioTrimPlaybackWithBlobProps) {
   const [audioVersion, setAudioVersion] = useState(0)
   const [originalAudioBuffer, setOriginalAudioBuffer] =
     useState<AudioBuffer | null>(null)
@@ -202,7 +202,7 @@ export function CropTestComponentWithBlob({
 
   if (audioBlob && audioBlobUrl && originalAudioBuffer) {
     return (
-      <CropTestComponent
+      <AudioTrimPlayback
         key={audioVersion}
         src={{ mode: 'blob', blob: audioBlob }}
         onTrim={handleTrim}
