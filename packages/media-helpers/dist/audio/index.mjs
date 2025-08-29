@@ -641,21 +641,12 @@ function useGlobalPlayer() {
 }
 
 // src/audio/uploader/single-audio/CropTestComponent.tsx
-import {
-  Crop,
-  Pause as Pause2,
-  Play as Play2,
-  RotateCcw,
-  Volume2 as Volume22,
-  VolumeX as VolumeX2,
-  ZoomIn,
-  ZoomOut
-} from "lucide-react";
+import { Crop, Pause as Pause2, Play as Play2, Volume2 as Volume22, VolumeX as VolumeX2, X, ZoomIn } from "lucide-react";
 import { useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
 import WaveSurfer5 from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
-import { jsx as jsx7, jsxs as jsxs5 } from "react/jsx-runtime";
+import { Fragment, jsx as jsx7, jsxs as jsxs5 } from "react/jsx-runtime";
 var regions = RegionsPlugin.create();
 function CropTestComponent({
   src,
@@ -668,13 +659,13 @@ function CropTestComponent({
   const [volume, setVolume] = useState4(1);
   const [playing, setPlaying] = useState4(false);
   const [zoom, setZoom] = useState4(1);
-  const [duration, setDuration] = useState4(0);
+  const [isTrimMode, setIsTrimMode] = useState4(false);
   useEffect4(() => {
     setPlaying(false);
-    setDuration(0);
     setVolume(1);
     setZoom(1);
     setWavesurferObj(void 0);
+    setIsTrimMode(false);
   }, [src]);
   useEffect4(() => {
     if (timelineRef.current && timestampsRef.current && !wavesurferObj) {
@@ -715,8 +706,9 @@ function CropTestComponent({
   useEffect4(() => {
     if (wavesurferObj) {
       const handleReady = () => {
-        regions.enableDragSelection({});
-        setDuration(Math.floor(wavesurferObj.getDuration()));
+        if (isTrimMode) {
+          regions.enableDragSelection({});
+        }
       };
       const handlePlay = () => {
         setPlaying(true);
@@ -753,16 +745,7 @@ function CropTestComponent({
         setWavesurferObj(void 0);
       };
     }
-  }, [wavesurferObj]);
-  useEffect4(() => {
-    if (duration && wavesurferObj) {
-      regions.addRegion({
-        start: Math.floor(duration / 2) - Math.floor(duration) / 5,
-        end: Math.floor(duration / 2),
-        color: "hsla(265, 100%, 86%, 0.4)"
-      });
-    }
-  }, [duration, wavesurferObj]);
+  }, [wavesurferObj, isTrimMode]);
   useEffect4(() => {
     return () => {
       if (wavesurferObj) {
@@ -773,21 +756,15 @@ function CropTestComponent({
         setWavesurferObj(void 0);
       }
       setPlaying(false);
-      setDuration(0);
       setVolume(1);
       setZoom(1);
+      setIsTrimMode(false);
     };
   }, []);
   function handlePlayPause() {
     if (!wavesurferObj) return;
     wavesurferObj.playPause();
     setPlaying(!playing);
-  }
-  function handleReload() {
-    if (!wavesurferObj) return;
-    wavesurferObj.stop();
-    wavesurferObj.play();
-    setPlaying(true);
   }
   function handleVolumeSlider(value) {
     if (!wavesurferObj) return;
@@ -799,7 +776,46 @@ function CropTestComponent({
     wavesurferObj.zoom(value[0]);
     setZoom(value[0]);
   }
-  function handleTrim() {
+  function handleTrimMode() {
+    setIsTrimMode(true);
+    if (wavesurferObj) {
+      if (wavesurferObj.isPlaying()) {
+        wavesurferObj.stop();
+        setPlaying(false);
+      }
+      regions.enableDragSelection({});
+    }
+  }
+  function handleCancelTrim() {
+    setIsTrimMode(false);
+    if (wavesurferObj) {
+      if (wavesurferObj.isPlaying()) {
+        wavesurferObj.stop();
+        setPlaying(false);
+      }
+      const regionList = regions.getRegions();
+      const keys = Object.keys(regionList);
+      keys.forEach((key) => {
+        ;
+        regionList[key].remove();
+      });
+    }
+  }
+  function handleUnselectRegion() {
+    if (wavesurferObj) {
+      if (wavesurferObj.isPlaying()) {
+        wavesurferObj.stop();
+        setPlaying(false);
+      }
+      const regionList = regions.getRegions();
+      const keys = Object.keys(regionList);
+      keys.forEach((key) => {
+        ;
+        regionList[key].remove();
+      });
+    }
+  }
+  function handleConfirmTrim() {
     if (!wavesurferObj) return;
     const regionList = regions.getRegions();
     const regionKeys = Object.keys(regionList);
@@ -817,16 +833,22 @@ function CropTestComponent({
         end: region.end
       });
     }
+    setIsTrimMode(false);
   }
   return /* @__PURE__ */ jsxs5(
     "div",
     {
       className: cn(
-        "p-4 pt-2 sm:pt-4 w-full select-none flex gap-2 sm:flex-row flex-col min-w-[250px]",
+        "p-4 pt-2 sm:pt-4 w-full select-none flex gap-2 flex-col min-w-[250px]",
         className
       ),
       children: [
+        /* @__PURE__ */ jsxs5("div", { className: "gap-2 flex flex-col w-full justify-center items-center text-sm text-muted-foreground", children: [
+          /* @__PURE__ */ jsx7("div", { ref: timelineRef, className: "w-full" }),
+          /* @__PURE__ */ jsx7("div", { ref: timestampsRef, className: "w-full" })
+        ] }),
         /* @__PURE__ */ jsxs5("div", { className: "flex items-center justify-center space-x-2", children: [
+          /* @__PURE__ */ jsx7(Button, { variant: "secondary", size: "icon", onClick: handlePlayPause, children: playing ? /* @__PURE__ */ jsx7(Pause2, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx7(Play2, { className: "h-6 w-6" }) }),
           /* @__PURE__ */ jsx7(
             VolumeControl2,
             {
@@ -834,32 +856,40 @@ function CropTestComponent({
               handleVolumeSlider
             }
           ),
-          /* @__PURE__ */ jsx7(
-            Button,
-            {
-              variant: "outline",
-              size: "icon",
-              onClick: () => setZoom(zoom - 0.1),
-              children: /* @__PURE__ */ jsx7(ZoomOut, { className: "h-4 w-4" })
-            }
-          ),
-          /* @__PURE__ */ jsx7(Button, { variant: "default", size: "icon", onClick: handlePlayPause, children: playing ? /* @__PURE__ */ jsx7(Pause2, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx7(Play2, { className: "h-6 w-6" }) }),
-          /* @__PURE__ */ jsx7(
-            Button,
-            {
-              variant: "outline",
-              size: "icon",
-              onClick: () => setZoom(zoom + 0.1),
-              children: /* @__PURE__ */ jsx7(ZoomIn, { className: "h-4 w-4" })
-            }
-          ),
           /* @__PURE__ */ jsx7(SetZoom, { zoom, handleZoomChange: handleZoomSlider }),
-          /* @__PURE__ */ jsx7(Button, { variant: "default", size: "icon", onClick: handleReload, children: /* @__PURE__ */ jsx7(RotateCcw, { className: "h-4 w-4" }) }),
-          /* @__PURE__ */ jsx7(Button, { variant: "default", size: "icon", onClick: handleTrim, children: /* @__PURE__ */ jsx7(Crop, { className: "h-4 w-4" }) })
-        ] }),
-        /* @__PURE__ */ jsxs5("div", { className: "gap-2 flex flex-col w-full justify-center items-center text-sm text-muted-foreground", children: [
-          /* @__PURE__ */ jsx7("div", { ref: timelineRef, className: "w-full" }),
-          /* @__PURE__ */ jsx7("div", { ref: timestampsRef, className: "w-full" })
+          !isTrimMode ? /* @__PURE__ */ jsxs5(Fragment, { children: [
+            /* @__PURE__ */ jsx7(Button, { variant: "outline", size: "default", children: "Upload" }),
+            /* @__PURE__ */ jsxs5(Button, { variant: "default", size: "default", onClick: handleTrimMode, children: [
+              /* @__PURE__ */ jsx7(Crop, { className: "h-4 w-4" }),
+              " Trim"
+            ] })
+          ] }) : /* @__PURE__ */ jsxs5(Fragment, { children: [
+            /* @__PURE__ */ jsxs5(Button, { variant: "outline", size: "default", onClick: handleCancelTrim, children: [
+              /* @__PURE__ */ jsx7(X, { className: "h-4 w-4" }),
+              " Cancel"
+            ] }),
+            /* @__PURE__ */ jsx7(
+              Button,
+              {
+                variant: "outline",
+                size: "default",
+                onClick: handleUnselectRegion,
+                children: "Unselect"
+              }
+            ),
+            /* @__PURE__ */ jsxs5(
+              Button,
+              {
+                variant: "default",
+                size: "default",
+                onClick: handleConfirmTrim,
+                children: [
+                  /* @__PURE__ */ jsx7(Crop, { className: "h-4 w-4" }),
+                  " Confirm Trim"
+                ]
+              }
+            )
+          ] })
         ] })
       ]
     }
@@ -892,7 +922,7 @@ function SetZoom({
   handleZoomChange
 }) {
   return /* @__PURE__ */ jsxs5(Popover, { children: [
-    /* @__PURE__ */ jsx7(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx7(Button, { variant: "outline", size: "icon", children: /* @__PURE__ */ jsx7(ZoomOut, { className: "h-4 w-4" }) }) }),
+    /* @__PURE__ */ jsx7(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx7(Button, { variant: "outline", size: "icon", children: /* @__PURE__ */ jsx7(ZoomIn, { className: "h-4 w-4" }) }) }),
     /* @__PURE__ */ jsx7(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs5("div", { className: "space-y-4", children: [
       /* @__PURE__ */ jsx7("span", { className: "text-sm font-medium", children: "Zoom" }),
       /* @__PURE__ */ jsx7(

@@ -6,16 +6,7 @@ import {
 } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
-import {
-  Crop,
-  Pause,
-  Play,
-  RotateCcw,
-  Volume2,
-  VolumeX,
-  ZoomIn,
-  ZoomOut,
-} from 'lucide-react'
+import { Crop, Pause, Play, Volume2, VolumeX, X, ZoomIn } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
@@ -58,15 +49,16 @@ export function CropTestComponent({
   const [volume, setVolume] = useState<number>(1)
   const [playing, setPlaying] = useState(false)
   const [zoom, setZoom] = useState(1)
-  const [duration, setDuration] = useState<number>(0)
+
+  const [isTrimMode, setIsTrimMode] = useState(false)
 
   // Reset state when src changes (component remounts)
   useEffect(() => {
     setPlaying(false)
-    setDuration(0)
     setVolume(1)
     setZoom(1)
     setWavesurferObj(undefined)
+    setIsTrimMode(false)
   }, [src])
 
   useEffect(() => {
@@ -112,8 +104,9 @@ export function CropTestComponent({
   useEffect(() => {
     if (wavesurferObj) {
       const handleReady = () => {
-        regions.enableDragSelection({})
-        setDuration(Math.floor(wavesurferObj.getDuration()))
+        if (isTrimMode) {
+          regions.enableDragSelection({})
+        }
       }
 
       const handlePlay = () => {
@@ -161,17 +154,7 @@ export function CropTestComponent({
         setWavesurferObj(undefined)
       }
     }
-  }, [wavesurferObj])
-
-  useEffect(() => {
-    if (duration && wavesurferObj) {
-      regions.addRegion({
-        start: Math.floor(duration / 2) - Math.floor(duration) / 5,
-        end: Math.floor(duration / 2),
-        color: 'hsla(265, 100%, 86%, 0.4)',
-      })
-    }
-  }, [duration, wavesurferObj])
+  }, [wavesurferObj, isTrimMode])
 
   // Cleanup effect when component unmounts (important for remounting)
   useEffect(() => {
@@ -184,9 +167,9 @@ export function CropTestComponent({
         setWavesurferObj(undefined)
       }
       setPlaying(false)
-      setDuration(0)
       setVolume(1)
       setZoom(1)
+      setIsTrimMode(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Empty dependency array means this runs on unmount
@@ -195,13 +178,6 @@ export function CropTestComponent({
     if (!wavesurferObj) return
     wavesurferObj.playPause()
     setPlaying(!playing)
-  }
-
-  function handleReload() {
-    if (!wavesurferObj) return
-    wavesurferObj.stop()
-    wavesurferObj.play()
-    setPlaying(true)
   }
 
   function handleVolumeSlider(value: number[]) {
@@ -216,7 +192,56 @@ export function CropTestComponent({
     setZoom(value[0])
   }
 
-  function handleTrim() {
+  function handleTrimMode() {
+    setIsTrimMode(true)
+    if (wavesurferObj) {
+      // Stop playback before entering trim mode to prevent state instability
+      if (wavesurferObj.isPlaying()) {
+        wavesurferObj.stop()
+        setPlaying(false)
+      }
+      regions.enableDragSelection({})
+    }
+  }
+
+  function handleCancelTrim() {
+    setIsTrimMode(false)
+    if (wavesurferObj) {
+      // Stop playback before canceling to prevent state instability
+      if (wavesurferObj.isPlaying()) {
+        wavesurferObj.stop()
+        setPlaying(false)
+      }
+
+      // Clear all regions
+      const regionList = regions.getRegions()
+      const keys = Object.keys(regionList)
+      keys.forEach((key) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(regionList as Record<string, any>)[key].remove()
+      })
+    }
+  }
+
+  function handleUnselectRegion() {
+    if (wavesurferObj) {
+      // Stop playback before unselecting to prevent state instability
+      if (wavesurferObj.isPlaying()) {
+        wavesurferObj.stop()
+        setPlaying(false)
+      }
+
+      // Clear all regions
+      const regionList = regions.getRegions()
+      const keys = Object.keys(regionList)
+      keys.forEach((key) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(regionList as Record<string, any>)[key].remove()
+      })
+    }
+  }
+
+  function handleConfirmTrim() {
     if (!wavesurferObj) return
     const regionList = regions.getRegions()
     const regionKeys = Object.keys(regionList)
@@ -239,57 +264,66 @@ export function CropTestComponent({
         end: region.end,
       })
     }
+
+    // Exit trim mode after confirming
+    setIsTrimMode(false)
   }
 
   return (
     <div
       className={cn(
-        'p-4 pt-2 sm:pt-4 w-full select-none flex gap-2 sm:flex-row flex-col min-w-[250px]',
+        'p-4 pt-2 sm:pt-4 w-full select-none flex gap-2 flex-col min-w-[250px]',
         className,
       )}
     >
+      <div className="gap-2 flex flex-col w-full justify-center items-center text-sm text-muted-foreground">
+        <div ref={timelineRef} className="w-full" />
+        <div ref={timestampsRef} className="w-full" />
+      </div>
       <div className="flex items-center justify-center space-x-2">
-        <VolumeControl
-          volume={volume}
-          handleVolumeSlider={handleVolumeSlider}
-        />
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setZoom(zoom - 0.1)}
-        >
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-
-        <Button variant="default" size="icon" onClick={handlePlayPause}>
+        <Button variant="secondary" size="icon" onClick={handlePlayPause}>
           {playing ? (
             <Pause className="h-6 w-6" />
           ) : (
             <Play className="h-6 w-6" />
           )}
         </Button>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setZoom(zoom + 0.1)}
-        >
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-
+        <VolumeControl
+          volume={volume}
+          handleVolumeSlider={handleVolumeSlider}
+        />
         <SetZoom zoom={zoom} handleZoomChange={handleZoomSlider} />
-        <Button variant="default" size="icon" onClick={handleReload}>
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-        <Button variant="default" size="icon" onClick={handleTrim}>
-          <Crop className="h-4 w-4" />
-        </Button>
-      </div>
 
-      <div className="gap-2 flex flex-col w-full justify-center items-center text-sm text-muted-foreground">
-        <div ref={timelineRef} className="w-full" />
-        <div ref={timestampsRef} className="w-full" />
+        {!isTrimMode ? (
+          <>
+            <Button variant="outline" size="default">
+              Upload
+            </Button>
+            <Button variant="default" size="default" onClick={handleTrimMode}>
+              <Crop className="h-4 w-4" /> Trim
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="outline" size="default" onClick={handleCancelTrim}>
+              <X className="h-4 w-4" /> Cancel
+            </Button>
+            <Button
+              variant="outline"
+              size="default"
+              onClick={handleUnselectRegion}
+            >
+              Unselect
+            </Button>
+            <Button
+              variant="default"
+              size="default"
+              onClick={handleConfirmTrim}
+            >
+              <Crop className="h-4 w-4" /> Confirm Trim
+            </Button>
+          </>
+        )}
       </div>
     </div>
   )
@@ -341,7 +375,7 @@ function SetZoom({
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="icon">
-          <ZoomOut className="h-4 w-4" />
+          <ZoomIn className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-fit p-4" align="end">
