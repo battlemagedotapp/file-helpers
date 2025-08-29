@@ -17,6 +17,13 @@ export function CropTestComponentWithBlob({
   src,
   externalAudioUrlFn,
 }: AudioPlaybackWithBlobProps) {
+  const handleTrim = (trimmedBlob: Blob) => {
+    // Update the state with the trimmed blob to remount the player
+    setAudioBlob(trimmedBlob)
+    setAudioBlobUrl(URL.createObjectURL(trimmedBlob))
+    setIsLoading(false)
+    setError(null)
+  }
   const srcUrl = useMemo(
     () => (externalAudioUrlFn ? externalAudioUrlFn(src) : src),
     [externalAudioUrlFn, src],
@@ -67,7 +74,12 @@ export function CropTestComponentWithBlob({
   }
 
   if (audioBlob && audioBlobUrl) {
-    return <CropTestComponent src={{ mode: 'blob', blob: audioBlob }} />
+    return (
+      <CropTestComponent
+        src={{ mode: 'blob', blob: audioBlob }}
+        onTrim={handleTrim}
+      />
+    )
   }
   return <div>No audio source found</div>
 }

@@ -21,7 +21,64 @@ import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
 
+// Type declaration for webkitAudioContext
+declare global {
+  interface Window {
+    webkitAudioContext?: typeof AudioContext
+  }
+}
+
 const regions = RegionsPlugin.create()
+
+// Utility function to convert AudioBuffer to WAV Blob
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+  const length = buffer.length
+  const numberOfChannels = buffer.numberOfChannels
+  const sampleRate = buffer.sampleRate
+  const bytesPerSample = 2 // 16-bit
+  const blockAlign = numberOfChannels * bytesPerSample
+  const byteRate = sampleRate * blockAlign
+  const dataSize = length * blockAlign
+  const bufferSize = 44 + dataSize
+
+  const arrayBuffer = new ArrayBuffer(bufferSize)
+  const view = new DataView(arrayBuffer)
+
+  // WAV header
+  const writeString = (offset: number, string: string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i))
+    }
+  }
+
+  writeString(0, 'RIFF')
+  view.setUint32(4, bufferSize - 8, true)
+  writeString(8, 'WAVE')
+  writeString(12, 'fmt ')
+  view.setUint32(16, 16, true) // Sub-chunk size
+  view.setUint16(20, 1, true) // Audio format (PCM)
+  view.setUint16(22, numberOfChannels, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, byteRate, true)
+  view.setUint16(32, blockAlign, true)
+  view.setUint16(34, 16, true) // Bits per sample
+  writeString(36, 'data')
+  view.setUint32(40, dataSize, true)
+
+  // Write audio data
+  let offset = 44
+  for (let i = 0; i < length; i++) {
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const channelData = buffer.getChannelData(channel)
+      let sample = Math.max(-1, Math.min(1, channelData[i])) // Clamp to [-1, 1]
+      sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff // Convert to 16-bit
+      view.setInt16(offset, sample, true)
+      offset += 2
+    }
+  }
+
+  return new Blob([arrayBuffer], { type: 'audio/wav' })
+}
 
 type AudioSource =
   | {
@@ -37,9 +94,14 @@ type AudioSource =
 type AudioPlaybackProps = {
   src: AudioSource
   className?: string
+  onTrim?: (trimmedBlob: Blob) => void
 }
 
-export function CropTestComponent({ src, className }: AudioPlaybackProps) {
+export function CropTestComponent({
+  src,
+  className,
+  onTrim,
+}: AudioPlaybackProps) {
   const timelineRef = useRef<HTMLDivElement | null>(null)
   const timestampsRef = useRef<HTMLDivElement | null>(null)
   const [wavesurferObj, setWavesurferObj] = useState<WaveSurfer>()
@@ -103,11 +165,27 @@ export function CropTestComponent({ src, className }: AudioPlaybackProps) {
         setPlaying(false)
       }
 
+      regions.on('region-created', () => {
+        const regionList = regions.getRegions()
+        const keys = Object.keys(regionList)
+        // Remove all regions except the last one (most recently created)
+        while (keys.length > 1) {
+          const firstKey = keys[0]
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ;(regionList as Record<string, any>)[firstKey].remove()
+          keys.shift()
+        }
+      })
+
       regions.on('region-updated', () => {
         const regionList = regions.getRegions()
         const keys = Object.keys(regionList)
-        if (keys.length > 1) {
-          regionList[0].remove()
+        // Remove all regions except the last one (most recently updated)
+        while (keys.length > 1) {
+          const firstKey = keys[0]
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ;(regionList as Record<string, any>)[firstKey].remove()
+          keys.shift()
         }
       })
 
@@ -159,7 +237,12 @@ export function CropTestComponent({ src, className }: AudioPlaybackProps) {
 
   function handleTrim() {
     if (!wavesurferObj) return
-    const region = regions.getRegions()[0]
+    const regionList = regions.getRegions()
+    const regionKeys = Object.keys(regionList)
+    if (regionKeys.length === 0) return
+    const firstKey = regionKeys[0]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const region = (regionList as Record<string, any>)[firstKey]
     if (!region) return
 
     const original_buffer = wavesurferObj.getDecodedData()
@@ -181,7 +264,7 @@ export function CropTestComponent({ src, className }: AudioPlaybackProps) {
     const end = region.end
     const sampleRate = original_buffer.sampleRate
 
-    // Calculate indices for trimming and clamp them to valid ranges
+    // Calculate indices for the selected region
     const startIndex = Math.max(
       0,
       Math.min(original_buffer.length, Math.floor(start * sampleRate)),
@@ -196,44 +279,48 @@ export function CropTestComponent({ src, className }: AudioPlaybackProps) {
       return
     }
 
-    // Calculate new buffer length (removing the trimmed section)
-    const newLength = original_buffer.length - (endIndex - startIndex)
+    // Calculate new buffer length (keeping only the selected region)
+    const newLength = endIndex - startIndex
     const newDuration = newLength / sampleRate
 
-    // Create arrays for the trimmed audio
+    // Create arrays for the trimmed audio (keeping only selected region)
     const trimmedChannel1 = new Float32Array(newLength)
     const trimmedChannel2 =
       numberOfChannels > 1 ? new Float32Array(newLength) : null
 
-    // Copy data before the trim region (safe copy with known lengths)
-    const beforeLength = startIndex
-    if (beforeLength > 0) {
-      trimmedChannel1.set(channel1.subarray(0, startIndex), 0)
-      if (channel2 && trimmedChannel2) {
-        trimmedChannel2.set(channel2.subarray(0, startIndex), 0)
-      }
-    }
-
-    // Copy data after the trim region (copy into position `beforeLength`)
-    const afterLength = original_buffer.length - endIndex
-    if (afterLength > 0) {
-      // Ensure we don't write past the end of trimmed arrays
-      trimmedChannel1.set(
-        channel1.subarray(endIndex, endIndex + afterLength),
-        beforeLength,
-      )
-      if (channel2 && trimmedChannel2) {
-        trimmedChannel2.set(
-          channel2.subarray(endIndex, endIndex + afterLength),
-          beforeLength,
-        )
-      }
+    // Copy only the selected region
+    trimmedChannel1.set(channel1.subarray(startIndex, endIndex))
+    if (channel2 && trimmedChannel2) {
+      trimmedChannel2.set(channel2.subarray(startIndex, endIndex))
     }
 
     // Prepare channel data for createBuffer
     const channelData = [trimmedChannel1]
     if (trimmedChannel2) {
       channelData.push(trimmedChannel2)
+    }
+
+    // Create AudioBuffer from the trimmed channel data
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
+    const audioContext = new AudioContextClass()
+    const trimmedBuffer = audioContext.createBuffer(
+      numberOfChannels,
+      newLength,
+      sampleRate,
+    )
+
+    // Copy channel data to the new buffer
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const channelData = channel === 0 ? trimmedChannel1 : trimmedChannel2
+      if (channelData) {
+        trimmedBuffer.getChannelData(channel).set(channelData)
+      }
+    }
+
+    // Convert to blob and call callback if provided
+    const trimmedBlob = audioBufferToWav(trimmedBuffer)
+    if (onTrim) {
+      onTrim(trimmedBlob)
     }
 
     // Load the trimmed audio back into wavesurfer

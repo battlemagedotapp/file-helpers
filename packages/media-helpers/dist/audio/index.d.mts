@@ -68,6 +68,11 @@ type GlobalPlayerContextType = {
 
 declare function useGlobalPlayer(): GlobalPlayerContextType;
 
+declare global {
+    interface Window {
+        webkitAudioContext?: typeof AudioContext;
+    }
+}
 type AudioSource = {
     mode: 'url';
     url: string;
@@ -79,8 +84,9 @@ type AudioSource = {
 type AudioPlaybackProps = {
     src: AudioSource;
     className?: string;
+    onTrim?: (trimmedBlob: Blob) => void;
 };
-declare function CropTestComponent({ src, className }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
+declare function CropTestComponent({ src, className, onTrim, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
 
 type AudioPlaybackWithBlobProps = {
     src: string;

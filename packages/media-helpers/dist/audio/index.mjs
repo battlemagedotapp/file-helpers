@@ -657,7 +657,52 @@ import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
 import { jsx as jsx7, jsxs as jsxs5 } from "react/jsx-runtime";
 var regions = RegionsPlugin.create();
-function CropTestComponent({ src, className }) {
+function audioBufferToWav(buffer) {
+  const length = buffer.length;
+  const numberOfChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const bytesPerSample = 2;
+  const blockAlign = numberOfChannels * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = length * blockAlign;
+  const bufferSize = 44 + dataSize;
+  const arrayBuffer = new ArrayBuffer(bufferSize);
+  const view = new DataView(arrayBuffer);
+  const writeString = (offset2, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset2 + i, string.charCodeAt(i));
+    }
+  };
+  writeString(0, "RIFF");
+  view.setUint32(4, bufferSize - 8, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numberOfChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, dataSize, true);
+  let offset = 44;
+  for (let i = 0; i < length; i++) {
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      let sample = Math.max(-1, Math.min(1, channelData[i]));
+      sample = sample < 0 ? sample * 32768 : sample * 32767;
+      view.setInt16(offset, sample, true);
+      offset += 2;
+    }
+  }
+  return new Blob([arrayBuffer], { type: "audio/wav" });
+}
+function CropTestComponent({
+  src,
+  className,
+  onTrim
+}) {
   const timelineRef = useRef3(null);
   const timestampsRef = useRef3(null);
   const [wavesurferObj, setWavesurferObj] = useState4();
@@ -713,11 +758,22 @@ function CropTestComponent({ src, className }) {
       const handleFinish = () => {
         setPlaying(false);
       };
+      regions.on("region-created", () => {
+        const regionList = regions.getRegions();
+        const keys = Object.keys(regionList);
+        while (keys.length > 1) {
+          const firstKey = keys[0];
+          regionList[firstKey].remove();
+          keys.shift();
+        }
+      });
       regions.on("region-updated", () => {
         const regionList = regions.getRegions();
         const keys = Object.keys(regionList);
-        if (keys.length > 1) {
-          regionList[0].remove();
+        while (keys.length > 1) {
+          const firstKey = keys[0];
+          regionList[firstKey].remove();
+          keys.shift();
         }
       });
       wavesurferObj.on("ready", handleReady);
@@ -761,7 +817,11 @@ function CropTestComponent({ src, className }) {
   }
   function handleTrim() {
     if (!wavesurferObj) return;
-    const region = regions.getRegions()[0];
+    const regionList = regions.getRegions();
+    const regionKeys = Object.keys(regionList);
+    if (regionKeys.length === 0) return;
+    const firstKey = regionKeys[0];
+    const region = regionList[firstKey];
     if (!region) return;
     const original_buffer = wavesurferObj.getDecodedData();
     if (!original_buffer) {
@@ -787,33 +847,34 @@ function CropTestComponent({ src, className }) {
     if (endIndex <= startIndex) {
       return;
     }
-    const newLength = original_buffer.length - (endIndex - startIndex);
+    const newLength = endIndex - startIndex;
     const newDuration = newLength / sampleRate;
     const trimmedChannel1 = new Float32Array(newLength);
     const trimmedChannel2 = numberOfChannels > 1 ? new Float32Array(newLength) : null;
-    const beforeLength = startIndex;
-    if (beforeLength > 0) {
-      trimmedChannel1.set(channel1.subarray(0, startIndex), 0);
-      if (channel2 && trimmedChannel2) {
-        trimmedChannel2.set(channel2.subarray(0, startIndex), 0);
-      }
-    }
-    const afterLength = original_buffer.length - endIndex;
-    if (afterLength > 0) {
-      trimmedChannel1.set(
-        channel1.subarray(endIndex, endIndex + afterLength),
-        beforeLength
-      );
-      if (channel2 && trimmedChannel2) {
-        trimmedChannel2.set(
-          channel2.subarray(endIndex, endIndex + afterLength),
-          beforeLength
-        );
-      }
+    trimmedChannel1.set(channel1.subarray(startIndex, endIndex));
+    if (channel2 && trimmedChannel2) {
+      trimmedChannel2.set(channel2.subarray(startIndex, endIndex));
     }
     const channelData = [trimmedChannel1];
     if (trimmedChannel2) {
       channelData.push(trimmedChannel2);
+    }
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const audioContext = new AudioContextClass();
+    const trimmedBuffer = audioContext.createBuffer(
+      numberOfChannels,
+      newLength,
+      sampleRate
+    );
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const channelData2 = channel === 0 ? trimmedChannel1 : trimmedChannel2;
+      if (channelData2) {
+        trimmedBuffer.getChannelData(channel).set(channelData2);
+      }
+    }
+    const trimmedBlob = audioBufferToWav(trimmedBuffer);
+    if (onTrim) {
+      onTrim(trimmedBlob);
     }
     wavesurferObj.load("", channelData, newDuration);
   }
@@ -923,6 +984,12 @@ function CropTestComponentWithBlob({
   src,
   externalAudioUrlFn
 }) {
+  const handleTrim = (trimmedBlob) => {
+    setAudioBlob(trimmedBlob);
+    setAudioBlobUrl(URL.createObjectURL(trimmedBlob));
+    setIsLoading(false);
+    setError(null);
+  };
   const srcUrl = useMemo3(
     () => externalAudioUrlFn ? externalAudioUrlFn(src) : src,
     [externalAudioUrlFn, src]
@@ -963,7 +1030,13 @@ function CropTestComponentWithBlob({
     ] });
   }
   if (audioBlob && audioBlobUrl) {
-    return /* @__PURE__ */ jsx8(CropTestComponent, { src: { mode: "blob", blob: audioBlob } });
+    return /* @__PURE__ */ jsx8(
+      CropTestComponent,
+      {
+        src: { mode: "blob", blob: audioBlob },
+        onTrim: handleTrim
+      }
+    );
   }
   return /* @__PURE__ */ jsx8("div", { children: "No audio source found" });
 }
