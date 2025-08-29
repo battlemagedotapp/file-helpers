@@ -31,7 +31,6 @@ type AudioSource =
 
 type AudioPlaybackProps = {
   src: AudioSource
-  externalAudioUrlFn?: (url: string) => string
   trackId?: string
   trackName?: string
   initialVolume?: number
@@ -47,7 +46,6 @@ const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
 export function AudioPlayback({
   src,
-  externalAudioUrlFn,
   trackId,
   trackName,
   initialVolume = 1,
@@ -89,8 +87,8 @@ export function AudioPlayback({
   useEffect(() => {
     if (src && wavesurferObj) {
       if (src.mode === 'url') {
-        if (externalAudioUrlFn) {
-          wavesurferObj.load(externalAudioUrlFn(src.url))
+        if (src.externalAudioUrlFn) {
+          wavesurferObj.load(src.externalAudioUrlFn(src.url))
         } else {
           wavesurferObj.load(src.url)
         }
@@ -98,7 +96,7 @@ export function AudioPlayback({
         wavesurferObj.loadBlob(src.blob)
       }
     }
-  }, [src, wavesurferObj, externalAudioUrlFn])
+  }, [src, wavesurferObj])
 
   useEffect(() => {
     if (wavesurferObj) {
@@ -151,10 +149,6 @@ export function AudioPlayback({
     initialPlaying,
   ])
 
-  useEffect(() => {
-    if (wavesurferObj) wavesurferObj.setVolume(volume)
-  }, [volume, wavesurferObj])
-
   function updatePlaybackState({
     wavesurferObj,
     initialVolume,
@@ -181,27 +175,28 @@ export function AudioPlayback({
   }
 
   function handlePlayPause() {
-    wavesurferObj?.playPause()
+    if (!wavesurferObj) return
+    wavesurferObj.playPause()
     setPlaying(!playing)
   }
 
   function handleVolumeSlider(value: number[]) {
+    if (!wavesurferObj) return
+    wavesurferObj.setVolume(value[0] / 100)
     setVolume(value[0] / 100)
   }
 
   function handleSpeedChange(newSpeed: number) {
-    if (wavesurferObj) {
-      wavesurferObj.setPlaybackRate(newSpeed)
-      setPlaybackRate(newSpeed)
-    }
+    if (!wavesurferObj) return
+    wavesurferObj.setPlaybackRate(newSpeed)
+    setPlaybackRate(newSpeed)
   }
 
   function handleSkip(direction: 'forward' | 'backward') {
-    if (wavesurferObj && duration > 0) {
-      const skipTime = direction === 'forward' ? 10 : -10
-      const newTime = Math.max(0, Math.min(duration, currentTime + skipTime))
-      wavesurferObj.setTime(newTime)
-    }
+    if (!wavesurferObj || duration <= 0) return
+    const skipTime = direction === 'forward' ? 10 : -10
+    const newTime = Math.max(0, Math.min(duration, currentTime + skipTime))
+    wavesurferObj.setTime(newTime)
   }
 
   return (

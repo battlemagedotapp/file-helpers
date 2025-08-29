@@ -125,7 +125,6 @@ import { jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
 var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
 function AudioPlayback({
   src,
-  externalAudioUrlFn,
   trackId,
   trackName,
   initialVolume = 1,
@@ -163,8 +162,8 @@ function AudioPlayback({
   useEffect(() => {
     if (src && wavesurferObj) {
       if (src.mode === "url") {
-        if (externalAudioUrlFn) {
-          wavesurferObj.load(externalAudioUrlFn(src.url));
+        if (src.externalAudioUrlFn) {
+          wavesurferObj.load(src.externalAudioUrlFn(src.url));
         } else {
           wavesurferObj.load(src.url);
         }
@@ -172,7 +171,7 @@ function AudioPlayback({
         wavesurferObj.loadBlob(src.blob);
       }
     }
-  }, [src, wavesurferObj, externalAudioUrlFn]);
+  }, [src, wavesurferObj]);
   useEffect(() => {
     if (wavesurferObj) {
       const handleReady = () => {
@@ -214,9 +213,6 @@ function AudioPlayback({
     initialCurrentTime,
     initialPlaying
   ]);
-  useEffect(() => {
-    if (wavesurferObj) wavesurferObj.setVolume(volume);
-  }, [volume, wavesurferObj]);
   function updatePlaybackState({
     wavesurferObj: wavesurferObj2,
     initialVolume: initialVolume2,
@@ -236,24 +232,25 @@ function AudioPlayback({
     }
   }
   function handlePlayPause() {
-    wavesurferObj?.playPause();
+    if (!wavesurferObj) return;
+    wavesurferObj.playPause();
     setPlaying(!playing);
   }
   function handleVolumeSlider(value) {
+    if (!wavesurferObj) return;
+    wavesurferObj.setVolume(value[0] / 100);
     setVolume(value[0] / 100);
   }
   function handleSpeedChange(newSpeed) {
-    if (wavesurferObj) {
-      wavesurferObj.setPlaybackRate(newSpeed);
-      setPlaybackRate(newSpeed);
-    }
+    if (!wavesurferObj) return;
+    wavesurferObj.setPlaybackRate(newSpeed);
+    setPlaybackRate(newSpeed);
   }
   function handleSkip(direction) {
-    if (wavesurferObj && duration > 0) {
-      const skipTime = direction === "forward" ? 10 : -10;
-      const newTime = Math.max(0, Math.min(duration, currentTime + skipTime));
-      wavesurferObj.setTime(newTime);
-    }
+    if (!wavesurferObj || duration <= 0) return;
+    const skipTime = direction === "forward" ? 10 : -10;
+    const newTime = Math.max(0, Math.min(duration, currentTime + skipTime));
+    wavesurferObj.setTime(newTime);
   }
   return /* @__PURE__ */ jsxs2(
     "div",
@@ -643,13 +640,341 @@ function useGlobalPlayer() {
   return context;
 }
 
+// src/audio/uploader/single-audio/CropTestComponent.tsx
+import {
+  Crop,
+  Pause as Pause2,
+  Play as Play2,
+  RotateCcw,
+  Volume2 as Volume22,
+  VolumeX as VolumeX2,
+  ZoomIn,
+  ZoomOut
+} from "lucide-react";
+import { useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
+import WaveSurfer5 from "wavesurfer.js";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
+import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
+import { jsx as jsx7, jsxs as jsxs5 } from "react/jsx-runtime";
+var regions = RegionsPlugin.create();
+function CropTestComponent({ src, className }) {
+  const timelineRef = useRef3(null);
+  const timestampsRef = useRef3(null);
+  const [wavesurferObj, setWavesurferObj] = useState4();
+  const [volume, setVolume] = useState4(1);
+  const [playing, setPlaying] = useState4(false);
+  const [zoom, setZoom] = useState4(1);
+  const [duration, setDuration] = useState4(0);
+  useEffect4(() => {
+    if (timelineRef.current && timestampsRef.current && !wavesurferObj) {
+      if (timelineRef.current) {
+        timelineRef.current.innerHTML = "";
+      }
+      const ws = WaveSurfer5.create({
+        container: timelineRef.current,
+        cursorColor: "oklch(0.769 0.188 70.08)",
+        waveColor: "oklch(0.708 0 0)",
+        progressColor: "oklch(0.769 0.188 70.08)",
+        height: 32,
+        normalize: true,
+        fillParent: true,
+        plugins: [
+          TimelinePlugin.create({
+            container: timestampsRef.current
+          }),
+          regions
+        ]
+      });
+      setWavesurferObj(ws);
+    }
+  }, [wavesurferObj]);
+  useEffect4(() => {
+    if (src && wavesurferObj) {
+      if (src.mode === "url") {
+        if (src.externalAudioUrlFn) {
+          wavesurferObj.load(src.externalAudioUrlFn(src.url));
+        } else {
+          wavesurferObj.load(src.url);
+        }
+      } else if (src.mode === "blob") {
+        wavesurferObj.loadBlob(src.blob);
+      }
+    }
+  }, [src, wavesurferObj]);
+  useEffect4(() => {
+    if (wavesurferObj) {
+      const handleReady = () => {
+        regions.enableDragSelection({});
+        setDuration(Math.floor(wavesurferObj.getDuration()));
+      };
+      const handlePlay = () => {
+        setPlaying(true);
+      };
+      const handleFinish = () => {
+        setPlaying(false);
+      };
+      regions.on("region-updated", () => {
+        const regionList = regions.getRegions();
+        const keys = Object.keys(regionList);
+        if (keys.length > 1) {
+          regionList[0].remove();
+        }
+      });
+      wavesurferObj.on("ready", handleReady);
+      wavesurferObj.on("play", handlePlay);
+      wavesurferObj.on("finish", handleFinish);
+      return () => {
+        wavesurferObj.destroy();
+        setWavesurferObj(void 0);
+      };
+    }
+  }, [wavesurferObj]);
+  useEffect4(() => {
+    if (duration && wavesurferObj) {
+      regions.addRegion({
+        start: Math.floor(duration / 2) - Math.floor(duration) / 5,
+        end: Math.floor(duration / 2),
+        color: "hsla(265, 100%, 86%, 0.4)"
+      });
+    }
+  }, [duration, wavesurferObj]);
+  function handlePlayPause() {
+    if (!wavesurferObj) return;
+    wavesurferObj.playPause();
+    setPlaying(!playing);
+  }
+  function handleReload() {
+    if (!wavesurferObj) return;
+    wavesurferObj.stop();
+    wavesurferObj.play();
+    setPlaying(true);
+  }
+  function handleVolumeSlider(value) {
+    if (!wavesurferObj) return;
+    wavesurferObj.setVolume(value[0] / 100);
+    setVolume(value[0] / 100);
+  }
+  function handleZoomSlider(value) {
+    if (!wavesurferObj) return;
+    wavesurferObj.zoom(value[0]);
+    setZoom(value[0]);
+  }
+  function handleTrim() {
+    if (!wavesurferObj) return;
+    const region = regions.getRegions()[0];
+    if (!region) return;
+    const original_buffer = wavesurferObj.getDecodedData();
+    if (!original_buffer) {
+      return;
+    }
+    const numberOfChannels = original_buffer.numberOfChannels;
+    const channel1 = original_buffer.getChannelData(0);
+    const channel2 = numberOfChannels > 1 ? original_buffer.getChannelData(1) : null;
+    if (!channel1) {
+      return;
+    }
+    const start = region.start;
+    const end = region.end;
+    const sampleRate = original_buffer.sampleRate;
+    const startIndex = Math.max(
+      0,
+      Math.min(original_buffer.length, Math.floor(start * sampleRate))
+    );
+    const endIndex = Math.max(
+      0,
+      Math.min(original_buffer.length, Math.floor(end * sampleRate))
+    );
+    if (endIndex <= startIndex) {
+      return;
+    }
+    const newLength = original_buffer.length - (endIndex - startIndex);
+    const newDuration = newLength / sampleRate;
+    const trimmedChannel1 = new Float32Array(newLength);
+    const trimmedChannel2 = numberOfChannels > 1 ? new Float32Array(newLength) : null;
+    const beforeLength = startIndex;
+    if (beforeLength > 0) {
+      trimmedChannel1.set(channel1.subarray(0, startIndex), 0);
+      if (channel2 && trimmedChannel2) {
+        trimmedChannel2.set(channel2.subarray(0, startIndex), 0);
+      }
+    }
+    const afterLength = original_buffer.length - endIndex;
+    if (afterLength > 0) {
+      trimmedChannel1.set(
+        channel1.subarray(endIndex, endIndex + afterLength),
+        beforeLength
+      );
+      if (channel2 && trimmedChannel2) {
+        trimmedChannel2.set(
+          channel2.subarray(endIndex, endIndex + afterLength),
+          beforeLength
+        );
+      }
+    }
+    const channelData = [trimmedChannel1];
+    if (trimmedChannel2) {
+      channelData.push(trimmedChannel2);
+    }
+    wavesurferObj.load("", channelData, newDuration);
+  }
+  return /* @__PURE__ */ jsxs5(
+    "div",
+    {
+      className: cn(
+        "p-4 pt-2 sm:pt-4 w-full select-none flex gap-2 sm:flex-row flex-col min-w-[250px]",
+        className
+      ),
+      children: [
+        /* @__PURE__ */ jsxs5("div", { className: "flex items-center justify-center space-x-2", children: [
+          /* @__PURE__ */ jsx7(
+            VolumeControl2,
+            {
+              volume,
+              handleVolumeSlider
+            }
+          ),
+          /* @__PURE__ */ jsx7(
+            Button,
+            {
+              variant: "outline",
+              size: "icon",
+              onClick: () => setZoom(zoom - 0.1),
+              children: /* @__PURE__ */ jsx7(ZoomOut, { className: "h-4 w-4" })
+            }
+          ),
+          /* @__PURE__ */ jsx7(Button, { variant: "default", size: "icon", onClick: handlePlayPause, children: playing ? /* @__PURE__ */ jsx7(Pause2, { className: "h-6 w-6" }) : /* @__PURE__ */ jsx7(Play2, { className: "h-6 w-6" }) }),
+          /* @__PURE__ */ jsx7(
+            Button,
+            {
+              variant: "outline",
+              size: "icon",
+              onClick: () => setZoom(zoom + 0.1),
+              children: /* @__PURE__ */ jsx7(ZoomIn, { className: "h-4 w-4" })
+            }
+          ),
+          /* @__PURE__ */ jsx7(SetZoom, { zoom, handleZoomChange: handleZoomSlider }),
+          /* @__PURE__ */ jsx7(Button, { variant: "default", size: "icon", onClick: handleReload, children: /* @__PURE__ */ jsx7(RotateCcw, { className: "h-4 w-4" }) }),
+          /* @__PURE__ */ jsx7(Button, { variant: "default", size: "icon", onClick: handleTrim, children: /* @__PURE__ */ jsx7(Crop, { className: "h-4 w-4" }) })
+        ] }),
+        /* @__PURE__ */ jsxs5("div", { className: "gap-2 flex flex-row w-full justify-center items-center text-sm text-muted-foreground", children: [
+          /* @__PURE__ */ jsx7("div", { ref: timelineRef, className: "w-full" }),
+          /* @__PURE__ */ jsx7("div", { ref: timestampsRef, className: "w-full" })
+        ] })
+      ]
+    }
+  );
+}
+function VolumeControl2({
+  volume,
+  handleVolumeSlider
+}) {
+  return /* @__PURE__ */ jsxs5(Popover, { children: [
+    /* @__PURE__ */ jsx7(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx7(Button, { variant: "outline", size: "icon", children: volume === 0 ? /* @__PURE__ */ jsx7(VolumeX2, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx7(Volume22, { className: "h-4 w-4" }) }) }),
+    /* @__PURE__ */ jsx7(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs5("div", { className: "space-y-4", children: [
+      /* @__PURE__ */ jsx7("span", { className: "text-sm font-medium", children: "Volume" }),
+      /* @__PURE__ */ jsx7(
+        Slider,
+        {
+          value: [volume * 100],
+          onValueChange: handleVolumeSlider,
+          max: 100,
+          step: 1,
+          className: "w-full",
+          orientation: "vertical"
+        }
+      )
+    ] }) })
+  ] });
+}
+function SetZoom({
+  zoom,
+  handleZoomChange
+}) {
+  return /* @__PURE__ */ jsxs5(Popover, { children: [
+    /* @__PURE__ */ jsx7(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx7(Button, { variant: "outline", size: "icon", children: /* @__PURE__ */ jsx7(ZoomOut, { className: "h-4 w-4" }) }) }),
+    /* @__PURE__ */ jsx7(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs5("div", { className: "space-y-4", children: [
+      /* @__PURE__ */ jsx7("span", { className: "text-sm font-medium", children: "Zoom" }),
+      /* @__PURE__ */ jsx7(
+        Slider,
+        {
+          value: [zoom],
+          onValueChange: handleZoomChange,
+          max: 1e3,
+          min: 1,
+          step: 50,
+          className: "w-full",
+          orientation: "vertical"
+        }
+      )
+    ] }) })
+  ] });
+}
+
+// src/audio/uploader/single-audio/CropTestComponentWithBlob.tsx
+import { Ellipsis as Ellipsis2 } from "lucide-react";
+import { useEffect as useEffect5, useMemo as useMemo3, useState as useState5 } from "react";
+import { jsx as jsx8, jsxs as jsxs6 } from "react/jsx-runtime";
+async function loadAudio2(srcUrl) {
+  const response = await fetch(srcUrl);
+  const blob = await response.blob();
+  return [URL.createObjectURL(blob), blob];
+}
+function CropTestComponentWithBlob({
+  src,
+  externalAudioUrlFn
+}) {
+  const srcUrl = useMemo3(
+    () => externalAudioUrlFn ? externalAudioUrlFn(src) : src,
+    [externalAudioUrlFn, src]
+  );
+  const [isLoading, setIsLoading] = useState5(false);
+  const [error, setError] = useState5(null);
+  const [audioBlob, setAudioBlob] = useState5(null);
+  const [audioBlobUrl, setAudioBlobUrl] = useState5(null);
+  useEffect5(() => {
+    setIsLoading(true);
+    setError(null);
+    if (audioBlobUrl) {
+      URL.revokeObjectURL(audioBlobUrl);
+    }
+    loadAudio2(srcUrl).then((res) => {
+      setAudioBlobUrl(res[0]);
+      setAudioBlob(res[1]);
+    }).catch((err) => {
+      setError(err);
+    }).finally(() => {
+      setIsLoading(false);
+    });
+  }, [srcUrl]);
+  useEffect5(() => {
+    return () => {
+      if (audioBlobUrl) {
+        URL.revokeObjectURL(audioBlobUrl);
+      }
+    };
+  }, [audioBlobUrl]);
+  if (isLoading) {
+    return /* @__PURE__ */ jsx8("div", { className: "flex flex-row justify-center", children: /* @__PURE__ */ jsx8(Ellipsis2, { className: "h-4 w-4 animate-pulse" }) });
+  }
+  if (error) {
+    return /* @__PURE__ */ jsxs6("div", { children: [
+      "Error: ",
+      error.message
+    ] });
+  }
+  if (audioBlob && audioBlobUrl) {
+    return /* @__PURE__ */ jsx8(CropTestComponent, { src: { mode: "blob", blob: audioBlob } });
+  }
+  return /* @__PURE__ */ jsx8("div", { children: "No audio source found" });
+}
+
 // src/audio/uploader/single-audio/SingleAudioUploader.tsx
 import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
 import { ExternalLink, LoaderCircle, Music, Trash } from "lucide-react";
 
 // src/audio/uploader/ConfirmAlertDialog.tsx
 import "react";
-import { jsx as jsx7, jsxs as jsxs5 } from "react/jsx-runtime";
+import { jsx as jsx9, jsxs as jsxs7 } from "react/jsx-runtime";
 function ConfirmAlertDialog({
   title = "Are you sure?",
   description = "This action cannot be undone.",
@@ -658,16 +983,16 @@ function ConfirmAlertDialog({
   confirmLabel = "Continue",
   cancelLabel = "Cancel"
 }) {
-  return /* @__PURE__ */ jsxs5(AlertDialog, { children: [
-    trigger ? typeof trigger === "function" ? /* @__PURE__ */ jsx7(AlertDialogTrigger, { asChild: true, children: trigger({}) }) : /* @__PURE__ */ jsx7(AlertDialogTrigger, { asChild: true, children: trigger }) : null,
-    /* @__PURE__ */ jsxs5(AlertDialogContent, { children: [
-      /* @__PURE__ */ jsxs5(AlertDialogHeader, { children: [
-        /* @__PURE__ */ jsx7(AlertDialogTitle, { children: title }),
-        /* @__PURE__ */ jsx7(AlertDialogDescription, { children: description })
+  return /* @__PURE__ */ jsxs7(AlertDialog, { children: [
+    trigger ? typeof trigger === "function" ? /* @__PURE__ */ jsx9(AlertDialogTrigger, { asChild: true, children: trigger({}) }) : /* @__PURE__ */ jsx9(AlertDialogTrigger, { asChild: true, children: trigger }) : null,
+    /* @__PURE__ */ jsxs7(AlertDialogContent, { children: [
+      /* @__PURE__ */ jsxs7(AlertDialogHeader, { children: [
+        /* @__PURE__ */ jsx9(AlertDialogTitle, { children: title }),
+        /* @__PURE__ */ jsx9(AlertDialogDescription, { children: description })
       ] }),
-      /* @__PURE__ */ jsxs5(AlertDialogFooter, { children: [
-        /* @__PURE__ */ jsx7(AlertDialogCancel, { children: cancelLabel }),
-        /* @__PURE__ */ jsx7(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
+      /* @__PURE__ */ jsxs7(AlertDialogFooter, { children: [
+        /* @__PURE__ */ jsx9(AlertDialogCancel, { children: cancelLabel }),
+        /* @__PURE__ */ jsx9(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
       ] })
     ] })
   ] });
@@ -675,7 +1000,7 @@ function ConfirmAlertDialog({
 var ConfirmAlertDialog_default = ConfirmAlertDialog;
 
 // src/audio/uploader/single-audio/SingleAudioUploader.tsx
-import { jsx as jsx8, jsxs as jsxs6 } from "react/jsx-runtime";
+import { jsx as jsx10, jsxs as jsxs8 } from "react/jsx-runtime";
 function SingleAudioUploader({
   file,
   setFile,
@@ -689,7 +1014,7 @@ function SingleAudioUploader({
   closePlayer
 }) {
   const { addToGlobalPlayer } = useGlobalPlayer();
-  return /* @__PURE__ */ jsx8(
+  return /* @__PURE__ */ jsx10(
     SingleFileUploaderHeadless,
     {
       file,
@@ -699,8 +1024,8 @@ function SingleAudioUploader({
       allowedTypes,
       successMessage,
       errorMessage,
-      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs6("div", { className: cn("relative", className), children: [
-        !hasFile && /* @__PURE__ */ jsxs6(
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs8("div", { className: cn("relative", className), children: [
+        !hasFile && /* @__PURE__ */ jsxs8(
           Button,
           {
             disabled: isUploading,
@@ -709,13 +1034,13 @@ function SingleAudioUploader({
             className: "w-fit",
             onClick: triggerFileSelect,
             children: [
-              isUploading ? /* @__PURE__ */ jsx8(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx8(Music, { className: "h-4 w-4" }),
+              isUploading ? /* @__PURE__ */ jsx10(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx10(Music, { className: "h-4 w-4" }),
               isUploading ? "Uploading..." : "Add audio"
             ]
           }
         ),
-        file && /* @__PURE__ */ jsxs6("div", { className: "relative p-4 w-full min-w-[332px] flex flex-col items-center gap-2", children: [
-          /* @__PURE__ */ jsx8(
+        file && /* @__PURE__ */ jsxs8("div", { className: "relative p-4 w-full min-w-[332px] flex flex-col items-center gap-2", children: [
+          /* @__PURE__ */ jsx10(
             AudioPlaybackWithBlob,
             {
               src: file,
@@ -723,7 +1048,7 @@ function SingleAudioUploader({
               closePlayer
             }
           ),
-          /* @__PURE__ */ jsxs6(
+          /* @__PURE__ */ jsxs8(
             Button,
             {
               type: "button",
@@ -733,15 +1058,15 @@ function SingleAudioUploader({
               onClick: () => addToGlobalPlayer(file, "Uploaded Audio"),
               title: "Open in global player",
               children: [
-                /* @__PURE__ */ jsx8(ExternalLink, { className: "h-4 w-4" }),
+                /* @__PURE__ */ jsx10(ExternalLink, { className: "h-4 w-4" }),
                 "Open in player"
               ]
             }
           ),
-          /* @__PURE__ */ jsx8("div", { className: "absolute top-0 right-0 flex gap-1", children: /* @__PURE__ */ jsx8(
+          /* @__PURE__ */ jsx10("div", { className: "absolute top-0 right-0 flex gap-1", children: /* @__PURE__ */ jsx10(
             ConfirmAlertDialog_default,
             {
-              trigger: (props) => /* @__PURE__ */ jsx8(
+              trigger: (props) => /* @__PURE__ */ jsx10(
                 Button,
                 {
                   ...props,
@@ -749,7 +1074,7 @@ function SingleAudioUploader({
                   variant: "secondary",
                   size: "icon",
                   className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                  children: /* @__PURE__ */ jsx8(Trash, { className: "h-4 w-4" })
+                  children: /* @__PURE__ */ jsx10(Trash, { className: "h-4 w-4" })
                 }
               ),
               title: "Delete audio",
@@ -767,6 +1092,8 @@ function SingleAudioUploader({
 export {
   AudioPlayback,
   AudioPlaybackWithBlob,
+  CropTestComponent,
+  CropTestComponentWithBlob,
   GlobalPlayer,
   GlobalPlayerProvider,
   SingleAudioUploader,
