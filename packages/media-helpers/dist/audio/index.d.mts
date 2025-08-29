@@ -68,6 +68,21 @@ type GlobalPlayerContextType = {
 
 declare function useGlobalPlayer(): GlobalPlayerContextType;
 
+type AudioTrimDialogProps = {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    file: File;
+    onUpload: (processedAudio: {
+        id: string;
+        file: File;
+        trimRegion?: {
+            start: number;
+            end: number;
+        };
+    }) => void;
+};
+declare function AudioTrimDialog({ open, onOpenChange, file, onUpload, }: AudioTrimDialogProps): react_jsx_runtime.JSX.Element;
+
 declare global {
     interface Window {
         webkitAudioContext?: typeof AudioContext;
@@ -94,8 +109,26 @@ declare function AudioTrimPlayback({ src, className, onTrim, }: AudioTrimPlaybac
 type AudioTrimPlaybackWithBlobProps = {
     src: string;
     externalAudioUrlFn?: (url: string) => string;
+    onTrim?: (regionTimestamps: {
+        start: number;
+        end: number;
+    }) => void;
+    onTrimmedBlobChange?: (blob: Blob | null) => void;
 };
-declare function AudioTrimPlaybackWithBlob({ src, externalAudioUrlFn, }: AudioTrimPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
+declare function AudioTrimPlaybackWithBlob({ src, externalAudioUrlFn, onTrim, onTrimmedBlobChange, }: AudioTrimPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
+
+type AudioTrimUploaderProps = {
+    file?: string | null;
+    setFile: (f: string) => void;
+    removeFile: () => void;
+    maxSizeInMB?: number;
+    allowedTypes?: string[];
+    successMessage?: string;
+    errorMessage?: string;
+    className?: string;
+    externalAudioUrlFn?: (url: string) => string;
+};
+declare function AudioTrimUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, externalAudioUrlFn, }: AudioTrimUploaderProps): react_jsx_runtime.JSX.Element;
 
 type SingleAudioUploaderProps = {
     file?: string | null;
@@ -111,4 +144,4 @@ type SingleAudioUploaderProps = {
 };
 declare function SingleAudioUploader({ file, setFile, removeFile, maxSizeInMB, allowedTypes, successMessage, errorMessage, className, externalAudioUrlFn, closePlayer, }: SingleAudioUploaderProps): react_jsx_runtime.JSX.Element;
 
-export { AudioPlayback, AudioPlaybackWithBlob, AudioTrimPlayback, AudioTrimPlaybackWithBlob, GlobalPlayer, GlobalPlayerProvider, SingleAudioUploader, useGlobalPlayer };
+export { AudioPlayback, AudioPlaybackWithBlob, AudioTrimDialog, AudioTrimPlayback, AudioTrimPlaybackWithBlob, AudioTrimUploader, GlobalPlayer, GlobalPlayerProvider, SingleAudioUploader, useGlobalPlayer };

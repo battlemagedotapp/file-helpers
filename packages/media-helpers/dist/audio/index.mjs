@@ -9,8 +9,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   cn
-} from "../chunk-WLSC6BOI.mjs";
+} from "../chunk-S7NXKG6U.mjs";
 import "../chunk-PMJAV4JJ.mjs";
 
 // src/components/ui/popover.tsx
@@ -640,6 +646,13 @@ function useGlobalPlayer() {
   return context;
 }
 
+// src/audio/uploader/single-audio/AudioTrimDialog.tsx
+import { useState as useState6 } from "react";
+
+// src/audio/uploader/single-audio/AudioTrimPlaybackWithBlob.tsx
+import { Ellipsis as Ellipsis2 } from "lucide-react";
+import { useEffect as useEffect5, useMemo as useMemo3, useState as useState5 } from "react";
+
 // src/audio/uploader/single-audio/AudioTrimPlayback.tsx
 import { Crop, Pause as Pause2, Play as Play2, Volume2 as Volume22, VolumeX as VolumeX2, X, ZoomIn } from "lucide-react";
 import { useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
@@ -801,20 +814,6 @@ function AudioTrimPlayback({
       });
     }
   }
-  function handleUnselectRegion() {
-    if (wavesurferObj) {
-      if (wavesurferObj.isPlaying()) {
-        wavesurferObj.stop();
-        setPlaying(false);
-      }
-      const regionList = regions.getRegions();
-      const keys = Object.keys(regionList);
-      keys.forEach((key) => {
-        ;
-        regionList[key].remove();
-      });
-    }
-  }
   function handleConfirmTrim() {
     if (!wavesurferObj) return;
     const regionList = regions.getRegions();
@@ -857,26 +856,14 @@ function AudioTrimPlayback({
             }
           ),
           /* @__PURE__ */ jsx7(SetZoom, { zoom, handleZoomChange: handleZoomSlider }),
-          !isTrimMode ? /* @__PURE__ */ jsxs5(Fragment, { children: [
-            /* @__PURE__ */ jsx7(Button, { variant: "outline", size: "default", children: "Upload" }),
-            /* @__PURE__ */ jsxs5(Button, { variant: "default", size: "default", onClick: handleTrimMode, children: [
-              /* @__PURE__ */ jsx7(Crop, { className: "h-4 w-4" }),
-              " Trim"
-            ] })
-          ] }) : /* @__PURE__ */ jsxs5(Fragment, { children: [
+          !isTrimMode ? /* @__PURE__ */ jsx7(Fragment, { children: /* @__PURE__ */ jsxs5(Button, { variant: "default", size: "default", onClick: handleTrimMode, children: [
+            /* @__PURE__ */ jsx7(Crop, { className: "h-4 w-4" }),
+            " Trim"
+          ] }) }) : /* @__PURE__ */ jsxs5(Fragment, { children: [
             /* @__PURE__ */ jsxs5(Button, { variant: "outline", size: "default", onClick: handleCancelTrim, children: [
               /* @__PURE__ */ jsx7(X, { className: "h-4 w-4" }),
               " Cancel"
             ] }),
-            /* @__PURE__ */ jsx7(
-              Button,
-              {
-                variant: "outline",
-                size: "default",
-                onClick: handleUnselectRegion,
-                children: "Unselect"
-              }
-            ),
             /* @__PURE__ */ jsxs5(
               Button,
               {
@@ -942,8 +929,6 @@ function SetZoom({
 }
 
 // src/audio/uploader/single-audio/AudioTrimPlaybackWithBlob.tsx
-import { Ellipsis as Ellipsis2 } from "lucide-react";
-import { useEffect as useEffect5, useMemo as useMemo3, useState as useState5 } from "react";
 import { jsx as jsx8, jsxs as jsxs6 } from "react/jsx-runtime";
 async function loadAudio2(srcUrl) {
   const response = await fetch(srcUrl);
@@ -1000,7 +985,9 @@ function audioBufferToBlob(audioBuffer) {
 }
 function AudioTrimPlaybackWithBlob({
   src,
-  externalAudioUrlFn
+  externalAudioUrlFn,
+  onTrim,
+  onTrimmedBlobChange
 }) {
   const [audioVersion, setAudioVersion] = useState5(0);
   const [originalAudioBuffer, setOriginalAudioBuffer] = useState5(null);
@@ -1045,6 +1032,12 @@ function AudioTrimPlaybackWithBlob({
       setAudioVersion((prev) => prev + 1);
       setIsLoading(false);
       setError(null);
+      if (onTrim) {
+        onTrim(regionTimestamps);
+      }
+      if (onTrimmedBlobChange) {
+        onTrimmedBlobChange(trimmedBlob);
+      }
     } catch (error2) {
       console.error("Error trimming audio:", error2);
       setError(error2);
@@ -1105,13 +1098,89 @@ function AudioTrimPlaybackWithBlob({
   return /* @__PURE__ */ jsx8("div", { children: "No audio source found" });
 }
 
-// src/audio/uploader/single-audio/SingleAudioUploader.tsx
-import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
+// src/audio/uploader/single-audio/AudioTrimDialog.tsx
+import { jsx as jsx9, jsxs as jsxs7 } from "react/jsx-runtime";
+function AudioTrimDialog({
+  open,
+  onOpenChange,
+  file,
+  onUpload
+}) {
+  const [isUploading, setIsUploading] = useState6(false);
+  const [trimmedBlob, setTrimmedBlob] = useState6(null);
+  const [trimRegion, setTrimRegion] = useState6(null);
+  const handleTrim = (regionTimestamps) => {
+    setTrimRegion(regionTimestamps);
+  };
+  const handleUpload = async () => {
+    if (!trimmedBlob) {
+      onUpload({
+        id: crypto.randomUUID(),
+        file
+      });
+      return;
+    }
+    try {
+      setIsUploading(true);
+      const trimmedFile = new File([trimmedBlob], file.name, {
+        type: file.type,
+        lastModified: Date.now()
+      });
+      onUpload({
+        id: crypto.randomUUID(),
+        file: trimmedFile,
+        trimRegion: trimRegion || void 0
+      });
+    } catch (error) {
+      console.error("Error processing audio:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  const handleOpenChange = (newOpen) => {
+    if (!newOpen) {
+      setTrimmedBlob(null);
+      setTrimRegion(null);
+    }
+    onOpenChange(newOpen);
+  };
+  return /* @__PURE__ */ jsx9(Dialog, { open, onOpenChange: handleOpenChange, children: /* @__PURE__ */ jsxs7(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-y-auto", children: [
+    /* @__PURE__ */ jsxs7(DialogHeader, { children: [
+      /* @__PURE__ */ jsx9(DialogTitle, { children: "Trim Audio" }),
+      /* @__PURE__ */ jsx9(DialogDescription, { children: "Select a region to trim your audio file. You can drag to select a region and then confirm the trim." })
+    ] }),
+    /* @__PURE__ */ jsx9("div", { className: "flex flex-col gap-4", children: /* @__PURE__ */ jsx9(
+      AudioTrimPlaybackWithBlob,
+      {
+        src: URL.createObjectURL(file),
+        onTrim: handleTrim,
+        onTrimmedBlobChange: setTrimmedBlob
+      }
+    ) }),
+    /* @__PURE__ */ jsxs7(DialogFooter, { children: [
+      /* @__PURE__ */ jsx9(
+        Button,
+        {
+          variant: "outline",
+          onClick: () => handleOpenChange(false),
+          disabled: isUploading,
+          children: "Cancel"
+        }
+      ),
+      /* @__PURE__ */ jsx9(Button, { onClick: handleUpload, disabled: isUploading, children: isUploading ? "Uploading..." : "Upload Audio" })
+    ] })
+  ] }) });
+}
+
+// src/audio/uploader/single-audio/AudioTrimUploader.tsx
+import { useFileUpload } from "@battlemagedotapp/convex-upload-helpers";
 import { ExternalLink, LoaderCircle, Music, Trash } from "lucide-react";
+import { useRef as useRef4, useState as useState7 } from "react";
+import { toast as toast2 } from "sonner";
 
 // src/audio/uploader/ConfirmAlertDialog.tsx
 import "react";
-import { jsx as jsx9, jsxs as jsxs7 } from "react/jsx-runtime";
+import { jsx as jsx10, jsxs as jsxs8 } from "react/jsx-runtime";
 function ConfirmAlertDialog({
   title = "Are you sure?",
   description = "This action cannot be undone.",
@@ -1120,24 +1189,173 @@ function ConfirmAlertDialog({
   confirmLabel = "Continue",
   cancelLabel = "Cancel"
 }) {
-  return /* @__PURE__ */ jsxs7(AlertDialog, { children: [
-    trigger ? typeof trigger === "function" ? /* @__PURE__ */ jsx9(AlertDialogTrigger, { asChild: true, children: trigger({}) }) : /* @__PURE__ */ jsx9(AlertDialogTrigger, { asChild: true, children: trigger }) : null,
-    /* @__PURE__ */ jsxs7(AlertDialogContent, { children: [
-      /* @__PURE__ */ jsxs7(AlertDialogHeader, { children: [
-        /* @__PURE__ */ jsx9(AlertDialogTitle, { children: title }),
-        /* @__PURE__ */ jsx9(AlertDialogDescription, { children: description })
+  return /* @__PURE__ */ jsxs8(AlertDialog, { children: [
+    trigger ? typeof trigger === "function" ? /* @__PURE__ */ jsx10(AlertDialogTrigger, { asChild: true, children: trigger({}) }) : /* @__PURE__ */ jsx10(AlertDialogTrigger, { asChild: true, children: trigger }) : null,
+    /* @__PURE__ */ jsxs8(AlertDialogContent, { children: [
+      /* @__PURE__ */ jsxs8(AlertDialogHeader, { children: [
+        /* @__PURE__ */ jsx10(AlertDialogTitle, { children: title }),
+        /* @__PURE__ */ jsx10(AlertDialogDescription, { children: description })
       ] }),
-      /* @__PURE__ */ jsxs7(AlertDialogFooter, { children: [
-        /* @__PURE__ */ jsx9(AlertDialogCancel, { children: cancelLabel }),
-        /* @__PURE__ */ jsx9(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
+      /* @__PURE__ */ jsxs8(AlertDialogFooter, { children: [
+        /* @__PURE__ */ jsx10(AlertDialogCancel, { children: cancelLabel }),
+        /* @__PURE__ */ jsx10(AlertDialogAction, { onClick: onConfirm, children: confirmLabel })
       ] })
     ] })
   ] });
 }
 var ConfirmAlertDialog_default = ConfirmAlertDialog;
 
+// src/audio/uploader/single-audio/AudioTrimUploader.tsx
+import { Fragment as Fragment2, jsx as jsx11, jsxs as jsxs9 } from "react/jsx-runtime";
+function AudioTrimUploader({
+  file,
+  setFile,
+  removeFile,
+  maxSizeInMB,
+  allowedTypes = [],
+  successMessage = "Audio file uploaded successfully!",
+  errorMessage = "Failed to upload audio file",
+  className,
+  externalAudioUrlFn
+}) {
+  const [trimDialogOpen, setTrimDialogOpen] = useState7(false);
+  const [pendingFile, setPendingFile] = useState7(null);
+  const [isUploading, setIsUploading] = useState7(false);
+  const fileInputRef = useRef4(null);
+  const { addToGlobalPlayer } = useGlobalPlayer();
+  const { uploadFile, deleteFile } = useFileUpload({
+    maxSizeInMB,
+    allowedTypes,
+    successMessage,
+    errorMessage
+  });
+  const handleFileSelect = (event) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    const filesArray = Array.from(files);
+    const selectedFile = filesArray[0];
+    setPendingFile(selectedFile);
+    setTrimDialogOpen(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+  const handleTrimDialogUpload = async (processedAudio) => {
+    try {
+      setIsUploading(true);
+      setTrimDialogOpen(false);
+      const storageId = await uploadFile(processedAudio.file);
+      setFile(storageId);
+    } catch (error) {
+      console.error("Error uploading audio:", error);
+      toast2.error(
+        error instanceof Error ? error.message : "Failed to upload audio"
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  const handleFileDelete = async () => {
+    try {
+      if (file && !file.startsWith("data:")) {
+        await deleteFile({ storageId: file });
+      }
+      removeFile();
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      removeFile();
+    }
+  };
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+  const hasFile = !!file;
+  return /* @__PURE__ */ jsxs9(Fragment2, { children: [
+    /* @__PURE__ */ jsxs9("div", { className: cn("relative", className), children: [
+      /* @__PURE__ */ jsx11(
+        "input",
+        {
+          ref: fileInputRef,
+          type: "file",
+          onChange: handleFileSelect,
+          className: "hidden",
+          accept: allowedTypes.join(",")
+        }
+      ),
+      !hasFile && /* @__PURE__ */ jsxs9(
+        Button,
+        {
+          disabled: isUploading,
+          variant: "default",
+          size: "default",
+          className: "w-fit",
+          onClick: triggerFileSelect,
+          children: [
+            isUploading ? /* @__PURE__ */ jsx11(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx11(Music, { className: "h-4 w-4" }),
+            isUploading ? "Uploading..." : "Add audio"
+          ]
+        }
+      ),
+      file && /* @__PURE__ */ jsxs9("div", { className: "relative p-4 w-full min-w-[332px] flex flex-col items-center gap-2", children: [
+        /* @__PURE__ */ jsx11(
+          AudioPlaybackWithBlob,
+          {
+            src: file,
+            externalAudioUrlFn
+          }
+        ),
+        /* @__PURE__ */ jsxs9(
+          Button,
+          {
+            type: "button",
+            variant: "outline",
+            size: "sm",
+            className: "cursor-pointer",
+            onClick: () => addToGlobalPlayer(file, "Trimmed Audio"),
+            title: "Open in global player",
+            children: [
+              /* @__PURE__ */ jsx11(ExternalLink, { className: "h-4 w-4" }),
+              "Open in player"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsx11("div", { className: "absolute top-0 right-0 flex gap-1", children: /* @__PURE__ */ jsx11(
+          ConfirmAlertDialog_default,
+          {
+            trigger: (props) => /* @__PURE__ */ jsx11(
+              Button,
+              {
+                ...props,
+                type: "button",
+                variant: "secondary",
+                size: "icon",
+                className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
+                children: /* @__PURE__ */ jsx11(Trash, { className: "h-4 w-4" })
+              }
+            ),
+            title: "Delete audio",
+            description: "Are you sure you want to delete this audio file? This action cannot be undone.",
+            confirmLabel: "Delete",
+            cancelLabel: "Cancel",
+            onConfirm: handleFileDelete
+          }
+        ) })
+      ] })
+    ] }),
+    pendingFile && /* @__PURE__ */ jsx11(
+      AudioTrimDialog,
+      {
+        open: trimDialogOpen,
+        onOpenChange: setTrimDialogOpen,
+        file: pendingFile,
+        onUpload: handleTrimDialogUpload
+      }
+    )
+  ] });
+}
+
 // src/audio/uploader/single-audio/SingleAudioUploader.tsx
-import { jsx as jsx10, jsxs as jsxs8 } from "react/jsx-runtime";
+import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
+import { ExternalLink as ExternalLink2, LoaderCircle as LoaderCircle2, Music as Music2, Trash as Trash2 } from "lucide-react";
+import { jsx as jsx12, jsxs as jsxs10 } from "react/jsx-runtime";
 function SingleAudioUploader({
   file,
   setFile,
@@ -1151,7 +1369,7 @@ function SingleAudioUploader({
   closePlayer
 }) {
   const { addToGlobalPlayer } = useGlobalPlayer();
-  return /* @__PURE__ */ jsx10(
+  return /* @__PURE__ */ jsx12(
     SingleFileUploaderHeadless,
     {
       file,
@@ -1161,8 +1379,8 @@ function SingleAudioUploader({
       allowedTypes,
       successMessage,
       errorMessage,
-      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs8("div", { className: cn("relative", className), children: [
-        !hasFile && /* @__PURE__ */ jsxs8(
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs10("div", { className: cn("relative", className), children: [
+        !hasFile && /* @__PURE__ */ jsxs10(
           Button,
           {
             disabled: isUploading,
@@ -1171,13 +1389,13 @@ function SingleAudioUploader({
             className: "w-fit",
             onClick: triggerFileSelect,
             children: [
-              isUploading ? /* @__PURE__ */ jsx10(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx10(Music, { className: "h-4 w-4" }),
+              isUploading ? /* @__PURE__ */ jsx12(LoaderCircle2, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx12(Music2, { className: "h-4 w-4" }),
               isUploading ? "Uploading..." : "Add audio"
             ]
           }
         ),
-        file && /* @__PURE__ */ jsxs8("div", { className: "relative p-4 w-full min-w-[332px] flex flex-col items-center gap-2", children: [
-          /* @__PURE__ */ jsx10(
+        file && /* @__PURE__ */ jsxs10("div", { className: "relative p-4 w-full min-w-[332px] flex flex-col items-center gap-2", children: [
+          /* @__PURE__ */ jsx12(
             AudioPlaybackWithBlob,
             {
               src: file,
@@ -1185,7 +1403,7 @@ function SingleAudioUploader({
               closePlayer
             }
           ),
-          /* @__PURE__ */ jsxs8(
+          /* @__PURE__ */ jsxs10(
             Button,
             {
               type: "button",
@@ -1195,15 +1413,15 @@ function SingleAudioUploader({
               onClick: () => addToGlobalPlayer(file, "Uploaded Audio"),
               title: "Open in global player",
               children: [
-                /* @__PURE__ */ jsx10(ExternalLink, { className: "h-4 w-4" }),
+                /* @__PURE__ */ jsx12(ExternalLink2, { className: "h-4 w-4" }),
                 "Open in player"
               ]
             }
           ),
-          /* @__PURE__ */ jsx10("div", { className: "absolute top-0 right-0 flex gap-1", children: /* @__PURE__ */ jsx10(
+          /* @__PURE__ */ jsx12("div", { className: "absolute top-0 right-0 flex gap-1", children: /* @__PURE__ */ jsx12(
             ConfirmAlertDialog_default,
             {
-              trigger: (props) => /* @__PURE__ */ jsx10(
+              trigger: (props) => /* @__PURE__ */ jsx12(
                 Button,
                 {
                   ...props,
@@ -1211,7 +1429,7 @@ function SingleAudioUploader({
                   variant: "secondary",
                   size: "icon",
                   className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                  children: /* @__PURE__ */ jsx10(Trash, { className: "h-4 w-4" })
+                  children: /* @__PURE__ */ jsx12(Trash2, { className: "h-4 w-4" })
                 }
               ),
               title: "Delete audio",
@@ -1229,8 +1447,10 @@ function SingleAudioUploader({
 export {
   AudioPlayback,
   AudioPlaybackWithBlob,
+  AudioTrimDialog,
   AudioTrimPlayback,
   AudioTrimPlaybackWithBlob,
+  AudioTrimUploader,
   GlobalPlayer,
   GlobalPlayerProvider,
   SingleAudioUploader,

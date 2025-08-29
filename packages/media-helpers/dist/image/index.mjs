@@ -9,8 +9,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   cn
-} from "../chunk-WLSC6BOI.mjs";
+} from "../chunk-S7NXKG6U.mjs";
 import "../chunk-PMJAV4JJ.mjs";
 
 // src/image/view/ImageViewProviderContext.tsx
@@ -298,115 +303,12 @@ async function processImages(processedImages, compressionOptions) {
   return processedFiles;
 }
 
-// src/components/ui/dialog.tsx
-import "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
-import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
-function Dialog({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx3(DialogPrimitive.Root, { "data-slot": "dialog", ...props });
-}
-function DialogPortal({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx3(DialogPrimitive.Portal, { "data-slot": "dialog-portal", ...props });
-}
-function DialogOverlay({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx3(
-    DialogPrimitive.Overlay,
-    {
-      "data-slot": "dialog-overlay",
-      className: cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function DialogContent({
-  className,
-  children,
-  showCloseButton = true,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxs3(DialogPortal, { "data-slot": "dialog-portal", children: [
-    /* @__PURE__ */ jsx3(DialogOverlay, {}),
-    /* @__PURE__ */ jsxs3(
-      DialogPrimitive.Content,
-      {
-        "data-slot": "dialog-content",
-        className: cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
-          className
-        ),
-        ...props,
-        children: [
-          children,
-          showCloseButton && /* @__PURE__ */ jsxs3(
-            DialogPrimitive.Close,
-            {
-              "data-slot": "dialog-close",
-              className: "ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-              children: [
-                /* @__PURE__ */ jsx3(XIcon, {}),
-                /* @__PURE__ */ jsx3("span", { className: "sr-only", children: "Close" })
-              ]
-            }
-          )
-        ]
-      }
-    )
-  ] });
-}
-function DialogHeader({ className, ...props }) {
-  return /* @__PURE__ */ jsx3(
-    "div",
-    {
-      "data-slot": "dialog-header",
-      className: cn("flex flex-col gap-2 text-center sm:text-left", className),
-      ...props
-    }
-  );
-}
-function DialogFooter({ className, ...props }) {
-  return /* @__PURE__ */ jsx3(
-    "div",
-    {
-      "data-slot": "dialog-footer",
-      className: cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function DialogTitle({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx3(
-    DialogPrimitive.Title,
-    {
-      "data-slot": "dialog-title",
-      className: cn("text-lg leading-none font-semibold", className),
-      ...props
-    }
-  );
-}
-
 // src/image/uploader/multiple-image/ImageCropDialog.tsx
 import { RotateCw, Upload, X as X2 } from "lucide-react";
-import React3, { useCallback, useRef, useState as useState2 } from "react";
+import React2, { useCallback, useRef, useState as useState2 } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
+import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
 function ImageCropDialog({
   open,
   onOpenChange,
@@ -441,7 +343,7 @@ function ImageCropDialog({
     },
     []
   );
-  React3.useEffect(() => {
+  React2.useEffect(() => {
     if (files.length > 0) {
       const newImages = files.map((file, index) => ({
         id: `img-${index}`,
@@ -457,7 +359,7 @@ function ImageCropDialog({
       imgRefs.current = new Array(files.length).fill(null);
     }
   }, [files]);
-  React3.useEffect(() => {
+  React2.useEffect(() => {
     const initializeRotatedImages = async () => {
       const updatedImages = await Promise.all(
         images.map(async (image) => {
@@ -505,7 +407,7 @@ function ImageCropDialog({
     },
     [createRotatedImage]
   );
-  React3.useEffect(() => {
+  React2.useEffect(() => {
     return () => {
       images.forEach((image) => {
         URL.revokeObjectURL(image.url);
@@ -567,10 +469,10 @@ function ImageCropDialog({
   const selectedImage = images[selectedImageIndex];
   const selectedCrop = crops[selectedImageIndex];
   if (images.length === 0) return null;
-  return /* @__PURE__ */ jsx4(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs4(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
-    /* @__PURE__ */ jsx4(DialogHeader, { children: /* @__PURE__ */ jsx4(DialogTitle, { children: "Edit Images" }) }),
-    /* @__PURE__ */ jsxs4("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden select-none", children: [
-      /* @__PURE__ */ jsx4("div", { className: "shrink-0 flex flex-row gap-2 h-24 overflow-x-auto pb-2", children: images.map((image, index) => /* @__PURE__ */ jsxs4(
+  return /* @__PURE__ */ jsx3(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs3(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
+    /* @__PURE__ */ jsx3(DialogHeader, { children: /* @__PURE__ */ jsx3(DialogTitle, { children: "Edit Images" }) }),
+    /* @__PURE__ */ jsxs3("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden select-none", children: [
+      /* @__PURE__ */ jsx3("div", { className: "shrink-0 flex flex-row gap-2 h-24 overflow-x-auto pb-2", children: images.map((image, index) => /* @__PURE__ */ jsxs3(
         "div",
         {
           className: cn(
@@ -579,7 +481,7 @@ function ImageCropDialog({
           ),
           onClick: () => setSelectedImageIndex(index),
           children: [
-            /* @__PURE__ */ jsx4(
+            /* @__PURE__ */ jsx3(
               "img",
               {
                 src: image.rotatedUrl || image.url,
@@ -587,7 +489,7 @@ function ImageCropDialog({
                 className: "aspect-square h-full object-contain"
               }
             ),
-            /* @__PURE__ */ jsx4(
+            /* @__PURE__ */ jsx3(
               Button,
               {
                 type: "button",
@@ -598,23 +500,23 @@ function ImageCropDialog({
                   e.stopPropagation();
                   handleRemoveImage(index);
                 },
-                children: /* @__PURE__ */ jsx4(X2, { className: "h-3 w-3" })
+                children: /* @__PURE__ */ jsx3(X2, { className: "h-3 w-3" })
               }
             )
           ]
         },
         image.id
       )) }),
-      /* @__PURE__ */ jsxs4("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden", children: [
-        /* @__PURE__ */ jsxs4("div", { className: "flex items-center justify-between", children: [
-          /* @__PURE__ */ jsxs4("h3", { className: "text-sm font-medium", children: [
+      /* @__PURE__ */ jsxs3("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden", children: [
+        /* @__PURE__ */ jsxs3("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ jsxs3("h3", { className: "text-sm font-medium", children: [
             "Image ",
             selectedImageIndex + 1,
             " of ",
             images.length
           ] }),
-          /* @__PURE__ */ jsxs4("div", { className: "flex gap-2", children: [
-            /* @__PURE__ */ jsx4(
+          /* @__PURE__ */ jsxs3("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ jsx3(
               Button,
               {
                 type: "button",
@@ -625,7 +527,7 @@ function ImageCropDialog({
                 children: "Unselect"
               }
             ),
-            /* @__PURE__ */ jsxs4(
+            /* @__PURE__ */ jsxs3(
               Button,
               {
                 type: "button",
@@ -633,21 +535,21 @@ function ImageCropDialog({
                 size: "sm",
                 onClick: () => handleRotate(selectedImageIndex),
                 children: [
-                  /* @__PURE__ */ jsx4(RotateCw, { className: "h-4 w-4" }),
+                  /* @__PURE__ */ jsx3(RotateCw, { className: "h-4 w-4" }),
                   "Rotate"
                 ]
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ jsx4(
+        /* @__PURE__ */ jsx3(
           "div",
           {
             style: {
               height: "100%",
               overflow: "scroll"
             },
-            children: selectedImage && /* @__PURE__ */ jsx4(
+            children: selectedImage && /* @__PURE__ */ jsx3(
               ReactCrop,
               {
                 crop: selectedCrop,
@@ -656,7 +558,7 @@ function ImageCropDialog({
                 minWidth: 5,
                 minHeight: 5,
                 keepSelection: true,
-                children: /* @__PURE__ */ jsx4(
+                children: /* @__PURE__ */ jsx3(
                   "img",
                   {
                     ref: (el) => {
@@ -673,8 +575,8 @@ function ImageCropDialog({
         )
       ] })
     ] }),
-    /* @__PURE__ */ jsxs4(DialogFooter, { children: [
-      /* @__PURE__ */ jsx4(
+    /* @__PURE__ */ jsxs3(DialogFooter, { children: [
+      /* @__PURE__ */ jsx3(
         Button,
         {
           type: "button",
@@ -683,14 +585,14 @@ function ImageCropDialog({
           children: "Cancel"
         }
       ),
-      /* @__PURE__ */ jsxs4(
+      /* @__PURE__ */ jsxs3(
         Button,
         {
           type: "button",
           onClick: handleUpload,
           disabled: images.length === 0,
           children: [
-            /* @__PURE__ */ jsx4(Upload, { className: "h-4 w-4" }),
+            /* @__PURE__ */ jsx3(Upload, { className: "h-4 w-4" }),
             "Upload All (",
             images.length,
             ")"
@@ -702,7 +604,7 @@ function ImageCropDialog({
 }
 
 // src/image/uploader/multiple-image/MultiImageCropUploader.tsx
-import { Fragment, jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
+import { Fragment, jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
 function MultiImageCropUploader({
   imageFields,
   appendImage,
@@ -778,9 +680,9 @@ function MultiImageCropUploader({
     fileInputRef.current?.click();
   };
   const canAddMore = imageFields.length < maxFiles;
-  return /* @__PURE__ */ jsxs5(Fragment, { children: [
-    /* @__PURE__ */ jsxs5("div", { className: "flex flex-col gap-2", children: [
-      /* @__PURE__ */ jsx5(
+  return /* @__PURE__ */ jsxs4(Fragment, { children: [
+    /* @__PURE__ */ jsxs4("div", { className: "flex flex-col gap-2", children: [
+      /* @__PURE__ */ jsx4(
         "input",
         {
           ref: fileInputRef,
@@ -791,7 +693,7 @@ function MultiImageCropUploader({
           accept: allowedTypes.join(",")
         }
       ),
-      /* @__PURE__ */ jsxs5(
+      /* @__PURE__ */ jsxs4(
         Button,
         {
           disabled: isUploading || !canAddMore,
@@ -800,29 +702,29 @@ function MultiImageCropUploader({
           className: "w-fit",
           onClick: triggerFileSelect,
           children: [
-            isUploading ? /* @__PURE__ */ jsx5(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx5(ImagePlus, { className: "h-4 w-4" }),
+            isUploading ? /* @__PURE__ */ jsx4(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx4(ImagePlus, { className: "h-4 w-4" }),
             isUploading ? "Uploading..." : "Add image(s)"
           ]
         }
       ),
-      /* @__PURE__ */ jsxs5("p", { className: "text-sm text-muted-foreground", children: [
+      /* @__PURE__ */ jsxs4("p", { className: "text-sm text-muted-foreground", children: [
         "Maximum ",
         maxFiles,
         " images allowed"
       ] }),
-      imageFields.length > 0 && /* @__PURE__ */ jsx5(
+      imageFields.length > 0 && /* @__PURE__ */ jsx4(
         "div",
         {
           className: cn(
             "flex flex-row flex-nowrap h-64 overflow-x-scroll show-scrollbar",
             previewImageListClassName
           ),
-          children: imageFields.map((field, index) => /* @__PURE__ */ jsxs5(
+          children: imageFields.map((field, index) => /* @__PURE__ */ jsxs4(
             "div",
             {
               className: "shrink-0 h-full relative aspect-square p-4",
               children: [
-                /* @__PURE__ */ jsx5(
+                /* @__PURE__ */ jsx4(
                   ImageView,
                   {
                     src: field.value,
@@ -833,10 +735,10 @@ function MultiImageCropUploader({
                     )
                   }
                 ),
-                /* @__PURE__ */ jsx5("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx5(
+                /* @__PURE__ */ jsx4("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx4(
                   ConfirmAlertDialog_default,
                   {
-                    trigger: (props) => /* @__PURE__ */ jsx5(
+                    trigger: (props) => /* @__PURE__ */ jsx4(
                       Button,
                       {
                         ...props,
@@ -844,7 +746,7 @@ function MultiImageCropUploader({
                         variant: "secondary",
                         size: "icon",
                         className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                        children: /* @__PURE__ */ jsx5(Trash, { className: "h-4 w-4" })
+                        children: /* @__PURE__ */ jsx4(Trash, { className: "h-4 w-4" })
                       }
                     ),
                     title: "Delete image",
@@ -861,7 +763,7 @@ function MultiImageCropUploader({
         }
       )
     ] }),
-    /* @__PURE__ */ jsx5(
+    /* @__PURE__ */ jsx4(
       ImageCropDialog,
       {
         open: cropDialogOpen,
@@ -876,7 +778,7 @@ function MultiImageCropUploader({
 // src/image/uploader/multiple-image/MultiImageUploader.tsx
 import { MultipleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
 import { ImagePlus as ImagePlus2, LoaderCircle as LoaderCircle2, Trash as Trash2 } from "lucide-react";
-import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
+import { jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
 function MultiImageUploader({
   imageFields,
   appendImage,
@@ -889,7 +791,7 @@ function MultiImageUploader({
   previewImageListClassName,
   previewImageItemClassName
 }) {
-  return /* @__PURE__ */ jsx6(
+  return /* @__PURE__ */ jsx5(
     MultipleFileUploaderHeadless,
     {
       fileFields: imageFields,
@@ -900,8 +802,8 @@ function MultiImageUploader({
       allowedTypes,
       successMessage,
       errorMessage,
-      children: ({ isUploading, triggerFileSelect, handleFileDelete, canAddMore }) => /* @__PURE__ */ jsxs6("div", { className: "flex flex-col gap-2", children: [
-        /* @__PURE__ */ jsxs6(
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, canAddMore }) => /* @__PURE__ */ jsxs5("div", { className: "flex flex-col gap-2", children: [
+        /* @__PURE__ */ jsxs5(
           Button,
           {
             disabled: isUploading || !canAddMore,
@@ -910,29 +812,29 @@ function MultiImageUploader({
             className: "w-fit",
             onClick: triggerFileSelect,
             children: [
-              isUploading ? /* @__PURE__ */ jsx6(LoaderCircle2, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx6(ImagePlus2, { className: "h-4 w-4" }),
+              isUploading ? /* @__PURE__ */ jsx5(LoaderCircle2, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx5(ImagePlus2, { className: "h-4 w-4" }),
               isUploading ? "Uploading..." : "Add image(s)"
             ]
           }
         ),
-        /* @__PURE__ */ jsxs6("p", { className: "text-sm text-muted-foreground", children: [
+        /* @__PURE__ */ jsxs5("p", { className: "text-sm text-muted-foreground", children: [
           "Maximum ",
           maxFiles,
           " images allowed"
         ] }),
-        imageFields.length > 0 && /* @__PURE__ */ jsx6(
+        imageFields.length > 0 && /* @__PURE__ */ jsx5(
           "div",
           {
             className: cn(
               "flex flex-row flex-nowrap h-64 overflow-x-scroll show-scrollbar",
               previewImageListClassName
             ),
-            children: imageFields.map((field, index) => /* @__PURE__ */ jsxs6(
+            children: imageFields.map((field, index) => /* @__PURE__ */ jsxs5(
               "div",
               {
                 className: "shrink-0 h-full relative aspect-square p-4",
                 children: [
-                  /* @__PURE__ */ jsx6(
+                  /* @__PURE__ */ jsx5(
                     ImageView,
                     {
                       src: field.value,
@@ -943,10 +845,10 @@ function MultiImageUploader({
                       )
                     }
                   ),
-                  /* @__PURE__ */ jsx6("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx6(
+                  /* @__PURE__ */ jsx5("div", { className: "absolute top-2 right-2", children: /* @__PURE__ */ jsx5(
                     ConfirmAlertDialog_default,
                     {
-                      trigger: (props) => /* @__PURE__ */ jsx6(
+                      trigger: (props) => /* @__PURE__ */ jsx5(
                         Button,
                         {
                           ...props,
@@ -954,7 +856,7 @@ function MultiImageUploader({
                           variant: "secondary",
                           size: "icon",
                           className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                          children: /* @__PURE__ */ jsx6(Trash2, { className: "h-4 w-4" })
+                          children: /* @__PURE__ */ jsx5(Trash2, { className: "h-4 w-4" })
                         }
                       ),
                       title: "Delete image",
@@ -983,10 +885,10 @@ import { toast as toast2 } from "sonner";
 
 // src/image/uploader/single-image/SingleImageCropDialog.tsx
 import { RotateCw as RotateCw2, Upload as Upload2 } from "lucide-react";
-import React4, { useCallback as useCallback2, useRef as useRef3, useState as useState4 } from "react";
+import React3, { useCallback as useCallback2, useRef as useRef3, useState as useState4 } from "react";
 import ReactCrop2 from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { jsx as jsx7, jsxs as jsxs7 } from "react/jsx-runtime";
+import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
 function SingleImageCropDialog({
   open,
   onOpenChange,
@@ -998,7 +900,7 @@ function SingleImageCropDialog({
   const [crop, setCrop] = useState4();
   const [rotation, setRotation] = useState4(0);
   const imgRef = useRef3(null);
-  React4.useEffect(() => {
+  React3.useEffect(() => {
     if (file) {
       const url = URL.createObjectURL(file);
       setImageUrl(url);
@@ -1030,7 +932,7 @@ function SingleImageCropDialog({
     },
     []
   );
-  React4.useEffect(() => {
+  React3.useEffect(() => {
     if (imageUrl) {
       createRotatedImage(imageUrl, rotation).then(setRotatedImageUrl);
     }
@@ -1058,11 +960,11 @@ function SingleImageCropDialog({
     onOpenChange(false);
   }, [file, crop, rotation, onUpload, onOpenChange]);
   if (!file) return null;
-  return /* @__PURE__ */ jsx7(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs7(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
-    /* @__PURE__ */ jsx7(DialogHeader, { children: /* @__PURE__ */ jsx7(DialogTitle, { children: "Edit Image" }) }),
-    /* @__PURE__ */ jsxs7("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden select-none", children: [
-      /* @__PURE__ */ jsx7("div", { className: "flex items-center justify-start", children: /* @__PURE__ */ jsxs7("div", { className: "flex gap-2", children: [
-        /* @__PURE__ */ jsx7(
+  return /* @__PURE__ */ jsx6(Dialog, { open, onOpenChange, children: /* @__PURE__ */ jsxs6(DialogContent, { className: "max-w-4xl max-h-[90vh] overflow-hidden flex flex-col", children: [
+    /* @__PURE__ */ jsx6(DialogHeader, { children: /* @__PURE__ */ jsx6(DialogTitle, { children: "Edit Image" }) }),
+    /* @__PURE__ */ jsxs6("div", { className: "flex-1 flex flex-col gap-4 overflow-hidden select-none", children: [
+      /* @__PURE__ */ jsx6("div", { className: "flex items-center justify-start", children: /* @__PURE__ */ jsxs6("div", { className: "flex gap-2", children: [
+        /* @__PURE__ */ jsx6(
           Button,
           {
             type: "button",
@@ -1073,7 +975,7 @@ function SingleImageCropDialog({
             children: "Unselect"
           }
         ),
-        /* @__PURE__ */ jsxs7(
+        /* @__PURE__ */ jsxs6(
           Button,
           {
             type: "button",
@@ -1081,20 +983,20 @@ function SingleImageCropDialog({
             size: "sm",
             onClick: handleRotate,
             children: [
-              /* @__PURE__ */ jsx7(RotateCw2, { className: "h-4 w-4" }),
+              /* @__PURE__ */ jsx6(RotateCw2, { className: "h-4 w-4" }),
               "Rotate"
             ]
           }
         )
       ] }) }),
-      /* @__PURE__ */ jsx7(
+      /* @__PURE__ */ jsx6(
         "div",
         {
           style: {
             height: "100%",
             overflow: "scroll"
           },
-          children: rotatedImageUrl && /* @__PURE__ */ jsx7(
+          children: rotatedImageUrl && /* @__PURE__ */ jsx6(
             ReactCrop2,
             {
               crop,
@@ -1103,7 +1005,7 @@ function SingleImageCropDialog({
               minWidth: 5,
               minHeight: 5,
               keepSelection: true,
-              children: /* @__PURE__ */ jsx7(
+              children: /* @__PURE__ */ jsx6(
                 "img",
                 {
                   ref: imgRef,
@@ -1117,8 +1019,8 @@ function SingleImageCropDialog({
         }
       )
     ] }),
-    /* @__PURE__ */ jsxs7(DialogFooter, { children: [
-      /* @__PURE__ */ jsx7(
+    /* @__PURE__ */ jsxs6(DialogFooter, { children: [
+      /* @__PURE__ */ jsx6(
         Button,
         {
           type: "button",
@@ -1127,8 +1029,8 @@ function SingleImageCropDialog({
           children: "Cancel"
         }
       ),
-      /* @__PURE__ */ jsxs7(Button, { type: "button", onClick: handleUpload, children: [
-        /* @__PURE__ */ jsx7(Upload2, { className: "h-4 w-4" }),
+      /* @__PURE__ */ jsxs6(Button, { type: "button", onClick: handleUpload, children: [
+        /* @__PURE__ */ jsx6(Upload2, { className: "h-4 w-4" }),
         "Upload"
       ] })
     ] })
@@ -1136,7 +1038,7 @@ function SingleImageCropDialog({
 }
 
 // src/image/uploader/single-image/SingleImageCropUploader.tsx
-import { Fragment as Fragment2, jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
+import { Fragment as Fragment2, jsx as jsx7, jsxs as jsxs7 } from "react/jsx-runtime";
 function SingleImageCropUploader({
   file,
   setFile,
@@ -1203,9 +1105,9 @@ function SingleImageCropUploader({
     fileInputRef.current?.click();
   };
   const hasFile = !!file;
-  return /* @__PURE__ */ jsxs8(Fragment2, { children: [
-    /* @__PURE__ */ jsxs8("div", { className: cn("relative", className), children: [
-      /* @__PURE__ */ jsx8(
+  return /* @__PURE__ */ jsxs7(Fragment2, { children: [
+    /* @__PURE__ */ jsxs7("div", { className: cn("relative", className), children: [
+      /* @__PURE__ */ jsx7(
         "input",
         {
           ref: fileInputRef,
@@ -1215,7 +1117,7 @@ function SingleImageCropUploader({
           accept: allowedTypes.join(",")
         }
       ),
-      !hasFile && /* @__PURE__ */ jsxs8(
+      !hasFile && /* @__PURE__ */ jsxs7(
         Button,
         {
           disabled: isUploading,
@@ -1224,13 +1126,13 @@ function SingleImageCropUploader({
           className: "w-fit",
           onClick: triggerFileSelect,
           children: [
-            isUploading ? /* @__PURE__ */ jsx8(LoaderCircle3, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx8(ImagePlus3, { className: "h-4 w-4" }),
+            isUploading ? /* @__PURE__ */ jsx7(LoaderCircle3, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx7(ImagePlus3, { className: "h-4 w-4" }),
             isUploading ? "Uploading..." : "Add image"
           ]
         }
       ),
-      file && /* @__PURE__ */ jsxs8("div", { className: "relative p-4 w-fit", children: [
-        /* @__PURE__ */ jsx8(
+      file && /* @__PURE__ */ jsxs7("div", { className: "relative p-4 w-fit", children: [
+        /* @__PURE__ */ jsx7(
           ImageView,
           {
             src: file,
@@ -1238,10 +1140,10 @@ function SingleImageCropUploader({
             className: cn("rounded-lg overflow-hidden", imageClassName)
           }
         ),
-        /* @__PURE__ */ jsx8("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx8(
+        /* @__PURE__ */ jsx7("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx7(
           ConfirmAlertDialog_default,
           {
-            trigger: (props) => /* @__PURE__ */ jsx8(
+            trigger: (props) => /* @__PURE__ */ jsx7(
               Button,
               {
                 ...props,
@@ -1249,7 +1151,7 @@ function SingleImageCropUploader({
                 variant: "secondary",
                 size: "icon",
                 className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                children: /* @__PURE__ */ jsx8(Trash3, { className: "h-4 w-4" })
+                children: /* @__PURE__ */ jsx7(Trash3, { className: "h-4 w-4" })
               }
             ),
             title: "Delete image",
@@ -1261,7 +1163,7 @@ function SingleImageCropUploader({
         ) })
       ] })
     ] }),
-    pendingFile && /* @__PURE__ */ jsx8(
+    pendingFile && /* @__PURE__ */ jsx7(
       SingleImageCropDialog,
       {
         open: cropDialogOpen,
@@ -1276,7 +1178,7 @@ function SingleImageCropUploader({
 // src/image/uploader/single-image/SingleImageUploader.tsx
 import { SingleFileUploaderHeadless } from "@battlemagedotapp/convex-upload-helpers";
 import { ImagePlus as ImagePlus4, LoaderCircle as LoaderCircle4, Trash as Trash4 } from "lucide-react";
-import { jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
+import { jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
 function SingleImageUploader({
   file,
   setFile,
@@ -1288,7 +1190,7 @@ function SingleImageUploader({
   className,
   imageClassName
 }) {
-  return /* @__PURE__ */ jsx9(
+  return /* @__PURE__ */ jsx8(
     SingleFileUploaderHeadless,
     {
       file,
@@ -1298,8 +1200,8 @@ function SingleImageUploader({
       allowedTypes,
       successMessage,
       errorMessage,
-      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs9("div", { className: cn("relative", className), children: [
-        !hasFile && /* @__PURE__ */ jsxs9(
+      children: ({ isUploading, triggerFileSelect, handleFileDelete, hasFile }) => /* @__PURE__ */ jsxs8("div", { className: cn("relative", className), children: [
+        !hasFile && /* @__PURE__ */ jsxs8(
           Button,
           {
             disabled: isUploading,
@@ -1308,13 +1210,13 @@ function SingleImageUploader({
             className: "w-fit",
             onClick: triggerFileSelect,
             children: [
-              isUploading ? /* @__PURE__ */ jsx9(LoaderCircle4, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx9(ImagePlus4, { className: "h-4 w-4" }),
+              isUploading ? /* @__PURE__ */ jsx8(LoaderCircle4, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx8(ImagePlus4, { className: "h-4 w-4" }),
               isUploading ? "Uploading..." : "Add image"
             ]
           }
         ),
-        file && /* @__PURE__ */ jsxs9("div", { className: "relative p-4 w-fit", children: [
-          /* @__PURE__ */ jsx9(
+        file && /* @__PURE__ */ jsxs8("div", { className: "relative p-4 w-fit", children: [
+          /* @__PURE__ */ jsx8(
             ImageView,
             {
               src: file,
@@ -1322,10 +1224,10 @@ function SingleImageUploader({
               className: cn("rounded-lg overflow-hidden", imageClassName)
             }
           ),
-          /* @__PURE__ */ jsx9("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx9(
+          /* @__PURE__ */ jsx8("div", { className: "absolute top-0 right-0", children: /* @__PURE__ */ jsx8(
             ConfirmAlertDialog_default,
             {
-              trigger: (props) => /* @__PURE__ */ jsx9(
+              trigger: (props) => /* @__PURE__ */ jsx8(
                 Button,
                 {
                   ...props,
@@ -1333,7 +1235,7 @@ function SingleImageUploader({
                   variant: "secondary",
                   size: "icon",
                   className: "cursor-pointer hover:bg-destructive hover:text-destructive-foreground",
-                  children: /* @__PURE__ */ jsx9(Trash4, { className: "h-4 w-4" })
+                  children: /* @__PURE__ */ jsx8(Trash4, { className: "h-4 w-4" })
                 }
               ),
               title: "Delete image",
@@ -1351,13 +1253,13 @@ function SingleImageUploader({
 
 // src/image/view/ImageViewProvider.tsx
 import "react";
-import { jsx as jsx10 } from "react/jsx-runtime";
+import { jsx as jsx9 } from "react/jsx-runtime";
 function ImageViewProvider({
   transformImageUrlFn,
   children
 }) {
   const fn = transformImageUrlFn ?? ((id) => id);
-  return /* @__PURE__ */ jsx10(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
+  return /* @__PURE__ */ jsx9(ImageViewProviderContext_default.Provider, { value: { transformImageUrlFn: fn }, children });
 }
 export {
   ImageView,
