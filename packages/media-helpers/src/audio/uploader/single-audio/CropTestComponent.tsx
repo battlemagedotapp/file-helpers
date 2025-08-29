@@ -30,56 +30,6 @@ declare global {
 
 const regions = RegionsPlugin.create()
 
-// Utility function to convert AudioBuffer to WAV Blob
-function audioBufferToWav(buffer: AudioBuffer): Blob {
-  const length = buffer.length
-  const numberOfChannels = buffer.numberOfChannels
-  const sampleRate = buffer.sampleRate
-  const bytesPerSample = 2 // 16-bit
-  const blockAlign = numberOfChannels * bytesPerSample
-  const byteRate = sampleRate * blockAlign
-  const dataSize = length * blockAlign
-  const bufferSize = 44 + dataSize
-
-  const arrayBuffer = new ArrayBuffer(bufferSize)
-  const view = new DataView(arrayBuffer)
-
-  // WAV header
-  const writeString = (offset: number, string: string) => {
-    for (let i = 0; i < string.length; i++) {
-      view.setUint8(offset + i, string.charCodeAt(i))
-    }
-  }
-
-  writeString(0, 'RIFF')
-  view.setUint32(4, bufferSize - 8, true)
-  writeString(8, 'WAVE')
-  writeString(12, 'fmt ')
-  view.setUint32(16, 16, true) // Sub-chunk size
-  view.setUint16(20, 1, true) // Audio format (PCM)
-  view.setUint16(22, numberOfChannels, true)
-  view.setUint32(24, sampleRate, true)
-  view.setUint32(28, byteRate, true)
-  view.setUint16(32, blockAlign, true)
-  view.setUint16(34, 16, true) // Bits per sample
-  writeString(36, 'data')
-  view.setUint32(40, dataSize, true)
-
-  // Write audio data
-  let offset = 44
-  for (let i = 0; i < length; i++) {
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const channelData = buffer.getChannelData(channel)
-      let sample = Math.max(-1, Math.min(1, channelData[i])) // Clamp to [-1, 1]
-      sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff // Convert to 16-bit
-      view.setInt16(offset, sample, true)
-      offset += 2
-    }
-  }
-
-  return new Blob([arrayBuffer], { type: 'audio/wav' })
-}
-
 type AudioSource =
   | {
       mode: 'url'
@@ -94,7 +44,7 @@ type AudioSource =
 type AudioPlaybackProps = {
   src: AudioSource
   className?: string
-  onTrim?: (trimmedBlob: Blob) => void
+  onTrim?: (regionTimestamps: { start: number; end: number }) => void
 }
 
 export function CropTestComponent({
@@ -109,6 +59,15 @@ export function CropTestComponent({
   const [playing, setPlaying] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [duration, setDuration] = useState<number>(0)
+
+  // Reset state when src changes (component remounts)
+  useEffect(() => {
+    setPlaying(false)
+    setDuration(0)
+    setVolume(1)
+    setZoom(1)
+    setWavesurferObj(undefined)
+  }, [src])
 
   useEffect(() => {
     if (timelineRef.current && timestampsRef.current && !wavesurferObj) {
@@ -194,6 +153,10 @@ export function CropTestComponent({
       wavesurferObj.on('finish', handleFinish)
 
       return () => {
+        // Properly stop playback before destroying
+        if (wavesurferObj.isPlaying()) {
+          wavesurferObj.stop()
+        }
         wavesurferObj.destroy()
         setWavesurferObj(undefined)
       }
@@ -209,6 +172,24 @@ export function CropTestComponent({
       })
     }
   }, [duration, wavesurferObj])
+
+  // Cleanup effect when component unmounts (important for remounting)
+  useEffect(() => {
+    return () => {
+      if (wavesurferObj) {
+        if (wavesurferObj.isPlaying()) {
+          wavesurferObj.stop()
+        }
+        wavesurferObj.destroy()
+        setWavesurferObj(undefined)
+      }
+      setPlaying(false)
+      setDuration(0)
+      setVolume(1)
+      setZoom(1)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array means this runs on unmount
 
   function handlePlayPause() {
     if (!wavesurferObj) return
@@ -245,86 +226,19 @@ export function CropTestComponent({
     const region = (regionList as Record<string, any>)[firstKey]
     if (!region) return
 
-    const original_buffer = wavesurferObj.getDecodedData()
-    if (!original_buffer) {
-      return
+    // Stop playback before processing trim to prevent state instability
+    if (wavesurferObj.isPlaying()) {
+      wavesurferObj.stop()
+      setPlaying(false)
     }
 
-    // Check if we have channels and handle both mono and stereo
-    const numberOfChannels = original_buffer.numberOfChannels
-    const channel1 = original_buffer.getChannelData(0)
-    const channel2 =
-      numberOfChannels > 1 ? original_buffer.getChannelData(1) : null
-
-    if (!channel1) {
-      return
-    }
-
-    const start = region.start
-    const end = region.end
-    const sampleRate = original_buffer.sampleRate
-
-    // Calculate indices for the selected region
-    const startIndex = Math.max(
-      0,
-      Math.min(original_buffer.length, Math.floor(start * sampleRate)),
-    )
-    const endIndex = Math.max(
-      0,
-      Math.min(original_buffer.length, Math.floor(end * sampleRate)),
-    )
-
-    if (endIndex <= startIndex) {
-      // nothing to trim
-      return
-    }
-
-    // Calculate new buffer length (keeping only the selected region)
-    const newLength = endIndex - startIndex
-    const newDuration = newLength / sampleRate
-
-    // Create arrays for the trimmed audio (keeping only selected region)
-    const trimmedChannel1 = new Float32Array(newLength)
-    const trimmedChannel2 =
-      numberOfChannels > 1 ? new Float32Array(newLength) : null
-
-    // Copy only the selected region
-    trimmedChannel1.set(channel1.subarray(startIndex, endIndex))
-    if (channel2 && trimmedChannel2) {
-      trimmedChannel2.set(channel2.subarray(startIndex, endIndex))
-    }
-
-    // Prepare channel data for createBuffer
-    const channelData = [trimmedChannel1]
-    if (trimmedChannel2) {
-      channelData.push(trimmedChannel2)
-    }
-
-    // Create AudioBuffer from the trimmed channel data
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext
-    const audioContext = new AudioContextClass()
-    const trimmedBuffer = audioContext.createBuffer(
-      numberOfChannels,
-      newLength,
-      sampleRate,
-    )
-
-    // Copy channel data to the new buffer
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const channelData = channel === 0 ? trimmedChannel1 : trimmedChannel2
-      if (channelData) {
-        trimmedBuffer.getChannelData(channel).set(channelData)
-      }
-    }
-
-    // Convert to blob and call callback if provided
-    const trimmedBlob = audioBufferToWav(trimmedBuffer)
+    // Send region timestamps to parent component for processing
     if (onTrim) {
-      onTrim(trimmedBlob)
+      onTrim({
+        start: region.start,
+        end: region.end,
+      })
     }
-
-    // Load the trimmed audio back into wavesurfer
-    wavesurferObj.load('', channelData, newDuration)
   }
 
   return (
@@ -373,7 +287,7 @@ export function CropTestComponent({
         </Button>
       </div>
 
-      <div className="gap-2 flex flex-row w-full justify-center items-center text-sm text-muted-foreground">
+      <div className="gap-2 flex flex-col w-full justify-center items-center text-sm text-muted-foreground">
         <div ref={timelineRef} className="w-full" />
         <div ref={timestampsRef} className="w-full" />
       </div>

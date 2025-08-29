@@ -84,7 +84,10 @@ type AudioSource = {
 type AudioPlaybackProps = {
     src: AudioSource;
     className?: string;
-    onTrim?: (trimmedBlob: Blob) => void;
+    onTrim?: (regionTimestamps: {
+        start: number;
+        end: number;
+    }) => void;
 };
 declare function CropTestComponent({ src, className, onTrim, }: AudioPlaybackProps): react_jsx_runtime.JSX.Element;
 
