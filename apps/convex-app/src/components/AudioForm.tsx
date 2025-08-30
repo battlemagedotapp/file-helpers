@@ -1,5 +1,5 @@
 import {
-  AudioPlayback,
+  AudioTrimUploader,
   SingleAudioUploader,
 } from '@battlemagedotapp/media-helpers/audio'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,14 +10,16 @@ import { Button } from './ui/button'
 import { Form } from './ui/form'
 
 const formSchema = z.object({
-  audioA: z.string().min(1, 'Please select an audio file'),
+  audio: z.string().min(1, 'Please select an audio file'),
+  audioTrim: z.string().min(1, 'Please select a trimmed audio file'),
 })
 
 export function AudioForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      audioA: '',
+      audio: '',
+      audioTrim: '',
     },
   })
 
@@ -29,8 +31,8 @@ export function AudioForm() {
     console.log(data)
   }
 
-  const audioA = form.watch('audioA')
-
+  const audio = form.watch('audio')
+  const audioTrim = form.watch('audioTrim')
   return (
     <div className="flex flex-col gap-6">
       <Form {...form}>
@@ -38,9 +40,9 @@ export function AudioForm() {
           externalAudioUrlFn={(storageId) => {
             return `${import.meta.env.VITE_CONVEX_SITE_URL}/getAudio?storageId=${storageId}`
           }}
-          file={audioA}
-          setFile={(f: string) => form.setValue('audioA', f)}
-          removeFile={() => form.setValue('audioA', '')}
+          file={audio}
+          setFile={(f: string) => form.setValue('audio', f)}
+          removeFile={() => form.setValue('audio', '')}
           maxSizeInMB={15}
           allowedTypes={[
             'audio/mpeg',
@@ -53,23 +55,32 @@ export function AudioForm() {
           errorMessage="Failed to upload audio file"
         />
 
-        <AudioPlayback
-          trackName="Track name"
-          src={{
-            mode: 'url',
-            url: 'https://cdn.pixabay.com/audio/2025/05/17/audio_3882df0036.mp3',
+        <AudioTrimUploader
+          externalAudioUrlFn={(storageId) => {
+            return `${import.meta.env.VITE_CONVEX_SITE_URL}/getAudio?storageId=${storageId}`
           }}
+          file={audioTrim}
+          setFile={(f: string) => form.setValue('audioTrim', f)}
+          removeFile={() => form.setValue('audioTrim', '')}
+          maxSizeInMB={15}
+          allowedTypes={[
+            'audio/mpeg',
+            'audio/wav',
+            'audio/ogg',
+            'audio/mp4',
+            'audio/aac',
+          ]}
+          successMessage="Audio file trimmed and uploaded successfully!"
+          errorMessage="Failed to upload audio file"
         />
 
-        <div className="flex justify-center mt-6">
-          <Button
-            className="w-fit"
-            onClick={form.handleSubmit(handleFormSubmit)}
-            disabled={!audioA}
-          >
-            Submit Audio Files
-          </Button>
-        </div>
+        <Button
+          className="w-fit"
+          onClick={form.handleSubmit(handleFormSubmit)}
+          disabled={!audio || !audioTrim}
+        >
+          Submit Audio
+        </Button>
       </Form>
     </div>
   )

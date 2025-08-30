@@ -654,7 +654,7 @@ import { Ellipsis as Ellipsis2 } from "lucide-react";
 import { useEffect as useEffect5, useMemo as useMemo3, useState as useState5 } from "react";
 
 // src/audio/uploader/single-audio/AudioTrimPlayback.tsx
-import { Crop, Pause as Pause2, Play as Play2, Volume2 as Volume22, VolumeX as VolumeX2, X, ZoomIn } from "lucide-react";
+import { Crop, Pause as Pause2, Play as Play2, Volume2 as Volume22, VolumeX as VolumeX2, X } from "lucide-react";
 import { useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
 import WaveSurfer5 from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
@@ -671,12 +671,10 @@ function AudioTrimPlayback({
   const [wavesurferObj, setWavesurferObj] = useState4();
   const [volume, setVolume] = useState4(1);
   const [playing, setPlaying] = useState4(false);
-  const [zoom, setZoom] = useState4(1);
   const [isTrimMode, setIsTrimMode] = useState4(false);
   useEffect4(() => {
     setPlaying(false);
     setVolume(1);
-    setZoom(1);
     setWavesurferObj(void 0);
     setIsTrimMode(false);
   }, [src]);
@@ -687,9 +685,9 @@ function AudioTrimPlayback({
       }
       const ws = WaveSurfer5.create({
         container: timelineRef.current,
-        cursorColor: "oklch(0.769 0.188 70.08)",
+        cursorColor: "oklch(0.488 0.243 264.376)",
         waveColor: "oklch(0.708 0 0)",
-        progressColor: "oklch(0.769 0.188 70.08)",
+        progressColor: "oklch(0.488 0.243 264.376)",
         height: 32,
         normalize: true,
         fillParent: true,
@@ -720,7 +718,9 @@ function AudioTrimPlayback({
     if (wavesurferObj) {
       const handleReady = () => {
         if (isTrimMode) {
-          regions.enableDragSelection({});
+          regions.enableDragSelection({
+            color: "oklch(0.488 0.243 264.376 / 0.4)"
+          });
         }
       };
       const handlePlay = () => {
@@ -770,7 +770,6 @@ function AudioTrimPlayback({
       }
       setPlaying(false);
       setVolume(1);
-      setZoom(1);
       setIsTrimMode(false);
     };
   }, []);
@@ -784,11 +783,6 @@ function AudioTrimPlayback({
     wavesurferObj.setVolume(value[0] / 100);
     setVolume(value[0] / 100);
   }
-  function handleZoomSlider(value) {
-    if (!wavesurferObj) return;
-    wavesurferObj.zoom(value[0]);
-    setZoom(value[0]);
-  }
   function handleTrimMode() {
     setIsTrimMode(true);
     if (wavesurferObj) {
@@ -796,7 +790,9 @@ function AudioTrimPlayback({
         wavesurferObj.stop();
         setPlaying(false);
       }
-      regions.enableDragSelection({});
+      regions.enableDragSelection({
+        color: "oklch(0.488 0.243 264.376 / 0.4)"
+      });
     }
   }
   function handleCancelTrim() {
@@ -842,7 +838,7 @@ function AudioTrimPlayback({
         className
       ),
       children: [
-        /* @__PURE__ */ jsxs5("div", { className: "gap-2 flex flex-col w-full justify-center items-center text-sm text-muted-foreground", children: [
+        /* @__PURE__ */ jsxs5("div", { className: "gap-2 flex flex-col w-full overflow-x-scroll justify-center items-center text-sm text-muted-foreground", children: [
           /* @__PURE__ */ jsx7("div", { ref: timelineRef, className: "w-full" }),
           /* @__PURE__ */ jsx7("div", { ref: timestampsRef, className: "w-full" })
         ] }),
@@ -855,7 +851,6 @@ function AudioTrimPlayback({
               handleVolumeSlider
             }
           ),
-          /* @__PURE__ */ jsx7(SetZoom, { zoom, handleZoomChange: handleZoomSlider }),
           !isTrimMode ? /* @__PURE__ */ jsx7(Fragment, { children: /* @__PURE__ */ jsxs5(Button, { variant: "default", size: "default", onClick: handleTrimMode, children: [
             /* @__PURE__ */ jsx7(Crop, { className: "h-4 w-4" }),
             " Trim"
@@ -897,29 +892,6 @@ function VolumeControl2({
           onValueChange: handleVolumeSlider,
           max: 100,
           step: 1,
-          className: "w-full",
-          orientation: "vertical"
-        }
-      )
-    ] }) })
-  ] });
-}
-function SetZoom({
-  zoom,
-  handleZoomChange
-}) {
-  return /* @__PURE__ */ jsxs5(Popover, { children: [
-    /* @__PURE__ */ jsx7(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsx7(Button, { variant: "outline", size: "icon", children: /* @__PURE__ */ jsx7(ZoomIn, { className: "h-4 w-4" }) }) }),
-    /* @__PURE__ */ jsx7(PopoverContent, { className: "w-fit p-4", align: "end", children: /* @__PURE__ */ jsxs5("div", { className: "space-y-4", children: [
-      /* @__PURE__ */ jsx7("span", { className: "text-sm font-medium", children: "Zoom" }),
-      /* @__PURE__ */ jsx7(
-        Slider,
-        {
-          value: [zoom],
-          onValueChange: handleZoomChange,
-          max: 1e3,
-          min: 1,
-          step: 50,
           className: "w-full",
           orientation: "vertical"
         }
@@ -1150,7 +1122,7 @@ function AudioTrimDialog({
       /* @__PURE__ */ jsx9(DialogTitle, { children: "Trim Audio" }),
       /* @__PURE__ */ jsx9(DialogDescription, { children: "Select a region to trim your audio file. You can drag to select a region and then confirm the trim." })
     ] }),
-    /* @__PURE__ */ jsx9("div", { className: "flex flex-col gap-4", children: /* @__PURE__ */ jsx9(
+    /* @__PURE__ */ jsx9("div", { className: "flex flex-col gap-4 w-full", children: /* @__PURE__ */ jsx9(
       AudioTrimPlaybackWithBlob,
       {
         src: URL.createObjectURL(file),

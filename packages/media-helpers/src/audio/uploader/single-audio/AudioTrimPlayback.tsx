@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
-import { Crop, Pause, Play, Volume2, VolumeX, X, ZoomIn } from 'lucide-react'
+import { Crop, Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
@@ -48,7 +48,6 @@ export function AudioTrimPlayback({
   const [wavesurferObj, setWavesurferObj] = useState<WaveSurfer>()
   const [volume, setVolume] = useState<number>(1)
   const [playing, setPlaying] = useState(false)
-  const [zoom, setZoom] = useState(1)
 
   const [isTrimMode, setIsTrimMode] = useState(false)
 
@@ -56,7 +55,6 @@ export function AudioTrimPlayback({
   useEffect(() => {
     setPlaying(false)
     setVolume(1)
-    setZoom(1)
     setWavesurferObj(undefined)
     setIsTrimMode(false)
   }, [src])
@@ -69,9 +67,9 @@ export function AudioTrimPlayback({
 
       const ws = WaveSurfer.create({
         container: timelineRef.current,
-        cursorColor: 'oklch(0.769 0.188 70.08)',
+        cursorColor: 'oklch(0.488 0.243 264.376)',
         waveColor: 'oklch(0.708 0 0)',
-        progressColor: 'oklch(0.769 0.188 70.08)',
+        progressColor: 'oklch(0.488 0.243 264.376)',
         height: 32,
         normalize: true,
         fillParent: true,
@@ -105,7 +103,9 @@ export function AudioTrimPlayback({
     if (wavesurferObj) {
       const handleReady = () => {
         if (isTrimMode) {
-          regions.enableDragSelection({})
+          regions.enableDragSelection({
+            color: 'oklch(0.488 0.243 264.376 / 0.4)',
+          })
         }
       }
 
@@ -168,7 +168,6 @@ export function AudioTrimPlayback({
       }
       setPlaying(false)
       setVolume(1)
-      setZoom(1)
       setIsTrimMode(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -186,12 +185,6 @@ export function AudioTrimPlayback({
     setVolume(value[0] / 100)
   }
 
-  function handleZoomSlider(value: number[]) {
-    if (!wavesurferObj) return
-    wavesurferObj.zoom(value[0])
-    setZoom(value[0])
-  }
-
   function handleTrimMode() {
     setIsTrimMode(true)
     if (wavesurferObj) {
@@ -200,7 +193,9 @@ export function AudioTrimPlayback({
         wavesurferObj.stop()
         setPlaying(false)
       }
-      regions.enableDragSelection({})
+      regions.enableDragSelection({
+        color: 'oklch(0.488 0.243 264.376 / 0.4)',
+      })
     }
   }
 
@@ -258,7 +253,7 @@ export function AudioTrimPlayback({
         className,
       )}
     >
-      <div className="gap-2 flex flex-col w-full justify-center items-center text-sm text-muted-foreground">
+      <div className="gap-2 flex flex-col w-full overflow-x-scroll justify-center items-center text-sm text-muted-foreground">
         <div ref={timelineRef} className="w-full" />
         <div ref={timestampsRef} className="w-full" />
       </div>
@@ -274,7 +269,6 @@ export function AudioTrimPlayback({
           volume={volume}
           handleVolumeSlider={handleVolumeSlider}
         />
-        <SetZoom zoom={zoom} handleZoomChange={handleZoomSlider} />
 
         {!isTrimMode ? (
           <>
@@ -327,38 +321,6 @@ function VolumeControl({
             onValueChange={handleVolumeSlider}
             max={100}
             step={1}
-            className="w-full"
-            orientation="vertical"
-          />
-        </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-function SetZoom({
-  zoom,
-  handleZoomChange,
-}: {
-  zoom: number
-  handleZoomChange: (value: number[]) => void
-}) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="icon">
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-fit p-4" align="end">
-        <div className="space-y-4">
-          <span className="text-sm font-medium">Zoom</span>
-          <Slider
-            value={[zoom]}
-            onValueChange={handleZoomChange}
-            max={1000}
-            min={1}
-            step={50}
             className="w-full"
             orientation="vertical"
           />
