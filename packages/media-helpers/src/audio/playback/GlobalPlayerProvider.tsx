@@ -22,9 +22,7 @@ export function GlobalPlayerProvider({
   children: ReactNode
   externalAudioUrlFn?: (url: string) => string
 }) {
-  // Create internal wavesurfer ref for the global player
   const wavesurferRef = useRef<WaveSurfer | null>(null)
-  // Load initial state synchronously so we don't call setState inside effects
   const loadInitialState = (): GlobalPlayerState | null => {
     try {
       const stored = localStorage.getItem(GLOBAL_PLAYER_STORAGE_KEY)
@@ -50,13 +48,11 @@ export function GlobalPlayerProvider({
     () => initialStored != null,
   )
 
-  // Keep the ref in sync whenever we explicitly update the stored state
   const updateStoredState = useCallback((next: GlobalPlayerState | null) => {
     storedPlayerStateRef.current = next
     setStoredPlayerState(next)
   }, [])
 
-  // Persist a snapshot from wavesurferRef every 3 seconds when playing (read-only).
   useEffect(() => {
     const wsRef = wavesurferRef
     if (!wsRef) return
@@ -68,10 +64,8 @@ export function GlobalPlayerProvider({
         const ws = wsRef.current
         if (!ws) return
 
-        // Only update if the player is currently playing
         if (!ws.isPlaying()) return
 
-        // Read values from wavesurfer instance
         const currentTime = ws.getCurrentTime()
         const volume = ws.getVolume()
         const playbackRate = ws.getPlaybackRate()
@@ -95,7 +89,6 @@ export function GlobalPlayerProvider({
     }, 3000)
 
     return () => clearInterval(interval)
-    // Intentionally depend only on the ref object so interval isn't recreated frequently
   }, [wavesurferRef])
 
   const addToGlobalPlayer = useCallback(

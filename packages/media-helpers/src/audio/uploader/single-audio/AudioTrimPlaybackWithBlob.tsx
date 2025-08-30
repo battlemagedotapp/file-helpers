@@ -10,13 +10,11 @@ type AudioTrimPlaybackWithBlobProps = {
   onTrimModeChange?: (isTrimMode: boolean) => void
 }
 
-// Load audio as both blob and AudioBuffer
 async function loadAudio(srcUrl: string) {
   const response = await fetch(srcUrl)
   const arrayBuffer = await response.arrayBuffer()
   const blob = new Blob([arrayBuffer])
 
-  // Decode to AudioBuffer
   const audioContext = new (window.AudioContext || window.webkitAudioContext)()
   const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
@@ -27,7 +25,6 @@ async function loadAudio(srcUrl: string) {
   }
 }
 
-// Utility function to convert AudioBuffer to blob (preserving original quality)
 function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
   const numberOfChannels = audioBuffer.numberOfChannels
   const length = audioBuffer.length
@@ -41,7 +38,6 @@ function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
   const arrayBuffer = new ArrayBuffer(bufferSize)
   const view = new DataView(arrayBuffer)
 
-  // WAV header
   const writeString = (offset: number, string: string) => {
     for (let i = 0; i < string.length; i++) {
       view.setUint8(offset + i, string.charCodeAt(i))
@@ -62,12 +58,10 @@ function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
   writeString(36, 'data')
   view.setUint32(40, dataSize, true)
 
-  // Write audio data - preserve original quality by directly copying from AudioBuffer
   let offset = 44
   for (let i = 0; i < length; i++) {
     for (let channel = 0; channel < numberOfChannels; channel++) {
       const channelData = audioBuffer.getChannelData(channel)
-      // Convert float32 to 16-bit PCM without any additional processing
       const sample = Math.max(-1, Math.min(1, channelData[i])) // Clamp to [-1, 1]
       const pcmSample = sample < 0 ? sample * 0x8000 : sample * 0x7fff
       view.setInt16(offset, pcmSample, true)
@@ -92,17 +86,14 @@ export function AudioTrimPlaybackWithBlob({
   const handleTrim = (regionTimestamps: { start: number; end: number }) => {
     if (!originalAudioBuffer) return
 
-    // Clean up the old blob URL before creating a new one
     if (audioBlobUrl) {
       URL.revokeObjectURL(audioBlobUrl)
     }
 
     try {
-      // Trim the original AudioBuffer using region timestamps
       const sampleRate = originalAudioBuffer.sampleRate
       const numberOfChannels = originalAudioBuffer.numberOfChannels
 
-      // Calculate sample indices for the region
       const startIndex = Math.max(
         0,
         Math.floor(regionTimestamps.start * sampleRate),
@@ -119,7 +110,6 @@ export function AudioTrimPlaybackWithBlob({
 
       const trimmedLength = endIndex - startIndex
 
-      // Create new AudioBuffer for the trimmed audio
       const audioContext = new (window.AudioContext ||
         window.webkitAudioContext)()
       const trimmedBuffer = audioContext.createBuffer(
@@ -128,7 +118,6 @@ export function AudioTrimPlaybackWithBlob({
         sampleRate,
       )
 
-      // Copy the selected region from each channel
       for (let channel = 0; channel < numberOfChannels; channel++) {
         const originalChannelData = originalAudioBuffer.getChannelData(channel)
         const trimmedChannelData = trimmedBuffer.getChannelData(channel)
@@ -137,10 +126,8 @@ export function AudioTrimPlaybackWithBlob({
         )
       }
 
-      // Convert the trimmed AudioBuffer back to a blob (preserving original format)
       const trimmedBlob = audioBufferToBlob(trimmedBuffer)
 
-      // Update the state with the trimmed blob and increment version to force remount
       const newBlobUrl = URL.createObjectURL(trimmedBlob)
       setAudioBlob(trimmedBlob)
       setAudioBlobUrl(newBlobUrl)
@@ -148,7 +135,6 @@ export function AudioTrimPlaybackWithBlob({
       setIsLoading(false)
       setError(null)
 
-      // Call the new props if provided
       if (onTrim) {
         onTrim(regionTimestamps)
       }
@@ -171,7 +157,6 @@ export function AudioTrimPlaybackWithBlob({
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null)
 
-  // Cleanup blob URL when component unmounts
   useEffect(() => {
     return () => {
       if (audioBlobUrl) {
@@ -181,8 +166,6 @@ export function AudioTrimPlaybackWithBlob({
   }, [audioBlobUrl])
 
   useEffect(() => {
-    // Only load audio if we don't have an original audio buffer yet
-    // This prevents reloading the original audio after trimming
     if (!originalAudioBuffer) {
       setIsLoading(true)
       setError(null)
@@ -202,7 +185,6 @@ export function AudioTrimPlaybackWithBlob({
           setIsLoading(false)
         })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [srcUrl, originalAudioBuffer])
 
   if (isLoading) {

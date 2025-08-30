@@ -12,7 +12,6 @@ import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
 
-// Type declaration for webkitAudioContext
 declare global {
   interface Window {
     webkitAudioContext?: typeof AudioContext
@@ -53,15 +52,12 @@ export function AudioTrimPlayback({
 
   const [isTrimMode, setIsTrimMode] = useState(false)
 
-  // Reset state when src changes (component remounts)
   useEffect(() => {
     setPlaying(false)
     setVolume(1)
     setWavesurferObj(undefined)
-    // Don't reset isTrimMode here as it should persist across remounts
   }, [src])
 
-  // Notify parent when trim mode changes
   useEffect(() => {
     if (onTrimModeChange) {
       onTrimModeChange(isTrimMode)
@@ -129,7 +125,6 @@ export function AudioTrimPlayback({
       regions.on('region-created', () => {
         const regionList = regions.getRegions()
         const keys = Object.keys(regionList)
-        // Remove all regions except the last one (most recently created)
         while (keys.length > 1) {
           const firstKey = keys[0]
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,7 +136,6 @@ export function AudioTrimPlayback({
       regions.on('region-updated', () => {
         const regionList = regions.getRegions()
         const keys = Object.keys(regionList)
-        // Remove all regions except the last one (most recently updated)
         while (keys.length > 1) {
           const firstKey = keys[0]
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -155,7 +149,6 @@ export function AudioTrimPlayback({
       wavesurferObj.on('finish', handleFinish)
 
       return () => {
-        // Properly stop playback before destroying
         if (wavesurferObj.isPlaying()) {
           wavesurferObj.stop()
         }
@@ -165,7 +158,6 @@ export function AudioTrimPlayback({
     }
   }, [wavesurferObj, isTrimMode])
 
-  // Cleanup effect when component unmounts (important for remounting)
   useEffect(() => {
     return () => {
       if (wavesurferObj) {
@@ -180,7 +172,7 @@ export function AudioTrimPlayback({
       setIsTrimMode(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Empty dependency array means this runs on unmount
+  }, [])
 
   function handlePlayPause() {
     if (!wavesurferObj) return
@@ -197,7 +189,6 @@ export function AudioTrimPlayback({
   function handleTrimMode() {
     setIsTrimMode(true)
     if (wavesurferObj) {
-      // Stop playback before entering trim mode to prevent state instability
       if (wavesurferObj.isPlaying()) {
         wavesurferObj.stop()
         setPlaying(false)
@@ -211,13 +202,11 @@ export function AudioTrimPlayback({
   function handleCancelTrim() {
     setIsTrimMode(false)
     if (wavesurferObj) {
-      // Stop playback before canceling to prevent state instability
       if (wavesurferObj.isPlaying()) {
         wavesurferObj.stop()
         setPlaying(false)
       }
 
-      // Clear all regions
       const regionList = regions.getRegions()
       const keys = Object.keys(regionList)
       keys.forEach((key) => {
@@ -237,13 +226,11 @@ export function AudioTrimPlayback({
     const region = (regionList as Record<string, any>)[firstKey]
     if (!region) return
 
-    // Stop playback before processing trim to prevent state instability
     if (wavesurferObj.isPlaying()) {
       wavesurferObj.stop()
       setPlaying(false)
     }
 
-    // Send region timestamps to parent component for processing
     if (onTrim) {
       onTrim({
         start: region.start,
@@ -251,7 +238,6 @@ export function AudioTrimPlayback({
       })
     }
 
-    // Exit trim mode after confirming
     setIsTrimMode(false)
   }
 

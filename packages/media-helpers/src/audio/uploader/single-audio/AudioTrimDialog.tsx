@@ -37,7 +37,6 @@ export function AudioTrimDialog({
 
   const handleTrim = (regionTimestamps: { start: number; end: number }) => {
     setTrimRegion(regionTimestamps)
-    // The AudioTrimPlaybackWithBlob will handle the actual trimming and set the trimmed blob
   }
 
   const handleTrimModeChange = (trimMode: boolean) => {
@@ -46,7 +45,6 @@ export function AudioTrimDialog({
 
   const handleUpload = async () => {
     if (!trimmedBlob) {
-      // If no trimming was done, use the original file
       onUpload({
         id: crypto.randomUUID(),
         file: file,
@@ -57,7 +55,6 @@ export function AudioTrimDialog({
     try {
       setIsUploading(true)
 
-      // Convert blob to file
       const trimmedFile = new File([trimmedBlob], file.name, {
         type: file.type,
         lastModified: Date.now(),
@@ -77,7 +74,6 @@ export function AudioTrimDialog({
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
-      // Reset state when dialog closes
       setTrimmedBlob(null)
       setTrimRegion(null)
       setIsTrimMode(false)

@@ -103,7 +103,6 @@ export function AudioPlayback({
       const handleReady = () => {
         setDuration(wavesurferObj.getDuration())
 
-        // Restore playback state when wavesurfer is ready
         updatePlaybackState({
           wavesurferObj,
           initialVolume,
@@ -130,7 +129,6 @@ export function AudioPlayback({
       wavesurferObj.on('finish', handleFinish)
       wavesurferObj.on('timeupdate', handleTimeUpdate)
 
-      // Notify parent when wavesurfer is ready
       if (onWavesurferReady) {
         onWavesurferReady(wavesurferObj)
       }
