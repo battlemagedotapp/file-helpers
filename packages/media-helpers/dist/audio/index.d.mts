@@ -103,8 +103,9 @@ type AudioTrimPlaybackProps = {
         start: number;
         end: number;
     }) => void;
+    onTrimModeChange?: (isTrimMode: boolean) => void;
 };
-declare function AudioTrimPlayback({ src, className, onTrim, }: AudioTrimPlaybackProps): react_jsx_runtime.JSX.Element;
+declare function AudioTrimPlayback({ src, className, onTrim, onTrimModeChange, }: AudioTrimPlaybackProps): react_jsx_runtime.JSX.Element;
 
 type AudioTrimPlaybackWithBlobProps = {
     src: string;
@@ -114,8 +115,9 @@ type AudioTrimPlaybackWithBlobProps = {
         end: number;
     }) => void;
     onTrimmedBlobChange?: (blob: Blob | null) => void;
+    onTrimModeChange?: (isTrimMode: boolean) => void;
 };
-declare function AudioTrimPlaybackWithBlob({ src, externalAudioUrlFn, onTrim, onTrimmedBlobChange, }: AudioTrimPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
+declare function AudioTrimPlaybackWithBlob({ src, externalAudioUrlFn, onTrim, onTrimmedBlobChange, onTrimModeChange, }: AudioTrimPlaybackWithBlobProps): react_jsx_runtime.JSX.Element;
 
 type AudioTrimUploaderProps = {
     file?: string | null;

@@ -36,12 +36,14 @@ type AudioTrimPlaybackProps = {
   src: AudioSource
   className?: string
   onTrim?: (regionTimestamps: { start: number; end: number }) => void
+  onTrimModeChange?: (isTrimMode: boolean) => void
 }
 
 export function AudioTrimPlayback({
   src,
   className,
   onTrim,
+  onTrimModeChange,
 }: AudioTrimPlaybackProps) {
   const timelineRef = useRef<HTMLDivElement | null>(null)
   const timestampsRef = useRef<HTMLDivElement | null>(null)
@@ -56,8 +58,15 @@ export function AudioTrimPlayback({
     setPlaying(false)
     setVolume(1)
     setWavesurferObj(undefined)
-    setIsTrimMode(false)
+    // Don't reset isTrimMode here as it should persist across remounts
   }, [src])
+
+  // Notify parent when trim mode changes
+  useEffect(() => {
+    if (onTrimModeChange) {
+      onTrimModeChange(isTrimMode)
+    }
+  }, [isTrimMode, onTrimModeChange])
 
   useEffect(() => {
     if (timelineRef.current && timestampsRef.current && !wavesurferObj) {

@@ -33,10 +33,15 @@ export function AudioTrimDialog({
     start: number
     end: number
   } | null>(null)
+  const [isTrimMode, setIsTrimMode] = useState(false)
 
   const handleTrim = (regionTimestamps: { start: number; end: number }) => {
     setTrimRegion(regionTimestamps)
     // The AudioTrimPlaybackWithBlob will handle the actual trimming and set the trimmed blob
+  }
+
+  const handleTrimModeChange = (trimMode: boolean) => {
+    setIsTrimMode(trimMode)
   }
 
   const handleUpload = async () => {
@@ -75,6 +80,7 @@ export function AudioTrimDialog({
       // Reset state when dialog closes
       setTrimmedBlob(null)
       setTrimRegion(null)
+      setIsTrimMode(false)
     }
     onOpenChange(newOpen)
   }
@@ -95,21 +101,24 @@ export function AudioTrimDialog({
             src={URL.createObjectURL(file)}
             onTrim={handleTrim}
             onTrimmedBlobChange={setTrimmedBlob}
+            onTrimModeChange={handleTrimModeChange}
           />
         </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => handleOpenChange(false)}
-            disabled={isUploading}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleUpload} disabled={isUploading}>
-            {isUploading ? 'Uploading...' : 'Upload Audio'}
-          </Button>
-        </DialogFooter>
+        {!isTrimMode && (
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={isUploading}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpload} disabled={isUploading}>
+              {isUploading ? 'Uploading...' : 'Upload Audio'}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

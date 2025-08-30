@@ -664,7 +664,8 @@ var regions = RegionsPlugin.create();
 function AudioTrimPlayback({
   src,
   className,
-  onTrim
+  onTrim,
+  onTrimModeChange
 }) {
   const timelineRef = useRef3(null);
   const timestampsRef = useRef3(null);
@@ -676,8 +677,12 @@ function AudioTrimPlayback({
     setPlaying(false);
     setVolume(1);
     setWavesurferObj(void 0);
-    setIsTrimMode(false);
   }, [src]);
+  useEffect4(() => {
+    if (onTrimModeChange) {
+      onTrimModeChange(isTrimMode);
+    }
+  }, [isTrimMode, onTrimModeChange]);
   useEffect4(() => {
     if (timelineRef.current && timestampsRef.current && !wavesurferObj) {
       if (timelineRef.current) {
@@ -959,7 +964,8 @@ function AudioTrimPlaybackWithBlob({
   src,
   externalAudioUrlFn,
   onTrim,
-  onTrimmedBlobChange
+  onTrimmedBlobChange,
+  onTrimModeChange
 }) {
   const [audioVersion, setAudioVersion] = useState5(0);
   const [originalAudioBuffer, setOriginalAudioBuffer] = useState5(null);
@@ -1063,7 +1069,8 @@ function AudioTrimPlaybackWithBlob({
       AudioTrimPlayback,
       {
         src: { mode: "blob", blob: audioBlob },
-        onTrim: handleTrim
+        onTrim: handleTrim,
+        onTrimModeChange
       },
       audioVersion
     );
@@ -1082,8 +1089,12 @@ function AudioTrimDialog({
   const [isUploading, setIsUploading] = useState6(false);
   const [trimmedBlob, setTrimmedBlob] = useState6(null);
   const [trimRegion, setTrimRegion] = useState6(null);
+  const [isTrimMode, setIsTrimMode] = useState6(false);
   const handleTrim = (regionTimestamps) => {
     setTrimRegion(regionTimestamps);
+  };
+  const handleTrimModeChange = (trimMode) => {
+    setIsTrimMode(trimMode);
   };
   const handleUpload = async () => {
     if (!trimmedBlob) {
@@ -1114,6 +1125,7 @@ function AudioTrimDialog({
     if (!newOpen) {
       setTrimmedBlob(null);
       setTrimRegion(null);
+      setIsTrimMode(false);
     }
     onOpenChange(newOpen);
   };
@@ -1127,10 +1139,11 @@ function AudioTrimDialog({
       {
         src: URL.createObjectURL(file),
         onTrim: handleTrim,
-        onTrimmedBlobChange: setTrimmedBlob
+        onTrimmedBlobChange: setTrimmedBlob,
+        onTrimModeChange: handleTrimModeChange
       }
     ) }),
-    /* @__PURE__ */ jsxs7(DialogFooter, { children: [
+    !isTrimMode && /* @__PURE__ */ jsxs7(DialogFooter, { children: [
       /* @__PURE__ */ jsx9(
         Button,
         {

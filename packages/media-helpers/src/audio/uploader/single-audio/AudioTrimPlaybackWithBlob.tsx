@@ -7,6 +7,7 @@ type AudioTrimPlaybackWithBlobProps = {
   externalAudioUrlFn?: (url: string) => string
   onTrim?: (regionTimestamps: { start: number; end: number }) => void
   onTrimmedBlobChange?: (blob: Blob | null) => void
+  onTrimModeChange?: (isTrimMode: boolean) => void
 }
 
 // Load audio as both blob and AudioBuffer
@@ -82,6 +83,7 @@ export function AudioTrimPlaybackWithBlob({
   externalAudioUrlFn,
   onTrim,
   onTrimmedBlobChange,
+  onTrimModeChange,
 }: AudioTrimPlaybackWithBlobProps) {
   const [audioVersion, setAudioVersion] = useState(0)
   const [originalAudioBuffer, setOriginalAudioBuffer] =
@@ -221,6 +223,7 @@ export function AudioTrimPlaybackWithBlob({
         key={audioVersion}
         src={{ mode: 'blob', blob: audioBlob }}
         onTrim={handleTrim}
+        onTrimModeChange={onTrimModeChange}
       />
     )
   }
