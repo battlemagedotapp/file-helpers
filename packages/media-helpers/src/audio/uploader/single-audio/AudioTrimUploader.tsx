@@ -110,6 +110,7 @@ export function AudioTrimUploader({
 
         {!hasFile && (
           <Button
+            type="button"
             disabled={isUploading}
             variant="default"
             size="default"
